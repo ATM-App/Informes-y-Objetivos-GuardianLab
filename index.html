@@ -220,6 +220,14 @@
             
             <div class="modern-card">
                 <h3 class="section-divider" style="color:var(--atm-red)">1. Información del Torneo</h3>
+                
+                <div style="margin-bottom:15px; padding:10px; background:rgba(0,230,118,0.1); border:1px solid var(--neon-green); border-radius:12px;">
+                    <label style="font-size:0.75rem; color:var(--neon-green); font-weight:bold; margin-bottom:5px; display:block;">⚡ Copiar datos de un torneo previo (Opcional):</label>
+                    <select id="tor-copiar-base" onchange="window.copiarBaseTorneo(this)" style="margin-bottom:0; background:rgba(0,0,0,0.4);">
+                        <option value="">-- Seleccionar Torneo --</option>
+                    </select>
+                </div>
+
                 <select id="tor-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
                 <div class="row">
                     <input type="text" id="tor-nombre" placeholder="Nombre del Torneo (ej: Iscar Cup)">
@@ -267,14 +275,23 @@
                     <div class="rating-item"><label>Comunicación</label><input type="number" id="tor-val-com" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
                 </div>
 
-                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales y Situaciones</h3>
+                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales</h3>
                 <textarea id="tor-obs-penaltis" class="pdf-input-read" placeholder="Rendimiento en Penaltis (Si los hubo)..." style="height:60px; margin-bottom:10px;"></textarea>
                 <textarea id="tor-obs-decisivas" class="pdf-input-read" placeholder="Acciones decisivas del torneo..." style="height:60px; margin-bottom:10px;"></textarea>
                 <textarea id="tor-obs-pos" class="pdf-input-read" placeholder="Puntos Positivos Globales..." style="height:60px; margin-bottom:10px;"></textarea>
                 <textarea id="tor-obs-neg" class="pdf-input-read" placeholder="Áreas de Mejora / Errores Clave..." style="height:60px; margin-bottom:10px;"></textarea>
                 <textarea id="tor-obs-trans" class="pdf-input-read" placeholder="Trascendencia en el Torneo..." style="height:60px;"></textarea>
 
-                <button onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">📄 GENERAR INFORME TORNEO</button>
+                <h3 class="section-divider" style="color:var(--atm-red)">5. Valoración General del Torneo</h3>
+                <select id="tor-val-general">
+                    <option value="BAJA">BAJA</option>
+                    <option value="MEDIA">MEDIA</option>
+                    <option value="ALTA">ALTA</option>
+                    <option value="EXCEPCIONAL">EXCEPCIONAL</option>
+                </select>
+
+                <button id="btn-save-torneo" onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER PDF</button>
+                <button id="btn-cancel-torneo" onclick="window.cancelarEdicionTorneo()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             
             <h3 class="section-divider">Historial de Torneos</h3>
@@ -333,14 +350,5 @@
     <div id="printable-area" class="printable-hidden"></div>
     
     <script src="app.js"></script>
-    <script>
-    if('serviceWorker' in navigator){
-        window.addEventListener('load',()=>{
-            navigator.serviceWorker.register('./sw.js')
-            .then(reg=>console.log('SW Registrado v3'))
-            .catch(err=>console.log('Error SW',err));
-        });
-    }
-    </script>
 </body>
 </html>

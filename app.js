@@ -29,6 +29,7 @@ const auth = firebase.auth();
 
 // --- VARIABLES ---
 let porteroEnEdicionId = null;
+let torneoEnEdicionId = null; // Variable para gestionar edición de torneos
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
 let ACCIONES_EVALUACION = {
@@ -211,19 +212,79 @@ window.imprimirPDFNativo = function() { window.print(); }
 
 const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
 const optPaises = `<option value="">🌍 País Rival...</option><option value="🇪🇸">🇪🇸 España</option><option value="🇫🇷">🇫🇷 Francia</option><option value="🇵🇹">🇵🇹 Portugal</option><option value="🇮🇹">🇮🇹 Italia</option><option value="🇩🇪">🇩🇪 Alemania</option><option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra</option><option value="🌍">🌍 Otro</option>`;
+const optFases = `<option value="Grupos J1">Grupos J1</option><option value="Grupos J2">Grupos J2</option><option value="Grupos J3">Grupos J3</option><option value="Grupos J4">Grupos J4</option><option value="Grupos J5">Grupos J5</option><option value="Grupos J6">Grupos J6</option><option value="Grupos J7">Grupos J7</option><option value="Grupos J8">Grupos J8</option><option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option><option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option><option value="Final">Final</option><option value="3º/4º">3º/4º Puesto</option>`;
 
-window.agregarFilaPartido = function() {
+// Cargar opciones en el select de Copiar Base
+function cargarHistorialTorneos() {
+    db.collection("informes_torneo").orderBy("fecha", "desc").limit(20).onSnapshot(snap => {
+        const cont = document.getElementById('lista-torneos-guardados');
+        const selCopiar = document.getElementById('tor-copiar-base');
+        if(!cont) return;
+        cont.innerHTML = '';
+        
+        let opcionesCopiar = '<option value="">-- Seleccionar Torneo --</option>';
+
+        snap.forEach(doc => {
+            const inf = doc.data();
+            
+            db.collection("porteros").doc(inf.porteroId).get().then(pDoc => {
+                if(pDoc.exists) {
+                    const p = pDoc.data();
+                    
+                    // Añadir a historial
+                    cont.innerHTML += `<div class="eval-card">
+                        <div>
+                            <div style="font-weight:bold;">${p.nombre}</div>
+                            <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
+                            <div style="font-size:0.7rem; color:var(--atm-red);">${inf.fecha.substring(0,10)}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-icon-action" onclick="window.editarInformeTorneo('${doc.id}')" title="Editar">✏️</button>
+                            <button class="btn-icon-action" onclick="window.verPDFTorneoGuardado('${doc.id}')" title="Ver">📄</button>
+                            <button class="btn-trash" onclick="db.collection('informes_torneo').doc('${doc.id}').delete()" title="Borrar">🗑️</button>
+                        </div>
+                    </div>`;
+
+                    // Añadir al select de copiar base
+                    opcionesCopiar += `<option value="${doc.id}">${inf.datos.torneo} - ${p.nombre}</option>`;
+                    if(selCopiar) selCopiar.innerHTML = opcionesCopiar;
+                }
+            });
+        });
+    });
+}
+
+// Función para copiar base de otro torneo
+window.copiarBaseTorneo = function(selectEl) {
+    const id = selectEl.value;
+    if(!id) return;
+    
+    db.collection("informes_torneo").doc(id).get().then(doc => {
+        const data = doc.data().datos;
+        
+        document.getElementById('tor-nombre').value = data.torneo || '';
+        document.getElementById('tor-ubicacion').value = data.ubicacion || '';
+        document.getElementById('tor-pos-final').value = data.posFinal || '';
+        document.getElementById('tor-superficie').value = data.superficie || 'Césped Natural';
+        
+        document.getElementById('contenedor-partidos').innerHTML = '';
+        if(data.partidos) {
+            data.partidos.forEach(p => window.agregarFilaPartido(p));
+        }
+        
+        // Reset del select
+        selectEl.value = "";
+    });
+}
+
+window.agregarFilaPartido = function(data = null) {
     const container = document.getElementById('contenedor-partidos');
     const div = document.createElement('div');
     div.className = 'partido-row';
+    
     div.innerHTML = `
         <div class="row">
-            <select class="p-jornada" style="flex:1">
-                <option value="J1">J1</option><option value="J2">J2</option><option value="J3">J3</option>
-                <option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option>
-                <option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option>
-                <option value="Final">Final</option><option value="3º/4º">3º/4º</option>
-            </select>
+            <select class="p-jornada" style="flex:1">${optFases}</select>
             <select class="p-pais" style="flex:1">${optPaises}</select>
             <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
         </div>
@@ -243,6 +304,24 @@ window.agregarFilaPartido = function() {
         </div>
     `;
     container.appendChild(div);
+    
+    // Si viene con datos (Editar o Copiar), rellenar campos
+    if (data) {
+        div.querySelector('.p-jornada').value = data.jornada || 'Grupos J1';
+        div.querySelector('.p-pais').value = data.pais || '';
+        div.querySelector('.p-rival').value = data.rival || '';
+        div.querySelector('.p-goles-atm').value = data.golesAtm || '';
+        div.querySelector('.p-goles-riv').value = data.golesRival || '';
+        div.querySelector('.p-min').value = data.minutos || '';
+        
+        if (data.golesAtm === data.golesRival && data.golesAtm !== "") {
+            const penContainer = div.querySelector('.p-penaltis-container');
+            penContainer.style.display = 'flex';
+            div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
+            div.querySelector('.p-pen-atm').value = data.penAtm || '';
+            div.querySelector('.p-pen-riv').value = data.penRival || '';
+        }
+    }
 }
 
 window.verificarEmpate = function(selectElement) {
@@ -259,6 +338,76 @@ window.verificarEmpate = function(selectElement) {
         row.querySelector('.p-pen-atm').value = '';
         row.querySelector('.p-pen-riv').value = '';
     }
+}
+
+// Editar Torneo
+window.editarInformeTorneo = function(id) {
+    db.collection("informes_torneo").doc(id).get().then(doc => {
+        const d = doc.data();
+        const data = d.datos;
+        torneoEnEdicionId = id; // Activa el modo edición
+
+        document.getElementById('tor-portero').value = d.porteroId;
+        document.getElementById('tor-nombre').value = data.torneo || '';
+        document.getElementById('tor-ubicacion').value = data.ubicacion || '';
+        document.getElementById('tor-pos-final').value = data.posFinal || '';
+        document.getElementById('tor-superficie').value = data.superficie || 'Césped Natural';
+
+        document.getElementById('contenedor-partidos').innerHTML = '';
+        if(data.partidos) data.partidos.forEach(p => window.agregarFilaPartido(p));
+
+        const val = data.val || {};
+        document.getElementById('tor-val-personalidad').value = val.personalidad || '';
+        document.getElementById('tor-val-mando').value = val.mando || '';
+        document.getElementById('tor-val-conc').value = val.concentracion || '';
+        document.getElementById('tor-val-error').value = val.error || '';
+        document.getElementById('tor-val-confianza').value = val.confianza || '';
+        document.getElementById('tor-val-mentalidad').value = val.mentalidad || '';
+        document.getElementById('tor-val-actitud-gol').value = val.actitudGol || '';
+        document.getElementById('tor-val-primer-ultimo').value = val.primerUltimo || '';
+        document.getElementById('tor-val-ritmo').value = val.ritmo || '';
+        document.getElementById('tor-val-mejora-bajon').value = val.mejoraBajon || '';
+        document.getElementById('tor-val-entorno').value = val.entorno || '';
+        document.getElementById('tor-val-1v1').value = val.unoVuno || '';
+        document.getElementById('tor-val-org').value = val.organizacion || '';
+        document.getElementById('tor-val-com').value = val.comunicacion || '';
+
+        const obs = data.obs || {};
+        document.getElementById('tor-obs-penaltis').value = obs.penaltis || '';
+        document.getElementById('tor-obs-decisivas').value = obs.decisivas || '';
+        document.getElementById('tor-obs-pos').value = obs.pos || '';
+        document.getElementById('tor-obs-neg').value = obs.neg || '';
+        document.getElementById('tor-obs-trans').value = obs.trans || '';
+        
+        document.getElementById('tor-val-general').value = data.val_gen || 'MEDIA';
+
+        document.getElementById('btn-save-torneo').innerText = "💾 ACTUALIZAR Y VER PDF";
+        document.getElementById('btn-cancel-torneo').style.display = "inline-block";
+        window.scrollTo({top:0, behavior:'smooth'});
+    });
+}
+
+// Cancelar Edición
+window.cancelarEdicionTorneo = function() {
+    torneoEnEdicionId = null;
+    document.getElementById('tor-portero').value = '';
+    document.getElementById('tor-nombre').value = '';
+    document.getElementById('tor-ubicacion').value = '';
+    document.getElementById('tor-pos-final').value = '';
+    document.getElementById('contenedor-partidos').innerHTML = '';
+    
+    ['personalidad', 'mando', 'conc', 'error', 'confianza', 'mentalidad', 'actitud-gol', 'primer-ultimo', 'ritmo', 'mejora-bajon', 'entorno', '1v1', 'org', 'com'].forEach(id => {
+        document.getElementById('tor-val-' + id).value = '';
+    });
+    
+    ['penaltis', 'decisivas', 'pos', 'neg', 'trans'].forEach(id => {
+        document.getElementById('tor-obs-' + id).value = '';
+    });
+
+    document.getElementById('tor-val-general').value = 'MEDIA';
+    
+    document.getElementById('btn-save-torneo').innerText = "📄 GENERAR INFORME TORNEO";
+    document.getElementById('btn-cancel-torneo').style.display = "none";
 }
 
 window.generarPDFTorneo = function() {
@@ -308,10 +457,16 @@ window.generarPDFTorneo = function() {
             pos: document.getElementById('tor-obs-pos').value,
             neg: document.getElementById('tor-obs-neg').value,
             trans: document.getElementById('tor-obs-trans').value
-        }
+        },
+        val_gen: document.getElementById('tor-val-general').value
     };
 
-    db.collection('informes_torneo').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos }).then(() => {
+    // Si estamos editando, actualizamos. Si no, creamos nuevo.
+    const operacion = torneoEnEdicionId 
+        ? db.collection('informes_torneo').doc(torneoEnEdicionId).update({ datos: datos })
+        : db.collection('informes_torneo').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos });
+
+    operacion.then(() => {
         db.collection("porteros").doc(pid).get().then(doc => {
             const html = construirHTMLTorneo(doc.data(), datos);
             document.body.classList.remove('print-landscape'); 
@@ -319,6 +474,8 @@ window.generarPDFTorneo = function() {
             document.getElementById('preview-content').innerHTML = html;
             document.getElementById('printable-area').innerHTML = html;
             document.getElementById('modal-pdf-preview').style.display = 'flex';
+            
+            cancelarEdicionTorneo(); // Limpiamos formulario tras guardar
         });
     });
 }
@@ -327,25 +484,36 @@ function construirHTMLTorneo(p, d) {
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     
+    // Paracaídas para informes antiguos
+    const val = d.val || {};
+    const obs = d.obs || {};
+
     let filasPartidos = '';
     let tMin = 0, tGol = 0;
     
-    d.partidos.forEach(m => {
-        tMin += parseInt(m.minutos); 
-        if(m.golesRival) tGol += parseInt(m.golesRival);
-        
-        let resClass = (m.jornada.toLowerCase().includes('final') || m.jornada.toLowerCase().includes('semi')) ? 'fase-highlight' : '';
-        let flag = m.pais ? m.pais : '';
-        let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
-        
-        if (m.golesAtm === m.golesRival && m.jugoPen && m.penAtm !== "" && m.penRival !== "") {
-            resTxt += ` <span style="font-size:7px; color:#CB3524;">(P: ${m.penAtm}-${m.penRival})</span>`;
-        }
+    if (d.partidos) {
+        d.partidos.forEach(m => {
+            tMin += parseInt(m.minutos || 0); 
+            if(m.golesRival) tGol += parseInt(m.golesRival);
+            
+            let resClass = (m.jornada.toLowerCase().includes('final') || m.jornada.toLowerCase().includes('semi')) ? 'fase-highlight' : '';
+            let flag = m.pais ? m.pais : '';
+            let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
+            
+            if (m.golesAtm === m.golesRival && m.jugoPen && m.penAtm !== "" && m.penRival !== "") {
+                resTxt += ` <span style="font-size:7px; color:#CB3524;">(P: ${m.penAtm}-${m.penRival})</span>`;
+            }
 
-        filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag} ${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td>${m.golesRival || '-'}</td></tr>`;
-    });
+            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag} ${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td>${m.golesRival || '-'}</td></tr>`;
+        });
+    }
 
-    const mediaGoles = d.partidos.length > 0 ? (tGol / d.partidos.length).toFixed(1) : 0;
+    const mediaGoles = (d.partidos && d.partidos.length > 0) ? (tGol / d.partidos.length).toFixed(1) : 0;
+
+    let valClass = "val-media";
+    if(d.val_gen === "BAJA") valClass = "val-baja";
+    if(d.val_gen === "ALTA") valClass = "val-alta";
+    if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
     return `
     <div class="pdf-slide">
@@ -370,9 +538,9 @@ function construirHTMLTorneo(p, d) {
             <div style="width:60%" class="pdf-rating-box">
                 <div class="pdf-box-title">RESUMEN ESTADÍSTICO</div>
                 <div class="pdf-resumen-box">
-                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${d.partidos.length}</span>PJ</div>
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${d.partidos ? d.partidos.length : 0}</span>PJ</div>
                     <div class="pdf-resumen-item"><span class="pdf-resumen-val">${tMin}'</span>MIN</div>
-                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${tGol}</span>GC</div>
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${tGol}</span>G.C.</div>
                     <div class="pdf-resumen-item"><span class="pdf-resumen-val">${mediaGoles}</span>MEDIA</div>
                 </div>
             </div>
@@ -380,7 +548,7 @@ function construirHTMLTorneo(p, d) {
 
         <div class="pdf-section-header">DETALLE DE PARTIDOS</div>
         <table class="pdf-table-torneo">
-            <thead><tr><th>Jornada/Fase</th><th>País y Rival</th><th>Resultado ATM - RIV</th><th>Minutos</th><th>Goles Enc.</th></tr></thead>
+            <thead><tr><th>Jornada/Fase</th><th>País y Rival</th><th>Resultado ATM - RIV</th><th>Minutos</th><th>G.C.</th></tr></thead>
             <tbody>${filasPartidos}</tbody>
         </table>
 
@@ -388,58 +556,33 @@ function construirHTMLTorneo(p, d) {
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:5px;">
             <div class="pdf-rating-box">
                 <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">PSICOLOGÍA Y LIDERAZGO</div>
-                ${rowRat("Personalidad", d.val.personalidad)}${rowRat("Mando", d.val.mando)}${rowRat("Concentración", d.val.concentracion)}${rowRat("Gestión Error", d.val.error)}${rowRat("Confianza", d.val.confianza)}${rowRat("Mentalidad", d.val.mentalidad)}${rowRat("Actitud tras Gol", d.val.actitudGol)}
+                ${rowRat("Personalidad", val.personalidad)}${rowRat("Mando", val.mando)}${rowRat("Concentración", val.concentracion)}${rowRat("Gestión Error", val.error)}${rowRat("Confianza", val.confianza)}${rowRat("Mentalidad", val.mentalidad)}${rowRat("Actitud tras Gol", val.actitudGol)}
             </div>
             <div class="pdf-rating-box">
                 <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">EVOLUCIÓN EN TORNEO</div>
-                ${rowRat("1º vs Último", d.val.primerUltimo)}${rowRat("Adapt. Ritmo", d.val.ritmo)}${rowRat("Mejora/Bajón", d.val.mejoraBajon)}${rowRat("Adapt. Entorno", d.val.entorno)}
+                ${rowRat("1º vs Último", val.primerUltimo)}${rowRat("Adapt. Ritmo", val.ritmo)}${rowRat("Mejora/Bajón", val.mejoraBajon)}${rowRat("Adapt. Entorno", val.entorno)}
                 <div class="pdf-box-title" style="background:#ddd; color:#333; border:none; margin-top:8px;">TÉCNICO / TÁCTICO</div>
-                ${rowRat("Rend. 1vs1", d.val.unoVuno)}${rowRat("Organización", d.val.organizacion)}${rowRat("Comunicación", d.val.comunicacion)}
+                ${rowRat("Rend. 1vs1", val.unoVuno)}${rowRat("Organización", val.organizacion)}${rowRat("Comunicación", val.comunicacion)}
             </div>
             <div class="pdf-rating-box" style="display:flex; flex-direction:column;">
                 <div class="pdf-box-title" style="background:#27AE60; color:white; border:none;">PUNTOS POSITIVOS</div>
-                <div class="pdf-text-obs" style="flex:1;">${d.obs.pos}</div>
+                <div class="pdf-text-obs" style="flex:1;">${obs.pos || '-'}</div>
                 <div class="pdf-box-title" style="background:#E74C3C; color:white; border:none; margin-top:5px;">ÁREAS DE MEJORA</div>
-                <div class="pdf-text-obs" style="flex:1;">${d.obs.neg}</div>
+                <div class="pdf-text-obs" style="flex:1;">${obs.neg || '-'}</div>
             </div>
         </div>
 
         <div class="pdf-section-header">SITUACIONES ESPECÍFICAS Y CONCLUSIÓN</div>
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-            <div class="pdf-rating-box"><div class="pdf-box-title">Rendimiento en Penaltis</div><div class="pdf-text-obs">${d.obs.penaltis}</div></div>
-            <div class="pdf-rating-box"><div class="pdf-box-title">Acciones Decisivas</div><div class="pdf-text-obs">${d.obs.decisivas}</div></div>
-            <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia en el Torneo</div><div class="pdf-text-obs">${d.obs.trans}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title">Rendimiento en Penaltis</div><div class="pdf-text-obs">${obs.penaltis || '-'}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title">Acciones Decisivas</div><div class="pdf-text-obs">${obs.decisivas || '-'}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia en el Torneo</div><div class="pdf-text-obs">${obs.trans || '-'}</div></div>
         </div>
+
+        <div class="pdf-rating-box ${valClass}" style="margin-top:auto;"><div class="pdf-box-title" style="background:rgba(0,0,0,0.2);">VALORACIÓN GENERAL DEL TORNEO</div><div style="font-size:20px; font-weight:800; padding:5px; text-align:center;">${d.val_gen || 'NO EVALUADO'}</div></div>
 
         <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe de Torneo</div>
     </div>`;
-}
-
-function cargarHistorialTorneos() {
-    db.collection("informes_torneo").orderBy("fecha", "desc").limit(10).onSnapshot(snap => {
-        const cont = document.getElementById('lista-torneos-guardados');
-        if(!cont) return;
-        cont.innerHTML = '';
-        snap.forEach(doc => {
-            const inf = doc.data();
-            db.collection("porteros").doc(inf.porteroId).get().then(pDoc => {
-                if(pDoc.exists) {
-                    const p = pDoc.data();
-                    cont.innerHTML += `<div class="eval-card">
-                        <div>
-                            <div style="font-weight:bold;">${p.nombre}</div>
-                            <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
-                            <div style="font-size:0.7rem; color:var(--atm-red);">${inf.fecha.substring(0,10)}</div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn-icon-action" onclick="window.verPDFTorneoGuardado('${doc.id}')">📄</button>
-                            <button class="btn-trash" onclick="db.collection('informes_torneo').doc('${doc.id}').delete()">🗑️</button>
-                        </div>
-                    </div>`;
-                }
-            });
-        });
-    });
 }
 
 window.verPDFTorneoGuardado = function(id) {

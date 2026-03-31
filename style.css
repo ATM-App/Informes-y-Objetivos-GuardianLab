@@ -101,33 +101,15 @@ input[type="file"] { display: none; }
 .section-divider { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass); color: var(--text-sec); font-weight: 700; }
 
 /* NAVEGACIÓN iOS 26 */
-.floating-nav-container {
-    position: fixed; bottom: 25px; left: 0; width: 100%; 
-    display: flex; justify-content: center; z-index: 1000; pointer-events: none;
-}
-.floating-nav {
-    pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px;
-    display: flex; align-items: center; justify-content: space-around;
-    padding: 8px 15px; width: 95%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-}
-.nav-item {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: transparent !important; border: none; color: #64748B; font-size: 0.55rem; font-weight: 800;
-    cursor: pointer; transition: 0.3s; width: 65px; padding: 6px 0; letter-spacing: 0.5px;
-}
+.floating-nav-container { position: fixed; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
+.floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 8px 15px; width: 95%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent !important; border: none; color: #64748B; font-size: 0.55rem; font-weight: 800; cursor: pointer; transition: 0.3s; width: 65px; padding: 6px 0; letter-spacing: 0.5px; }
 .nav-item.active { color: #FFFFFF; background: transparent !important; }
 .nav-icon { margin-bottom: 4px; transition: 0.3s; filter: opacity(0.5); display: flex; align-items: center; justify-content: center; }
 .nav-item.active .nav-icon { filter: opacity(1); transform: scale(1.15); filter: drop-shadow(0 2px 5px rgba(255,255,255,0.3));}
 
 .nav-center-wrapper { position: relative; width: 70px; height: 50px; display: flex; justify-content: center; }
-.nav-center-btn {
-    position: absolute; bottom: -8px; width: 65px; height: 65px; border-radius: 50%;
-    background: var(--atm-red) !important; border: 4px solid var(--neon-green);
-    box-shadow: 0 0 20px rgba(0, 230, 118, 0.5), inset 0 0 12px rgba(0,0,0,0.4);
-    display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 10;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+.nav-center-btn { position: absolute; bottom: -8px; width: 65px; height: 65px; border-radius: 50%; background: var(--atm-red) !important; border: 4px solid var(--neon-green); box-shadow: 0 0 20px rgba(0, 230, 118, 0.5), inset 0 0 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 10; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .nav-center-btn svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); transition: 0.3s; }
 .nav-center-btn:active { transform: scale(0.9); box-shadow: 0 0 10px rgba(0, 230, 118, 0.8); }
 .nav-center-btn.active { border-color: #FFF; box-shadow: 0 0 25px rgba(255,255,255,0.6); transform: scale(1.05); }
@@ -161,7 +143,6 @@ input[type="file"] { display: none; }
     .nav-item { width: 55px; font-size: 0.5rem; }
 }
 
-/* ESTILOS PDF */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
     #printable-area, #printable-area * { visibility: visible; height: auto; overflow: visible; }
@@ -200,15 +181,16 @@ input[type="file"] { display: none; }
 .pdf-text-obs { font-size: 9px; line-height: 1.2; background: #fff; padding: 5px; border: 1px dashed #ccc; min-height: 40px; margin-top: 3px; }
 .pdf-academic-box { display: flex; gap: 5px; font-size: 10px; justify-content: space-between; border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; }
 .pdf-aca-item { border-right: 1px solid #eee; padding-right: 5px; flex:1; text-align:center; }
+
 .val-baja { background-color: var(--val-baja) !important; color: white !important; }
 .val-media { background-color: var(--val-media) !important; color: white !important; }
 .val-alta { background-color: var(--val-alta) !important; color: black !important; }
 .val-excepcional { background-color: var(--val-excepcional) !important; color: white !important; }
+
 .pdf-objectives-container { width: 210mm; min-height: 297mm; padding: 30px; background: white; color: black; font-family: Arial, sans-serif; margin: 0 auto; }
 .pdf-obs-box { border: 1px solid #ddd; padding: 10px; margin-top: 20px; background: #f9f9f9; }
 .pdf-obs-header { color: #CB3524; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 
-/* Tabla PDF Torneo */
 .pdf-table-torneo { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 8px; font-size: 9px; }
 .pdf-table-torneo th { background: #1C2C5B; color: white; padding: 5px; text-align: left; }
 .pdf-table-torneo td { border-bottom: 1px solid #eee; padding: 5px; color: #333; text-align: left; }
