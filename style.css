@@ -213,6 +213,3 @@ input[type="file"] { display: none; }
 .pdf-resumen-box { display: flex; justify-content: space-around; background: #f0f0f0; padding: 8px; margin-top: 8px; border-radius: 5px; }
 .pdf-resumen-item { text-align: center; }
 .pdf-resumen-val { display: block; font-weight: bold; font-size: 13px; color: #CB3524; }
-
-/* ETIQUETA BANDERA */
-.badge-pais { background: #1C2C5B; padding: 2px 4px; border-radius: 3px; font-size: 7px; font-weight: bold; color: white; margin-right: 4px; display: inline-block; vertical-align: middle; }

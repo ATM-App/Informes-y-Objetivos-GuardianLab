@@ -30,7 +30,7 @@ const auth = firebase.auth();
 // --- VARIABLES ---
 let porteroEnEdicionId = null;
 let torneoEnEdicionId = null; 
-let informeEnEdicionId = null; // NUEVA VARIABLE PARA EDITAR INFORME SEMESTRAL
+let informeEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
 let ACCIONES_EVALUACION = {
@@ -338,7 +338,6 @@ window.imprimirPDFNativo = function() { window.print(); }
 // ==========================================
 
 const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
-const optPaises = `<option value="">🌍 País...</option><option value="ESP">🇪🇸 ESP</option><option value="FRA">🇫🇷 FRA</option><option value="POR">🇵🇹 POR</option><option value="ITA">🇮🇹 ITA</option><option value="GER">🇩🇪 GER</option><option value="ENG">🏴󠁧󠁢󠁥󠁮󠁧󠁿 ENG</option><option value="OTR">🌍 OTR</option>`;
 const optFases = `<option value="Grupos J1">Grupos J1</option><option value="Grupos J2">Grupos J2</option><option value="Grupos J3">Grupos J3</option><option value="Grupos J4">Grupos J4</option><option value="Grupos J5">Grupos J5</option><option value="Grupos J6">Grupos J6</option><option value="Grupos J7">Grupos J7</option><option value="Grupos J8">Grupos J8</option><option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option><option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option><option value="Final">Final</option><option value="3º/4º Puesto">3º/4º Puesto</option>`;
 
 function cargarHistorialTorneos() {
@@ -407,7 +406,7 @@ window.agregarFilaPartido = function(data = null) {
     div.innerHTML = `
         <div class="row align-items-center">
             <select class="p-jornada" style="flex:1">${optFases}</select>
-            <select class="p-pais" style="flex:0.5">${optPaises}</select>
+            <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1">
             <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
         </div>
         <div class="row align-items-end">
@@ -440,7 +439,7 @@ window.agregarFilaPartido = function(data = null) {
         
         window.actualizarFilaPartido(div.querySelector('.p-goles-atm'));
         
-        if (data.golesAtm === data.golesRival && data.golesAtm !== "") {
+        if (data.penAtm !== "" && data.penRival !== "") {
             div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
@@ -641,14 +640,14 @@ function construirHTMLTorneo(p, d) {
             else if (j.includes('semi')) resClass = 'fase-semi';
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
-            let flag = m.pais ? `<span class="badge-pais">${m.pais}</span> ` : '';
+            let paisTxt = m.pais ? `<span style="font-weight:bold; color:#1C2C5B;">${m.pais}</span> - ` : '';
             let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
-            if (m.golesAtm === m.golesRival && m.jugoPen && m.penAtm !== "" && m.penRival !== "") {
-                resTxt += ` <span style="font-size:7px; color:#CB3524;">(P: ${m.penAtm}-${m.penRival})</span>`;
+            if (m.penAtm !== "" && m.penRival !== "") {
+                resTxt += ` <br><span style="font-size:8px; color:#CB3524; font-weight:bold;">(Pen: ${m.penAtm} - ${m.penRival})</span>`;
             }
 
-            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag}${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
+            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${paisTxt}${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
         });
     }
 
