@@ -3,9 +3,20 @@ function cerrarModal(id){ document.getElementById(id).style.display='none'; }
 
 function validarRango(input, min, max) {
     let val = parseInt(input.value);
-    if (isNaN(val) || input.value === '') { input.value = ''; }
-    else if (val < min) { input.value = min; }
-    else if (val > max) { input.value = max; }
+    if (isNaN(val) || input.value === '') { input.value = ''; input.classList.remove('rating-red', 'rating-yellow', 'rating-green'); return; }
+    else if (val < min) { input.value = min; val = min; }
+    else if (val > max) { input.value = max; val = max; }
+
+    // Feedback visual mágico
+    input.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+    if (max === 4 || max === 5) {
+        if (val <= 2) input.classList.add('rating-red');
+        else if (val === 3) input.classList.add('rating-yellow');
+        else if (val >= 4) input.classList.add('rating-green');
+    }
+
+    // Progreso
+    if(input.closest('#form-informe-semestral')) { window.actualizarProgresoInforme(); }
 }
 
 // MOTOR HÁPTICO (VIBRACIÓN)
@@ -45,6 +56,8 @@ let informeEnEdicionId = null;
 let objetivoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
+let autoSaveTimeout = null;
+
 let ACCIONES_EVALUACION = {
     "DEFENSIVAS": ["Blocaje Frontales Medio y Raso", "Blocaje lateral raso", "Blocaje lateral media altura", "Desvío raso", "Desvío a Media Altura", "Reducción de espacios y Posición Cruz", "Apertura", "Reincorporaciones", "Blocaje Aéreo", "Despeje de Puños"],
     "OFENSIVAS": ["Pase mano raso", "Pase mano alto", "Pase mano picado", "Perfilamiento y Controles", "Pase Raso con el Píe", "Pase alto con el Píe", "Voleas"]
@@ -66,6 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     const fObj = document.getElementById('obj-fecha'); if(fObj) fObj.value=today;
     if(localStorage.getItem('guardian_theme') === 'light'){ document.body.classList.add('light-mode'); }
+
+    // Listener global para la barra de progreso y auto-guardado
+    const formSemestral = document.getElementById('form-informe-semestral');
+    if(formSemestral) {
+        formSemestral.addEventListener('input', () => { window.actualizarProgresoInforme(); });
+    }
 });
 
 // --- NAVEGACIÓN ESTILO iOS ---
@@ -102,6 +121,7 @@ window.actualizarEquipos = function() {
     sel.innerHTML = '<option value="">Selecciona Categoría...</option>'; if(!cat) return;
     ['A','B','C','D','E','F'].forEach(l => sel.innerHTML += `<option value="${cat} ${l}">${cat} ${l}</option>`);
 }
+
 function cargarPorteros() {
     db.collection("porteros").onSnapshot((snapshot) => {
         const lista = []; snapshot.forEach(doc => lista.push({...doc.data(), id: doc.id}));
@@ -112,13 +132,90 @@ function cargarPorteros() {
         else { c.innerHTML = ''; }
         
         const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
-        lista.forEach(p => { c.innerHTML += `<div class="portero-card"><div style="display:flex; align-items:center;"><img src="${p.foto||def}" class="mini-foto-list"><div><div class="card-title">${p.nombre}</div><div class="card-subtitle">${p.equipo} (${p.anio||'-'})</div></div></div><div><button class="btn-icon-action" onclick="window.cargarDatosEdicion('${p.id}')">✏️</button><button class="btn-trash" onclick="window.borrarPortero('${p.id}')">🗑️</button></div></div>`; });
+        lista.forEach(p => { 
+            c.innerHTML += `
+            <div class="portero-card" onclick="window.abrirFichaPortero('${p.id}')">
+                <div style="display:flex; align-items:center;">
+                    <img src="${p.foto||def}" class="mini-foto-list">
+                    <div><div class="card-title">${p.nombre}</div><div class="card-subtitle">${p.equipo} (${p.anio||'-'})</div></div>
+                </div>
+                <div>
+                    <button class="btn-icon-action" onclick="event.stopPropagation(); window.cargarDatosEdicion('${p.id}')">✏️</button>
+                    <button class="btn-trash" onclick="event.stopPropagation(); window.borrarPortero('${p.id}')">🗑️</button>
+                </div>
+            </div>`; 
+        });
+        
         const opts = '<option value="">Seleccionar...</option>' + lista.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
         if(document.getElementById('obj-portero')) document.getElementById('obj-portero').innerHTML = opts;
         if(document.getElementById('inf-portero')) document.getElementById('inf-portero').innerHTML = opts;
         if(document.getElementById('tor-portero')) document.getElementById('tor-portero').innerHTML = opts; 
     });
 }
+
+// NUEVA FICHA DEL JUGADOR
+window.porteroActualFichaId = null;
+window.cambiarTabFicha = function(tab) {
+    window.haptic('light');
+    document.querySelectorAll('.ficha-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ficha-content-tab').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('ficha-content-' + tab).classList.add('active');
+}
+
+window.abrirFichaPortero = function(id) {
+    window.haptic('medium');
+    window.porteroActualFichaId = id;
+    db.collection("porteros").doc(id).get().then(doc => {
+        const p = doc.data();
+        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        document.getElementById('ficha-foto').src = p.foto || def;
+        document.getElementById('ficha-nombre').innerText = p.nombre;
+        document.getElementById('ficha-equipo').innerText = `${p.equipo} | ${p.categoria}`;
+        
+        document.getElementById('f-anio').innerText = p.anio || '-';
+        document.getElementById('f-cat').innerText = p.categoria || '-';
+        document.getElementById('f-nac').innerText = p.nacionalidad || '-';
+        document.getElementById('f-pie').innerText = p.pie || '-';
+        document.getElementById('f-anos').innerText = p.anosClub || '-';
+
+        // Objetivos Pestaña
+        db.collection("reportes_objetivos").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-obj'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button></div>`;
+            });
+        });
+
+        // Informes Pestaña
+        db.collection("informes_semestrales").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-inf'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin informes.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                let draftBadge = rep.isDraft ? '<span class="draft-badge">⏳ BORRADOR</span>' : '';
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.datos.titulo}</strong> ${draftBadge}<br><span style="font-size:0.8rem;color:#aaa">${rep.fecha.substring(0,10)}</span></div><button class="btn-icon-action" onclick="verPDFInformeGuardado('${d.id}')">📄</button></div>`;
+            });
+        });
+
+        // Torneos Pestaña
+        db.collection("informes_torneo").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-tor'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin torneos.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.datos.torneo}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.fecha.substring(0,10)}</span></div><button class="btn-icon-action" onclick="verPDFTorneoGuardado('${d.id}')">📄</button></div>`;
+            });
+        });
+
+        document.getElementById('modal-ficha-portero').style.display = 'block';
+        document.querySelectorAll('.ficha-tab-btn')[0].click(); // Iniciar en Datos
+    });
+}
+
+
 window.procesarPortero = function() {
     const n = document.getElementById('nombrePortero').value; const a = document.getElementById('anioPortero').value; const c = document.getElementById('catPortero').value; const eq = document.getElementById('equipoPortero').value; const nac = document.getElementById('nacionalidadPortero').value; const pie = document.getElementById('piePortero').value; const anos = document.getElementById('anosClub').value; const file = document.getElementById('fotoPorteroInput').files[0];
     if(!n || !c || !eq) return alert("Faltan datos");
@@ -202,7 +299,6 @@ function generarPDFObjetivos(reporte) {
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
         
-        // PORTADA ESPECTACULAR - INCLUYE IMG PARA EVITAR FALLO DE HTML2PDF
         const coverHtml = `
         <div class="pdf-slide pdf-cover">
             <img src="ESCUDO ATM.png" class="cover-bg-logo">
@@ -239,8 +335,58 @@ function cargarHistorialObjetivos() {
 window.verPDFObjetivosGuardado = function(rep) { generarPDFObjetivos(rep); }
 
 // ==========================================
-// --- INFORMES SEMESTRALES ---
+// --- INFORMES SEMESTRALES (Y BORRADORES) ---
 // ==========================================
+
+window.actualizarProgresoInforme = function() {
+    const form = document.getElementById('form-informe-semestral');
+    if(!form) return;
+    const inputs = form.querySelectorAll('input:not([type="date"]), select, textarea');
+    let filled = 0;
+    let total = 0;
+    
+    inputs.forEach(inp => {
+        if(inp.id === 'inf-portero' || inp.id === 'inf-titulo' || inp.id === 'inf-tipo' || inp.id.startsWith('btn-')) return;
+        total++;
+        if(inp.value.trim() !== '') filled++;
+    });
+    
+    const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+    document.getElementById('inf-progreso-fill').style.width = pct + '%';
+    document.getElementById('inf-progreso-text').innerText = pct + '% Completado';
+
+    // Auto-guardado (Borrador)
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+        window.guardarBorradorSemestral();
+    }, 3000); 
+}
+
+window.guardarBorradorSemestral = function() {
+    const pid = document.getElementById('inf-portero').value;
+    if(!pid) return; // No guarda borrador si no hay portero asignado
+
+    const datos = {
+        titulo: document.getElementById('inf-titulo').value, tipoInforme: document.getElementById('inf-tipo').value, 
+        perfil: { pos1: document.getElementById('perfil-pos-1').value, pos2: document.getElementById('perfil-pos-2').value, val_gen: document.getElementById('perfil-val-general').value },
+        dc: { jornada: document.getElementById('dc-jornada').value, convocatorias: document.getElementById('dc-convocatorias').value, titular: document.getElementById('dc-titular').value, min1: document.getElementById('dc-min1').value, min2: document.getElementById('dc-min2').value, goles: document.getElementById('dc-goles').value, lesion: document.getElementById('dc-lesion').value, disciplina: document.getElementById('dc-disciplina').value, tecnica: document.getElementById('dc-tecnica').value, t_asist: document.getElementById('dc-torneos-asist').value, t_conv: document.getElementById('dc-torneos-conv').value },
+        cg: { tec_def: document.getElementById('cg-tec-def').value, tec_of: document.getElementById('cg-tec-of').value, rec_tec: document.getElementById('cg-rec-tec').value, niv_comp: document.getElementById('cg-niv-comp').value, const: document.getElementById('cg-const').value, comp_juego: document.getElementById('cg-comp-juego').value, imp: document.getElementById('cg-imp').value, lid: document.getElementById('cg-lid').value, des: document.getElementById('cg-des').value, con: document.getElementById('cg-con').value, mot: document.getElementById('cg-mot').value, act: document.getElementById('cg-act').value },
+        cpp: { pos: document.getElementById('cpp-pos').value, bloc: document.getElementById('cpp-bloc').value, col: document.getElementById('cpp-col').value, desp: document.getElementById('cpp-desp').value, aereo: document.getElementById('cpp-aereo').value, pie: document.getElementById('cpp-pie').value, uno: document.getElementById('cpp-1v1').value, vel: document.getElementById('cpp-vel').value, agi: document.getElementById('cpp-agi').value },
+        vfj: { ataque: document.getElementById('vfj-ataque').value, tr_def: document.getElementById('vfj-tr-def').value, defensa: document.getElementById('vfj-defensa').value, tr_of: document.getElementById('vfj-tr-of').value, obs: document.getElementById('vfj-obs').value },
+        vac: { soc: document.getElementById('vac-soc').value, const: document.getElementById('vac-const').value, disc: document.getElementById('vac-disc').value, act: document.getElementById('vac-act').value, comp: document.getElementById('vac-comp').value, evo: document.getElementById('vac-evo').value, obs: document.getElementById('vac-obs').value },
+        aca: { ev1: { media: document.getElementById('aca-1-media').value, asig: document.getElementById('aca-1-asig').value, susp: document.getElementById('aca-1-susp').value }, ev2: { media: document.getElementById('aca-2-media').value, asig: document.getElementById('aca-2-asig').value, susp: document.getElementById('aca-2-susp').value }, ev3: { media: document.getElementById('aca-3-media').value, asig: document.getElementById('aca-3-asig').value, susp: document.getElementById('aca-3-susp').value } }
+    };
+
+    const payload = { porteroId: pid, fecha: new Date().toISOString(), datos: datos, isDraft: true };
+
+    if(informeEnEdicionId) {
+        db.collection('informes_semestrales').doc(informeEnEdicionId).update(payload);
+    } else {
+        db.collection('informes_semestrales').add(payload).then(docRef => {
+            informeEnEdicionId = docRef.id; // Lo enganchamos para seguir sobrescribiendo
+        });
+    }
+}
 
 window.editarInformeSemestral = function(id) {
     db.collection("informes_semestrales").doc(id).get().then(doc => {
@@ -315,6 +461,8 @@ window.editarInformeSemestral = function(id) {
         document.getElementById('aca-3-asig').value = data.aca.ev3.asig || '';
         document.getElementById('aca-3-susp').value = data.aca.ev3.susp || '';
 
+        window.actualizarProgresoInforme(); // Forzar recalculado visual
+
         document.getElementById('btn-save-informe').innerText = "💾 ACTUALIZAR Y VER INFORME";
         document.getElementById('btn-cancel-informe').style.display = "inline-block";
         window.scrollTo({top:0, behavior:'smooth'});
@@ -323,17 +471,25 @@ window.editarInformeSemestral = function(id) {
 
 window.cancelarEdicionInforme = function() {
     informeEnEdicionId = null;
+    clearTimeout(autoSaveTimeout); // Detener autoguardado
     document.getElementById('inf-portero').value = '';
     const textInputs = ['inf-titulo', 'perfil-pos-1', 'perfil-pos-2', 'dc-jornada', 'dc-convocatorias', 'dc-titular', 'dc-min1', 'dc-min2', 'dc-goles', 'dc-lesion', 'dc-disciplina', 'dc-tecnica', 'dc-torneos-asist', 'dc-torneos-conv', 'cg-tec-def', 'cg-tec-of', 'cg-rec-tec', 'cg-niv-comp', 'cg-const', 'cg-comp-juego', 'cg-imp', 'cg-lid', 'cg-des', 'cg-con', 'cg-mot', 'cg-act', 'cpp-pos', 'cpp-bloc', 'cpp-col', 'cpp-desp', 'cpp-aereo', 'cpp-pie', 'cpp-1v1', 'cpp-vel', 'cpp-agi', 'vfj-ataque', 'vfj-tr-def', 'vfj-defensa', 'vfj-tr-of', 'vfj-obs', 'vac-soc', 'vac-const', 'vac-disc', 'vac-act', 'vac-comp', 'vac-evo', 'vac-obs', 'aca-1-media', 'aca-1-asig', 'aca-1-susp', 'aca-2-media', 'aca-2-asig', 'aca-2-susp', 'aca-3-media', 'aca-3-asig', 'aca-3-susp'];
-    textInputs.forEach(id => { document.getElementById(id).value = ''; });
+    textInputs.forEach(id => { 
+        let inp = document.getElementById(id);
+        inp.value = ''; 
+        inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+    });
     document.getElementById('inf-tipo').value = 'INFORME DICIEMBRE';
     document.getElementById('perfil-val-general').value = 'MEDIA';
-    document.getElementById('btn-save-informe').innerText = "💾 GENERAR Y GUARDAR INFORME";
+    document.getElementById('btn-save-informe').innerText = "💾 GENERAR Y GUARDAR (FINAL)";
     document.getElementById('btn-cancel-informe').style.display = "none";
+    window.actualizarProgresoInforme();
 }
 
 window.generarPDFInforme = function() {
     const pid = document.getElementById('inf-portero').value; if(!pid) return alert("Selecciona un portero");
+    clearTimeout(autoSaveTimeout); // Detener el borrador
+
     const datos = {
         titulo: document.getElementById('inf-titulo').value, tipoInforme: document.getElementById('inf-tipo').value, 
         perfil: { pos1: document.getElementById('perfil-pos-1').value, pos2: document.getElementById('perfil-pos-2').value, val_gen: document.getElementById('perfil-val-general').value },
@@ -345,9 +501,11 @@ window.generarPDFInforme = function() {
         aca: { ev1: { media: document.getElementById('aca-1-media').value, asig: document.getElementById('aca-1-asig').value, susp: document.getElementById('aca-1-susp').value }, ev2: { media: document.getElementById('aca-2-media').value, asig: document.getElementById('aca-2-asig').value, susp: document.getElementById('aca-2-susp').value }, ev3: { media: document.getElementById('aca-3-media').value, asig: document.getElementById('aca-3-asig').value, susp: document.getElementById('aca-3-susp').value } }
     };
 
+    const payload = { porteroId: pid, fecha: new Date().toISOString(), datos: datos, isDraft: false }; // isDraft a falso para que ya no sea borrador
+
     const operacion = informeEnEdicionId 
-        ? db.collection('informes_semestrales').doc(informeEnEdicionId).update({ datos: datos })
-        : db.collection('informes_semestrales').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos });
+        ? db.collection('informes_semestrales').doc(informeEnEdicionId).update(payload)
+        : db.collection('informes_semestrales').add(payload);
 
     operacion.then(() => { 
         window.haptic('success');
@@ -436,7 +594,14 @@ function cargarHistorialInformes() {
             db.collection("porteros").doc(inf.porteroId).get().then(pDoc => { 
                 if(pDoc.exists) { 
                     const p = pDoc.data(); 
-                    cont.innerHTML += `<div class="eval-card"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${inf.datos.titulo}</div><div style="font-size:0.7rem; color:#aaa">${inf.fecha.substring(0,10)}</div></div><div style="display:flex; gap:5px;"><button class="btn-icon-action" onclick="window.editarInformeSemestral('${doc.id}')" title="Editar">✏️</button><button class="btn-icon-action" onclick="window.verPDFInformeGuardado('${doc.id}')" title="Ver PDF">📄</button><button class="btn-trash" onclick="db.collection('informes_semestrales').doc('${doc.id}').delete()">🗑️</button></div></div>`; 
+                    let draftBadge = inf.isDraft ? '<span class="draft-badge">⏳ BORRADOR</span>' : '';
+                    let cardClass = inf.isDraft ? 'card-draft' : '';
+                    
+                    let btnAction = inf.isDraft 
+                        ? `<button class="btn-icon-action" style="color:#F1C40F; border-color:#F1C40F;" onclick="window.editarInformeSemestral('${doc.id}')" title="Continuar Editando">✏️ Continuar</button>`
+                        : `<button class="btn-icon-action" onclick="window.editarInformeSemestral('${doc.id}')" title="Editar">✏️</button><button class="btn-icon-action" onclick="window.verPDFInformeGuardado('${doc.id}')" title="Ver PDF">📄</button>`;
+
+                    cont.innerHTML += `<div class="eval-card ${cardClass}"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${inf.datos.titulo} ${draftBadge}</div><div style="font-size:0.7rem; color:#aaa">${inf.fecha.substring(0,10)}</div></div><div style="display:flex; gap:5px;">${btnAction}<button class="btn-trash" onclick="db.collection('informes_semestrales').doc('${doc.id}').delete()">🗑️</button></div></div>`; 
                 } 
             }); 
         }); 
@@ -626,6 +791,11 @@ window.editarInformeTorneo = function(id) {
         
         document.getElementById('tor-val-general').value = data.val_gen || 'MEDIA';
 
+        // Disparamos validadores de colores para que se pinten solos al editar
+        document.querySelectorAll('#section-torneos input[type="number"]').forEach(inp => {
+            if(inp.value) window.validarRango(inp, 1, 5);
+        });
+
         document.getElementById('btn-save-torneo').innerText = "💾 ACTUALIZAR Y VER INFORME";
         document.getElementById('btn-cancel-torneo').style.display = "inline-block";
         window.scrollTo({top:0, behavior:'smooth'});
@@ -641,7 +811,9 @@ window.cancelarEdicionTorneo = function() {
     document.getElementById('contenedor-partidos').innerHTML = '';
     
     ['personalidad', 'mando', 'conc', 'error', 'confianza', 'mentalidad', 'actitud-gol', 'primer-ultimo', 'ritmo', 'mejora-bajon', 'entorno', '1v1', 'org', 'com'].forEach(id => {
-        document.getElementById('tor-val-' + id).value = '';
+        let inp = document.getElementById('tor-val-' + id);
+        inp.value = '';
+        inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
     });
     
     ['penaltis', 'decisivas', 'pos', 'neg', 'trans'].forEach(id => {
@@ -773,7 +945,7 @@ function construirHTMLTorneo(p, d) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // PORTADA ESPECTACULAR - INCLUYE IMG PARA EVITAR FALLO DE HTML2PDF
+    // PORTADA ESPECTACULAR
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
         <img src="ESCUDO ATM.png" class="cover-bg-logo">
