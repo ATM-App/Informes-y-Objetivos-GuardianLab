@@ -35,7 +35,6 @@
         <div class="fp-text">PROGRESO</div>
         <div class="fp-bar-bg"><div id="fp-fill" class="fp-bar-fill"></div></div>
         <div id="fp-pct-text" class="fp-pct">0%</div>
-        <div id="fp-status" style="font-size:0.5rem; color:#aaa; margin-top:5px; text-align:center;"></div>
     </div>
 
     <main>
@@ -217,18 +216,19 @@
                 </div>
 
                 <h3 class="section-divider" style="color:var(--atm-red)">7. Valoración General</h3>
-                <select id="perfil-val-general" onchange="window.actualizarProgresoGeneral('form-informe-semestral')">
+                <select id="perfil-val-general">
                     <option value="BAJA">BAJA</option>
                     <option value="MEDIA">MEDIA</option>
                     <option value="ALTA">ALTA</option>
                     <option value="EXCEPCIONAL">EXCEPCIONAL</option>
                 </select>
 
-                <button id="btn-save-informe" onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER INFORME</button>
+                <button id="btn-draft-informe" onclick="window.guardarBorradorSemestral()" class="btn-main" style="background: #F1C40F; color:#0A0F1D; margin-top:20px; font-weight:800;">⏳ GUARDAR BORRADOR</button>
+                <button id="btn-save-informe" onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:10px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GENERAR Y GUARDAR (FINAL)</button>
                 <button id="btn-cancel-informe" onclick="window.cancelarEdicionInforme()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             
-            <h3 class="section-divider">Informes Guardados</h3>
+            <h3 class="section-divider">Informes Guardados (y Borradores)</h3>
             <div id="lista-informes-guardados" class="list-vertical">
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
             </div>
@@ -309,11 +309,12 @@
                     <option value="EXCEPCIONAL">EXCEPCIONAL</option>
                 </select>
 
-                <button id="btn-save-torneo" onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER INFORME</button>
+                <button id="btn-draft-torneo" onclick="window.guardarBorradorTorneo()" class="btn-main" style="background: #F1C40F; color:#0A0F1D; margin-top:20px; font-weight:800;">⏳ GUARDAR BORRADOR</button>
+                <button id="btn-save-torneo" onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:10px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GENERAR Y GUARDAR (FINAL)</button>
                 <button id="btn-cancel-torneo" onclick="window.cancelarEdicionTorneo()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             
-            <h3 class="section-divider">Historial de Torneos</h3>
+            <h3 class="section-divider">Historial de Torneos (y Borradores)</h3>
             <div id="lista-torneos-guardados" class="list-vertical">
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
             </div>
@@ -389,13 +390,12 @@
                 </span>
                 <span class="nav-text">OBJETIVOS</span>
             </button>
-            
-            <div class="nav-center-wrapper">
-                <button onclick="window.cambiarSeccion('informes')" id="btn-informes" class="nav-center-btn">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.75 8.1l-2.43 1.76-2.43-1.76.92-2.85h3.02l.92 2.85zm-4.72 2.83L12 15.08l2.97-2.15-1.14 3.5H10.17l-1.14-3.5zM6.66 10.9l2.25 1.63-.85 2.62-2.8-2.04 1.4-2.21zm10.68 0l1.4 2.21-2.8 2.04-.85-2.62 2.25-1.63z"/></svg>
-                </button>
-            </div>
-
+            <button onclick="window.cambiarSeccion('informes')" id="btn-informes" class="nav-item">
+                <span class="nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.75 8.1l-2.43 1.76-2.43-1.76.92-2.85h3.02l.92 2.85zm-4.72 2.83L12 15.08l2.97-2.15-1.14 3.5H10.17l-1.14-3.5zM6.66 10.9l2.25 1.63-.85 2.62-2.8-2.04 1.4-2.21zm10.68 0l1.4 2.21-2.8 2.04-.85-2.62 2.25-1.63z"/></svg>
+                </span>
+                <span class="nav-text">INFORMES</span>
+            </button>
             <button onclick="window.cambiarSeccion('torneos')" id="btn-torneos" class="nav-item">
                 <span class="nav-icon">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
@@ -410,7 +410,6 @@
             </button>
         </div>
     </nav>
-    <div id="printable-area" class="printable-hidden"></div>
     
     <script src="app.js"></script>
 </body>
