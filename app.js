@@ -1,22 +1,20 @@
 // --- FUNCIONES GLOBALES ---
 function cerrarModal(id){ document.getElementById(id).style.display='none'; }
 
-function validarRango(input, min, max) {
-    let val = parseInt(input.value);
-    if (isNaN(val) || input.value === '') { input.value = ''; input.classList.remove('rating-red', 'rating-yellow', 'rating-green'); return; }
-    else if (val < min) { input.value = min; val = min; }
-    else if (val > max) { input.value = max; val = max; }
+// FUNCION DE COLORES PARA LOS SELECTS
+window.aplicarColorSelect = function(sel, max) {
+    let val = parseInt(sel.value);
+    sel.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+    if(isNaN(val)) return;
 
-    // Feedback visual mágico
-    input.classList.remove('rating-red', 'rating-yellow', 'rating-green');
     if (max === 4 || max === 5) {
-        if (val <= 2) input.classList.add('rating-red');
-        else if (val === 3) input.classList.add('rating-yellow');
-        else if (val >= 4) input.classList.add('rating-green');
+        if (val <= 2) sel.classList.add('rating-red');
+        else if (val === 3) sel.classList.add('rating-yellow');
+        else if (val >= 4) sel.classList.add('rating-green');
     }
-
-    // Progreso
-    if(input.closest('#form-informe-semestral')) { window.actualizarProgresoInforme(); }
+    
+    const formId = sel.closest('.modern-card').id;
+    if(formId) window.actualizarProgresoGeneral(formId);
 }
 
 // MOTOR HÁPTICO (VIBRACIÓN)
@@ -79,12 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     const fObj = document.getElementById('obj-fecha'); if(fObj) fObj.value=today;
     if(localStorage.getItem('guardian_theme') === 'light'){ document.body.classList.add('light-mode'); }
-
-    // Listener global para la barra de progreso y auto-guardado
-    const formSemestral = document.getElementById('form-informe-semestral');
-    if(formSemestral) {
-        formSemestral.addEventListener('input', () => { window.actualizarProgresoInforme(); });
-    }
 });
 
 // --- NAVEGACIÓN ESTILO iOS ---
@@ -109,6 +101,11 @@ window.cambiarSeccion = function(sec) {
     if (targetSec) targetSec.style.display = 'block';
     const targetBtn = document.getElementById('btn-' + sec);
     if (targetBtn) targetBtn.classList.add('active');
+    
+    // Resetear la barra flotante si salimos de las zonas de informe
+    if (sec !== 'informes' && sec !== 'torneos') {
+        document.getElementById('floating-progress').classList.remove('visible');
+    }
 }
 
 // --- PORTEROS ---
@@ -179,7 +176,6 @@ window.abrirFichaPortero = function(id) {
         document.getElementById('f-pie').innerText = p.pie || '-';
         document.getElementById('f-anos').innerText = p.anosClub || '-';
 
-        // Objetivos Pestaña
         db.collection("reportes_objetivos").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-obj'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
@@ -189,7 +185,6 @@ window.abrirFichaPortero = function(id) {
             });
         });
 
-        // Informes Pestaña
         db.collection("informes_semestrales").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-inf'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin informes.</div>';
@@ -200,7 +195,6 @@ window.abrirFichaPortero = function(id) {
             });
         });
 
-        // Torneos Pestaña
         db.collection("informes_torneo").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-tor'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin torneos.</div>';
@@ -211,7 +205,7 @@ window.abrirFichaPortero = function(id) {
         });
 
         document.getElementById('modal-ficha-portero').style.display = 'block';
-        document.querySelectorAll('.ficha-tab-btn')[0].click(); // Iniciar en Datos
+        document.querySelectorAll('.ficha-tab-btn')[0].click(); 
     });
 }
 
@@ -335,36 +329,37 @@ function cargarHistorialObjetivos() {
 window.verPDFObjetivosGuardado = function(rep) { generarPDFObjetivos(rep); }
 
 // ==========================================
-// --- INFORMES SEMESTRALES (Y BORRADORES) ---
+// --- INFORMES SEMESTRALES Y BORRADOR ---
 // ==========================================
 
-window.actualizarProgresoInforme = function() {
-    const form = document.getElementById('form-informe-semestral');
+window.actualizarProgresoGeneral = function(formId) {
+    const form = document.getElementById(formId);
     if(!form) return;
-    const inputs = form.querySelectorAll('input:not([type="date"]), select, textarea');
-    let filled = 0;
-    let total = 0;
     
-    inputs.forEach(inp => {
-        if(inp.id === 'inf-portero' || inp.id === 'inf-titulo' || inp.id === 'inf-tipo' || inp.id.startsWith('btn-')) return;
-        total++;
-        if(inp.value.trim() !== '') filled++;
-    });
+    // Actualizar barra visual
+    const inputs = form.querySelectorAll('input:not([type="date"]), select:not(#inf-portero):not(#inf-tipo):not(#perfil-val-general):not(#tor-portero):not(#tor-superficie):not(#tor-copiar-base):not(#tor-val-general), textarea');
+    let filled = 0; let total = 0;
+    inputs.forEach(inp => { if(!inp.id.startsWith('btn-')) { total++; if(inp.value.trim() !== '') filled++; } });
     
     const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
-    document.getElementById('inf-progreso-fill').style.width = pct + '%';
-    document.getElementById('inf-progreso-text').innerText = pct + '% Completado';
+    const progressEl = document.getElementById('floating-progress');
+    progressEl.classList.add('visible');
+    document.getElementById('fp-fill').style.height = pct + '%';
+    document.getElementById('fp-pct-text').innerText = pct + '%';
+    document.getElementById('fp-status').innerText = "";
 
-    // Auto-guardado (Borrador)
-    clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(() => {
-        window.guardarBorradorSemestral();
-    }, 3000); 
+    // Activar Autoguardado para Semestral
+    if(formId === 'form-informe-semestral') {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => { window.guardarBorradorSemestral(); }, 2000); 
+    }
 }
 
 window.guardarBorradorSemestral = function() {
     const pid = document.getElementById('inf-portero').value;
-    if(!pid) return; // No guarda borrador si no hay portero asignado
+    if(!pid) return; 
+
+    document.getElementById('fp-status').innerText = "Guardando...";
 
     const datos = {
         titulo: document.getElementById('inf-titulo').value, tipoInforme: document.getElementById('inf-tipo').value, 
@@ -380,10 +375,11 @@ window.guardarBorradorSemestral = function() {
     const payload = { porteroId: pid, fecha: new Date().toISOString(), datos: datos, isDraft: true };
 
     if(informeEnEdicionId) {
-        db.collection('informes_semestrales').doc(informeEnEdicionId).update(payload);
+        db.collection('informes_semestrales').doc(informeEnEdicionId).update(payload).then(()=>{ document.getElementById('fp-status').innerText = "Guardado"; });
     } else {
         db.collection('informes_semestrales').add(payload).then(docRef => {
-            informeEnEdicionId = docRef.id; // Lo enganchamos para seguir sobrescribiendo
+            informeEnEdicionId = docRef.id; 
+            document.getElementById('fp-status').innerText = "Guardado";
         });
     }
 }
@@ -414,41 +410,41 @@ window.editarInformeSemestral = function(id) {
         document.getElementById('dc-torneos-asist').value = data.dc.t_asist || '';
         document.getElementById('dc-torneos-conv').value = data.dc.t_conv || '';
 
-        document.getElementById('cg-tec-def').value = data.cg.tec_def || '';
-        document.getElementById('cg-tec-of').value = data.cg.tec_of || '';
-        document.getElementById('cg-rec-tec').value = data.cg.rec_tec || '';
-        document.getElementById('cg-niv-comp').value = data.cg.niv_comp || '';
-        document.getElementById('cg-const').value = data.cg.const || '';
-        document.getElementById('cg-comp-juego').value = data.cg.comp_juego || '';
-        document.getElementById('cg-imp').value = data.cg.imp || '';
-        document.getElementById('cg-lid').value = data.cg.lid || '';
-        document.getElementById('cg-des').value = data.cg.des || '';
-        document.getElementById('cg-con').value = data.cg.con || '';
-        document.getElementById('cg-mot').value = data.cg.mot || '';
-        document.getElementById('cg-act').value = data.cg.act || '';
+        document.getElementById('cg-tec-def').value = data.cg.tec_def || ''; window.aplicarColorSelect(document.getElementById('cg-tec-def'), 4);
+        document.getElementById('cg-tec-of').value = data.cg.tec_of || ''; window.aplicarColorSelect(document.getElementById('cg-tec-of'), 4);
+        document.getElementById('cg-rec-tec').value = data.cg.rec_tec || ''; window.aplicarColorSelect(document.getElementById('cg-rec-tec'), 4);
+        document.getElementById('cg-niv-comp').value = data.cg.niv_comp || ''; window.aplicarColorSelect(document.getElementById('cg-niv-comp'), 4);
+        document.getElementById('cg-const').value = data.cg.const || ''; window.aplicarColorSelect(document.getElementById('cg-const'), 4);
+        document.getElementById('cg-comp-juego').value = data.cg.comp_juego || ''; window.aplicarColorSelect(document.getElementById('cg-comp-juego'), 4);
+        document.getElementById('cg-imp').value = data.cg.imp || ''; window.aplicarColorSelect(document.getElementById('cg-imp'), 4);
+        document.getElementById('cg-lid').value = data.cg.lid || ''; window.aplicarColorSelect(document.getElementById('cg-lid'), 4);
+        document.getElementById('cg-des').value = data.cg.des || ''; window.aplicarColorSelect(document.getElementById('cg-des'), 4);
+        document.getElementById('cg-con').value = data.cg.con || ''; window.aplicarColorSelect(document.getElementById('cg-con'), 4);
+        document.getElementById('cg-mot').value = data.cg.mot || ''; window.aplicarColorSelect(document.getElementById('cg-mot'), 4);
+        document.getElementById('cg-act').value = data.cg.act || ''; window.aplicarColorSelect(document.getElementById('cg-act'), 4);
 
-        document.getElementById('cpp-pos').value = data.cpp.pos || '';
-        document.getElementById('cpp-bloc').value = data.cpp.bloc || '';
-        document.getElementById('cpp-col').value = data.cpp.col || '';
-        document.getElementById('cpp-desp').value = data.cpp.desp || '';
-        document.getElementById('cpp-aereo').value = data.cpp.aereo || '';
-        document.getElementById('cpp-pie').value = data.cpp.pie || '';
-        document.getElementById('cpp-1v1').value = data.cpp.uno || '';
-        document.getElementById('cpp-vel').value = data.cpp.vel || '';
-        document.getElementById('cpp-agi').value = data.cpp.agi || '';
+        document.getElementById('cpp-pos').value = data.cpp.pos || ''; window.aplicarColorSelect(document.getElementById('cpp-pos'), 4);
+        document.getElementById('cpp-bloc').value = data.cpp.bloc || ''; window.aplicarColorSelect(document.getElementById('cpp-bloc'), 4);
+        document.getElementById('cpp-col').value = data.cpp.col || ''; window.aplicarColorSelect(document.getElementById('cpp-col'), 4);
+        document.getElementById('cpp-desp').value = data.cpp.desp || ''; window.aplicarColorSelect(document.getElementById('cpp-desp'), 4);
+        document.getElementById('cpp-aereo').value = data.cpp.aereo || ''; window.aplicarColorSelect(document.getElementById('cpp-aereo'), 4);
+        document.getElementById('cpp-pie').value = data.cpp.pie || ''; window.aplicarColorSelect(document.getElementById('cpp-pie'), 4);
+        document.getElementById('cpp-1v1').value = data.cpp.uno || ''; window.aplicarColorSelect(document.getElementById('cpp-1v1'), 4);
+        document.getElementById('cpp-vel').value = data.cpp.vel || ''; window.aplicarColorSelect(document.getElementById('cpp-vel'), 4);
+        document.getElementById('cpp-agi').value = data.cpp.agi || ''; window.aplicarColorSelect(document.getElementById('cpp-agi'), 4);
 
-        document.getElementById('vfj-ataque').value = data.vfj.ataque || '';
-        document.getElementById('vfj-tr-def').value = data.vfj.tr_def || '';
-        document.getElementById('vfj-defensa').value = data.vfj.defensa || '';
-        document.getElementById('vfj-tr-of').value = data.vfj.tr_of || '';
+        document.getElementById('vfj-ataque').value = data.vfj.ataque || ''; window.aplicarColorSelect(document.getElementById('vfj-ataque'), 5);
+        document.getElementById('vfj-tr-def').value = data.vfj.tr_def || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-def'), 5);
+        document.getElementById('vfj-defensa').value = data.vfj.defensa || ''; window.aplicarColorSelect(document.getElementById('vfj-defensa'), 5);
+        document.getElementById('vfj-tr-of').value = data.vfj.tr_of || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-of'), 5);
         document.getElementById('vfj-obs').value = data.vfj.obs || '';
 
-        document.getElementById('vac-soc').value = data.vac.soc || '';
-        document.getElementById('vac-const').value = data.vac.const || '';
-        document.getElementById('vac-disc').value = data.vac.disc || '';
-        document.getElementById('vac-act').value = data.vac.act || '';
-        document.getElementById('vac-comp').value = data.vac.comp || '';
-        document.getElementById('vac-evo').value = data.vac.evo || '';
+        document.getElementById('vac-soc').value = data.vac.soc || ''; window.aplicarColorSelect(document.getElementById('vac-soc'), 5);
+        document.getElementById('vac-const').value = data.vac.const || ''; window.aplicarColorSelect(document.getElementById('vac-const'), 5);
+        document.getElementById('vac-disc').value = data.vac.disc || ''; window.aplicarColorSelect(document.getElementById('vac-disc'), 5);
+        document.getElementById('vac-act').value = data.vac.act || ''; window.aplicarColorSelect(document.getElementById('vac-act'), 5);
+        document.getElementById('vac-comp').value = data.vac.comp || ''; window.aplicarColorSelect(document.getElementById('vac-comp'), 5);
+        document.getElementById('vac-evo').value = data.vac.evo || ''; window.aplicarColorSelect(document.getElementById('vac-evo'), 5);
         document.getElementById('vac-obs').value = data.vac.obs || '';
 
         document.getElementById('aca-1-media').value = data.aca.ev1.media || '';
@@ -461,7 +457,7 @@ window.editarInformeSemestral = function(id) {
         document.getElementById('aca-3-asig').value = data.aca.ev3.asig || '';
         document.getElementById('aca-3-susp').value = data.aca.ev3.susp || '';
 
-        window.actualizarProgresoInforme(); // Forzar recalculado visual
+        window.actualizarProgresoGeneral('form-informe-semestral'); 
 
         document.getElementById('btn-save-informe').innerText = "💾 ACTUALIZAR Y VER INFORME";
         document.getElementById('btn-cancel-informe').style.display = "inline-block";
@@ -471,7 +467,7 @@ window.editarInformeSemestral = function(id) {
 
 window.cancelarEdicionInforme = function() {
     informeEnEdicionId = null;
-    clearTimeout(autoSaveTimeout); // Detener autoguardado
+    clearTimeout(autoSaveTimeout); 
     document.getElementById('inf-portero').value = '';
     const textInputs = ['inf-titulo', 'perfil-pos-1', 'perfil-pos-2', 'dc-jornada', 'dc-convocatorias', 'dc-titular', 'dc-min1', 'dc-min2', 'dc-goles', 'dc-lesion', 'dc-disciplina', 'dc-tecnica', 'dc-torneos-asist', 'dc-torneos-conv', 'cg-tec-def', 'cg-tec-of', 'cg-rec-tec', 'cg-niv-comp', 'cg-const', 'cg-comp-juego', 'cg-imp', 'cg-lid', 'cg-des', 'cg-con', 'cg-mot', 'cg-act', 'cpp-pos', 'cpp-bloc', 'cpp-col', 'cpp-desp', 'cpp-aereo', 'cpp-pie', 'cpp-1v1', 'cpp-vel', 'cpp-agi', 'vfj-ataque', 'vfj-tr-def', 'vfj-defensa', 'vfj-tr-of', 'vfj-obs', 'vac-soc', 'vac-const', 'vac-disc', 'vac-act', 'vac-comp', 'vac-evo', 'vac-obs', 'aca-1-media', 'aca-1-asig', 'aca-1-susp', 'aca-2-media', 'aca-2-asig', 'aca-2-susp', 'aca-3-media', 'aca-3-asig', 'aca-3-susp'];
     textInputs.forEach(id => { 
@@ -483,12 +479,12 @@ window.cancelarEdicionInforme = function() {
     document.getElementById('perfil-val-general').value = 'MEDIA';
     document.getElementById('btn-save-informe').innerText = "💾 GENERAR Y GUARDAR (FINAL)";
     document.getElementById('btn-cancel-informe').style.display = "none";
-    window.actualizarProgresoInforme();
+    document.getElementById('floating-progress').classList.remove('visible');
 }
 
 window.generarPDFInforme = function() {
     const pid = document.getElementById('inf-portero').value; if(!pid) return alert("Selecciona un portero");
-    clearTimeout(autoSaveTimeout); // Detener el borrador
+    clearTimeout(autoSaveTimeout); 
 
     const datos = {
         titulo: document.getElementById('inf-titulo').value, tipoInforme: document.getElementById('inf-tipo').value, 
@@ -501,7 +497,7 @@ window.generarPDFInforme = function() {
         aca: { ev1: { media: document.getElementById('aca-1-media').value, asig: document.getElementById('aca-1-asig').value, susp: document.getElementById('aca-1-susp').value }, ev2: { media: document.getElementById('aca-2-media').value, asig: document.getElementById('aca-2-asig').value, susp: document.getElementById('aca-2-susp').value }, ev3: { media: document.getElementById('aca-3-media').value, asig: document.getElementById('aca-3-asig').value, susp: document.getElementById('aca-3-susp').value } }
     };
 
-    const payload = { porteroId: pid, fecha: new Date().toISOString(), datos: datos, isDraft: false }; // isDraft a falso para que ya no sea borrador
+    const payload = { porteroId: pid, fecha: new Date().toISOString(), datos: datos, isDraft: false }; 
 
     const operacion = informeEnEdicionId 
         ? db.collection('informes_semestrales').doc(informeEnEdicionId).update(payload)
@@ -637,18 +633,20 @@ function cargarHistorialTorneos() {
                 if(pDoc.exists) {
                     const p = pDoc.data();
                     
-                    cont.innerHTML += `<div class="eval-card">
-                        <div>
-                            <div style="font-weight:bold;">${p.nombre}</div>
-                            <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
-                            <div style="font-size:0.7rem; color:var(--atm-red);">${inf.fecha.substring(0,10)}</div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn-icon-action" onclick="window.editarInformeTorneo('${doc.id}')" title="Editar">✏️</button>
-                            <button class="btn-icon-action" onclick="window.verPDFTorneoGuardado('${doc.id}')" title="Ver">📄</button>
-                            <button class="btn-trash" onclick="db.collection('informes_torneo').doc('${doc.id}').delete()" title="Borrar">🗑️</button>
-                        </div>
-                    </div>`;
+                    if(cont) {
+                        cont.innerHTML += `<div class="eval-card">
+                            <div>
+                                <div style="font-weight:bold;">${p.nombre}</div>
+                                <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
+                                <div style="font-size:0.7rem; color:var(--atm-red);">${inf.fecha.substring(0,10)}</div>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-icon-action" onclick="window.editarInformeTorneo('${doc.id}')" title="Editar">✏️</button>
+                                <button class="btn-icon-action" onclick="window.verPDFTorneoGuardado('${doc.id}')" title="Ver">📄</button>
+                                <button class="btn-trash" onclick="db.collection('informes_torneo').doc('${doc.id}').delete()" title="Borrar">🗑️</button>
+                            </div>
+                        </div>`;
+                    }
 
                     opcionesCopiar += `<option value="${doc.id}">${inf.datos.torneo} - ${p.nombre}</option>`;
                     if(selCopiar) selCopiar.innerHTML = opcionesCopiar;
@@ -687,23 +685,23 @@ window.agregarFilaPartido = function(data = null) {
     
     div.innerHTML = `
         <div class="row align-items-center">
-            <select class="p-jornada" style="flex:1.5">${optFases}</select>
-            <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
-            <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1">
+            <select class="p-jornada" style="flex:1.5" onchange="window.actualizarProgresoGeneral('form-informe-torneo')">${optFases}</select>
+            <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
+            <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
         </div>
         <div class="row align-items-end">
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles ATM</label><select class="p-goles-atm" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles Rival</label><select class="p-goles-riv" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
-            <div style="flex:1; display:none;" class="p-gc-portero-container"><label style="font-size:0.6rem; color:var(--atm-red); font-weight:bold;">G.C. Portero</label><select class="p-gc-portero">${optGoles}</select></div>
-            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Min. Jugados</label><input type="number" class="p-min" placeholder="Min"></div>
-            <button onclick="window.haptic('light'); this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
+            <div style="flex:1; display:none;" class="p-gc-portero-container"><label style="font-size:0.6rem; color:var(--atm-red); font-weight:bold;">G.C. Portero</label><select class="p-gc-portero" onchange="window.actualizarProgresoGeneral('form-informe-torneo')">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Min. Jugados</label><input type="number" class="p-min" placeholder="Min" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></div>
+            <button onclick="window.haptic('light'); this.parentElement.parentElement.remove(); window.actualizarProgresoGeneral('form-informe-torneo');" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
         </div>
         <div class="p-penaltis-container row" style="display:none; background:rgba(203,53,36,0.1); padding:10px; border-radius:10px; margin-top:5px; border:1px dashed var(--atm-red);">
             <div style="flex:1.5; display:flex; align-items:center;">
                 <label style="font-size:0.75rem; color:var(--text-main);">Hubo Penaltis:</label>
             </div>
-            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. ATM</label><select class="p-pen-atm">${optGoles}</select></div>
-            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. Rival</label><select class="p-pen-riv">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. ATM</label><select class="p-pen-atm" onchange="window.actualizarProgresoGeneral('form-informe-torneo')">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. Rival</label><select class="p-pen-riv" onchange="window.actualizarProgresoGeneral('form-informe-torneo')">${optGoles}</select></div>
         </div>
     `;
     container.appendChild(div);
@@ -726,6 +724,7 @@ window.agregarFilaPartido = function(data = null) {
             div.querySelector('.p-penaltis-container').style.display = 'flex'; 
         }
     }
+    window.actualizarProgresoGeneral('form-informe-torneo');
 }
 
 window.actualizarFilaPartido = function(selectElement) {
@@ -749,6 +748,7 @@ window.actualizarFilaPartido = function(selectElement) {
         gcContainer.style.display = 'none';
         row.querySelector('.p-gc-portero').value = '0';
     }
+    window.actualizarProgresoGeneral('form-informe-torneo');
 }
 
 window.editarInformeTorneo = function(id) {
@@ -767,20 +767,20 @@ window.editarInformeTorneo = function(id) {
         if(data.partidos) data.partidos.forEach(p => window.agregarFilaPartido(p));
 
         const val = data.val || {};
-        document.getElementById('tor-val-personalidad').value = val.personalidad || '';
-        document.getElementById('tor-val-mando').value = val.mando || '';
-        document.getElementById('tor-val-conc').value = val.concentracion || '';
-        document.getElementById('tor-val-error').value = val.error || '';
-        document.getElementById('tor-val-confianza').value = val.confianza || '';
-        document.getElementById('tor-val-mentalidad').value = val.mentalidad || '';
-        document.getElementById('tor-val-actitud-gol').value = val.actitudGol || '';
-        document.getElementById('tor-val-primer-ultimo').value = val.primerUltimo || '';
-        document.getElementById('tor-val-ritmo').value = val.ritmo || '';
-        document.getElementById('tor-val-mejora-bajon').value = val.mejoraBajon || '';
-        document.getElementById('tor-val-entorno').value = val.entorno || '';
-        document.getElementById('tor-val-1v1').value = val.unoVuno || '';
-        document.getElementById('tor-val-org').value = val.organizacion || '';
-        document.getElementById('tor-val-com').value = val.comunicacion || '';
+        document.getElementById('tor-val-personalidad').value = val.personalidad || ''; window.aplicarColorSelect(document.getElementById('tor-val-personalidad'), 5);
+        document.getElementById('tor-val-mando').value = val.mando || ''; window.aplicarColorSelect(document.getElementById('tor-val-mando'), 5);
+        document.getElementById('tor-val-conc').value = val.concentracion || ''; window.aplicarColorSelect(document.getElementById('tor-val-conc'), 5);
+        document.getElementById('tor-val-error').value = val.error || ''; window.aplicarColorSelect(document.getElementById('tor-val-error'), 5);
+        document.getElementById('tor-val-confianza').value = val.confianza || ''; window.aplicarColorSelect(document.getElementById('tor-val-confianza'), 5);
+        document.getElementById('tor-val-mentalidad').value = val.mentalidad || ''; window.aplicarColorSelect(document.getElementById('tor-val-mentalidad'), 5);
+        document.getElementById('tor-val-actitud-gol').value = val.actitudGol || ''; window.aplicarColorSelect(document.getElementById('tor-val-actitud-gol'), 5);
+        document.getElementById('tor-val-primer-ultimo').value = val.primerUltimo || ''; window.aplicarColorSelect(document.getElementById('tor-val-primer-ultimo'), 5);
+        document.getElementById('tor-val-ritmo').value = val.ritmo || ''; window.aplicarColorSelect(document.getElementById('tor-val-ritmo'), 5);
+        document.getElementById('tor-val-mejora-bajon').value = val.mejoraBajon || ''; window.aplicarColorSelect(document.getElementById('tor-val-mejora-bajon'), 5);
+        document.getElementById('tor-val-entorno').value = val.entorno || ''; window.aplicarColorSelect(document.getElementById('tor-val-entorno'), 5);
+        document.getElementById('tor-val-1v1').value = val.unoVuno || ''; window.aplicarColorSelect(document.getElementById('tor-val-1v1'), 5);
+        document.getElementById('tor-val-org').value = val.organizacion || ''; window.aplicarColorSelect(document.getElementById('tor-val-org'), 5);
+        document.getElementById('tor-val-com').value = val.comunicacion || ''; window.aplicarColorSelect(document.getElementById('tor-val-com'), 5);
 
         const obs = data.obs || {};
         document.getElementById('tor-obs-penaltis').value = obs.penaltis || '';
@@ -791,10 +791,7 @@ window.editarInformeTorneo = function(id) {
         
         document.getElementById('tor-val-general').value = data.val_gen || 'MEDIA';
 
-        // Disparamos validadores de colores para que se pinten solos al editar
-        document.querySelectorAll('#section-torneos input[type="number"]').forEach(inp => {
-            if(inp.value) window.validarRango(inp, 1, 5);
-        });
+        window.actualizarProgresoGeneral('form-informe-torneo');
 
         document.getElementById('btn-save-torneo').innerText = "💾 ACTUALIZAR Y VER INFORME";
         document.getElementById('btn-cancel-torneo').style.display = "inline-block";
@@ -824,6 +821,7 @@ window.cancelarEdicionTorneo = function() {
     
     document.getElementById('btn-save-torneo').innerText = "💾 GENERAR Y GUARDAR INFORME";
     document.getElementById('btn-cancel-torneo').style.display = "none";
+    document.getElementById('floating-progress').classList.remove('visible');
 }
 
 window.generarPDFTorneo = function() {
@@ -945,7 +943,6 @@ function construirHTMLTorneo(p, d) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // PORTADA ESPECTACULAR
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
         <img src="ESCUDO ATM.png" class="cover-bg-logo">
