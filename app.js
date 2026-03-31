@@ -29,7 +29,7 @@ const auth = firebase.auth();
 
 // --- VARIABLES ---
 let porteroEnEdicionId = null;
-let torneoEnEdicionId = null; // Variable para gestionar edición de torneos
+let torneoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
 let ACCIONES_EVALUACION = {
@@ -211,10 +211,9 @@ window.imprimirPDFNativo = function() { window.print(); }
 // ==========================================
 
 const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
-const optPaises = `<option value="">🌍 País Rival...</option><option value="🇪🇸">🇪🇸 España</option><option value="🇫🇷">🇫🇷 Francia</option><option value="🇵🇹">🇵🇹 Portugal</option><option value="🇮🇹">🇮🇹 Italia</option><option value="🇩🇪">🇩🇪 Alemania</option><option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra</option><option value="🌍">🌍 Otro</option>`;
-const optFases = `<option value="Grupos J1">Grupos J1</option><option value="Grupos J2">Grupos J2</option><option value="Grupos J3">Grupos J3</option><option value="Grupos J4">Grupos J4</option><option value="Grupos J5">Grupos J5</option><option value="Grupos J6">Grupos J6</option><option value="Grupos J7">Grupos J7</option><option value="Grupos J8">Grupos J8</option><option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option><option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option><option value="Final">Final</option><option value="3º/4º">3º/4º Puesto</option>`;
+const optPaises = `<option value="">🌍 País...</option><option value="🇪🇸">🇪🇸</option><option value="🇫🇷">🇫🇷</option><option value="🇵🇹">🇵🇹</option><option value="🇮🇹">🇮🇹</option><option value="🇩🇪">🇩🇪</option><option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿</option><option value="🌍">🌍</option>`;
+const optFases = `<option value="Grupos J1">Grupos J1</option><option value="Grupos J2">Grupos J2</option><option value="Grupos J3">Grupos J3</option><option value="Grupos J4">Grupos J4</option><option value="Grupos J5">Grupos J5</option><option value="Grupos J6">Grupos J6</option><option value="Grupos J7">Grupos J7</option><option value="Grupos J8">Grupos J8</option><option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option><option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option><option value="Final">Final</option><option value="3º/4º Puesto">3º/4º Puesto</option>`;
 
-// Cargar opciones en el select de Copiar Base
 function cargarHistorialTorneos() {
     db.collection("informes_torneo").orderBy("fecha", "desc").limit(20).onSnapshot(snap => {
         const cont = document.getElementById('lista-torneos-guardados');
@@ -231,7 +230,6 @@ function cargarHistorialTorneos() {
                 if(pDoc.exists) {
                     const p = pDoc.data();
                     
-                    // Añadir a historial
                     cont.innerHTML += `<div class="eval-card">
                         <div>
                             <div style="font-weight:bold;">${p.nombre}</div>
@@ -245,7 +243,6 @@ function cargarHistorialTorneos() {
                         </div>
                     </div>`;
 
-                    // Añadir al select de copiar base
                     opcionesCopiar += `<option value="${doc.id}">${inf.datos.torneo} - ${p.nombre}</option>`;
                     if(selCopiar) selCopiar.innerHTML = opcionesCopiar;
                 }
@@ -254,7 +251,6 @@ function cargarHistorialTorneos() {
     });
 }
 
-// Función para copiar base de otro torneo
 window.copiarBaseTorneo = function(selectEl) {
     const id = selectEl.value;
     if(!id) return;
@@ -272,7 +268,6 @@ window.copiarBaseTorneo = function(selectEl) {
             data.partidos.forEach(p => window.agregarFilaPartido(p));
         }
         
-        // Reset del select
         selectEl.value = "";
     });
 }
@@ -283,14 +278,15 @@ window.agregarFilaPartido = function(data = null) {
     div.className = 'partido-row';
     
     div.innerHTML = `
-        <div class="row">
+        <div class="row align-items-center">
             <select class="p-jornada" style="flex:1">${optFases}</select>
-            <select class="p-pais" style="flex:1">${optPaises}</select>
+            <select class="p-pais" style="flex:0.5">${optPaises}</select>
             <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
         </div>
-        <div class="row">
-            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles ATM</label><select class="p-goles-atm" onchange="verificarEmpate(this)">${optGoles}</select></div>
-            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles Rival</label><select class="p-goles-riv" onchange="verificarEmpate(this)">${optGoles}</select></div>
+        <div class="row align-items-end">
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles ATM</label><select class="p-goles-atm" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles Rival</label><select class="p-goles-riv" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
+            <div style="flex:1; display:none;" class="p-gc-portero-container"><label style="font-size:0.6rem; color:var(--atm-red); font-weight:bold;">G.C. Portero</label><select class="p-gc-portero">${optGoles}</select></div>
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Min. Jugados</label><input type="number" class="p-min" placeholder="Min"></div>
             <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
         </div>
@@ -305,7 +301,6 @@ window.agregarFilaPartido = function(data = null) {
     `;
     container.appendChild(div);
     
-    // Si viene con datos (Editar o Copiar), rellenar campos
     if (data) {
         div.querySelector('.p-jornada').value = data.jornada || 'Grupos J1';
         div.querySelector('.p-pais').value = data.pais || '';
@@ -314,9 +309,12 @@ window.agregarFilaPartido = function(data = null) {
         div.querySelector('.p-goles-riv').value = data.golesRival || '';
         div.querySelector('.p-min').value = data.minutos || '';
         
+        // Cargar los goles encajados (Si es antiguo, cogerá 0 si no existe)
+        div.querySelector('.p-gc-portero').value = data.golesEncajados !== undefined ? data.golesEncajados : (data.golesRival || '0');
+        
+        window.actualizarFilaPartido(div.querySelector('.p-goles-atm'));
+        
         if (data.golesAtm === data.golesRival && data.golesAtm !== "") {
-            const penContainer = div.querySelector('.p-penaltis-container');
-            penContainer.style.display = 'flex';
             div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
@@ -324,12 +322,14 @@ window.agregarFilaPartido = function(data = null) {
     }
 }
 
-window.verificarEmpate = function(selectElement) {
+window.actualizarFilaPartido = function(selectElement) {
     const row = selectElement.closest('.partido-row');
     const atm = row.querySelector('.p-goles-atm').value;
     const riv = row.querySelector('.p-goles-riv').value;
     const penContainer = row.querySelector('.p-penaltis-container');
+    const gcContainer = row.querySelector('.p-gc-portero-container');
     
+    // Empate (Penaltis)
     if (atm === riv && atm !== "") {
         penContainer.style.display = 'flex';
     } else {
@@ -338,14 +338,21 @@ window.verificarEmpate = function(selectElement) {
         row.querySelector('.p-pen-atm').value = '';
         row.querySelector('.p-pen-riv').value = '';
     }
+
+    // Activar desplegable Goles Concedidos Portero
+    if (riv && parseInt(riv) > 0) {
+        gcContainer.style.display = 'block';
+    } else {
+        gcContainer.style.display = 'none';
+        row.querySelector('.p-gc-portero').value = '0';
+    }
 }
 
-// Editar Torneo
 window.editarInformeTorneo = function(id) {
     db.collection("informes_torneo").doc(id).get().then(doc => {
         const d = doc.data();
         const data = d.datos;
-        torneoEnEdicionId = id; // Activa el modo edición
+        torneoEnEdicionId = id; 
 
         document.getElementById('tor-portero').value = d.porteroId;
         document.getElementById('tor-nombre').value = data.torneo || '';
@@ -387,7 +394,6 @@ window.editarInformeTorneo = function(id) {
     });
 }
 
-// Cancelar Edición
 window.cancelarEdicionTorneo = function() {
     torneoEnEdicionId = null;
     document.getElementById('tor-portero').value = '';
@@ -416,12 +422,19 @@ window.generarPDFTorneo = function() {
 
     const partidos = [];
     document.querySelectorAll('.partido-row').forEach(row => {
+        let riv = row.querySelector('.p-goles-riv').value;
+        let gc = 0;
+        if(riv && parseInt(riv) > 0) {
+            gc = row.querySelector('.p-gc-portero').value || 0;
+        }
+
         partidos.push({
             jornada: row.querySelector('.p-jornada').value,
             pais: row.querySelector('.p-pais').value,
             rival: row.querySelector('.p-rival').value,
             golesAtm: row.querySelector('.p-goles-atm').value,
-            golesRival: row.querySelector('.p-goles-riv').value,
+            golesRival: riv,
+            golesEncajados: gc, // Nuevo campo
             minutos: row.querySelector('.p-min').value || 0,
             jugoPen: row.querySelector('.p-jugo-pen').checked,
             penAtm: row.querySelector('.p-pen-atm').value,
@@ -461,7 +474,6 @@ window.generarPDFTorneo = function() {
         val_gen: document.getElementById('tor-val-general').value
     };
 
-    // Si estamos editando, actualizamos. Si no, creamos nuevo.
     const operacion = torneoEnEdicionId 
         ? db.collection('informes_torneo').doc(torneoEnEdicionId).update({ datos: datos })
         : db.collection('informes_torneo').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos });
@@ -475,7 +487,7 @@ window.generarPDFTorneo = function() {
             document.getElementById('printable-area').innerHTML = html;
             document.getElementById('modal-pdf-preview').style.display = 'flex';
             
-            cancelarEdicionTorneo(); // Limpiamos formulario tras guardar
+            cancelarEdicionTorneo(); 
         });
     });
 }
@@ -484,7 +496,6 @@ function construirHTMLTorneo(p, d) {
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     
-    // Paracaídas para informes antiguos
     const val = d.val || {};
     const obs = d.obs || {};
 
@@ -494,17 +505,21 @@ function construirHTMLTorneo(p, d) {
     if (d.partidos) {
         d.partidos.forEach(m => {
             tMin += parseInt(m.minutos || 0); 
-            if(m.golesRival) tGol += parseInt(m.golesRival);
+            // Usamos Goles Encajados (G.C.) del portero específico para el resumen y la tabla
+            const gcReal = m.golesEncajados !== undefined ? m.golesEncajados : (m.golesRival || 0);
+            tGol += parseInt(gcReal);
             
             let resClass = (m.jornada.toLowerCase().includes('final') || m.jornada.toLowerCase().includes('semi')) ? 'fase-highlight' : '';
-            let flag = m.pais ? m.pais : '';
+            
+            // Forzamos fuente compatible con Emojis en el PDF para la bandera
+            let flag = m.pais ? `<span style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;">${m.pais}</span> ` : '';
             let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
             if (m.golesAtm === m.golesRival && m.jugoPen && m.penAtm !== "" && m.penRival !== "") {
                 resTxt += ` <span style="font-size:7px; color:#CB3524;">(P: ${m.penAtm}-${m.penRival})</span>`;
             }
 
-            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag} ${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td>${m.golesRival || '-'}</td></tr>`;
+            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag}${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
         });
     }
 
@@ -579,9 +594,12 @@ function construirHTMLTorneo(p, d) {
             <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia en el Torneo</div><div class="pdf-text-obs">${obs.trans || '-'}</div></div>
         </div>
 
-        <div class="pdf-rating-box ${valClass}" style="margin-top:auto;"><div class="pdf-box-title" style="background:rgba(0,0,0,0.2);">VALORACIÓN GENERAL DEL TORNEO</div><div style="font-size:20px; font-weight:800; padding:5px; text-align:center;">${d.val_gen || 'NO EVALUADO'}</div></div>
+        <div style="margin-top:auto; padding-top:15px; text-align:center;">
+            <div style="font-size:12px; font-weight:bold; color:#1C2C5B; margin-bottom:8px; text-transform:uppercase;">VALORACIÓN GENERAL DEL TORNEO</div>
+            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${d.val_gen || 'NO EVALUADO'}</div>
+        </div>
 
-        <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe de Torneo</div>
+        <div style="text-align:center; font-size:8px; margin-top:10px; color:#999;">GuardianLab ATM - Informe de Torneo</div>
     </div>`;
 }
 
