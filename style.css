@@ -114,7 +114,7 @@ input[type="file"] { display: none; }
 .nav-center-btn:active { transform: scale(0.9); box-shadow: 0 0 10px rgba(0, 230, 118, 0.8); }
 .nav-center-btn.active { border-color: #FFF; box-shadow: 0 0 25px rgba(255,255,255,0.6); transform: scale(1.05); }
 
-/* LÓGICA LIGHT MODE PARA EL NAV */
+/* LÓGICA LIGHT MODE PARA EL NAV Y TARJETAS */
 body.light-mode .floating-nav { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 body.light-mode .nav-item { color: #64748B; }
 body.light-mode .nav-item.active { color: #1C2C5B; }

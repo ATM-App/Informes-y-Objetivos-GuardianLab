@@ -31,7 +31,7 @@ const auth = firebase.auth();
 let porteroEnEdicionId = null;
 let torneoEnEdicionId = null; 
 let informeEnEdicionId = null; 
-let objetivoEnEdicionId = null; // NUEVA VARIABLE PARA EDITAR OBJETIVOS
+let objetivoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
 let ACCIONES_EVALUACION = {
@@ -470,7 +470,7 @@ window.agregarFilaPartido = function(data = null) {
     
     div.innerHTML = `
         <div class="row align-items-center">
-            <select class="p-jornada" style="flex:1">${optFases}</select>
+            <select class="p-jornada" style="flex:1.5">${optFases}</select>
             <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
             <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1">
         </div>
@@ -508,7 +508,7 @@ window.agregarFilaPartido = function(data = null) {
             div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
-            div.querySelector('.p-penaltis-container').style.display = 'flex'; // Forzamos mostrar si hay penaltis
+            div.querySelector('.p-penaltis-container').style.display = 'flex'; 
         }
     }
 }
@@ -709,7 +709,8 @@ function construirHTMLTorneo(p, d) {
             let paisTxt = m.pais ? ` <span class="badge-pais">[${m.pais.toUpperCase()}]</span>` : '';
             let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
-            if (m.penAtm !== "" && m.penRival !== "") {
+            // LÓGICA CORREGIDA: Si hay datos de penaltis, imprímelos SIEMPRE.
+            if (m.penAtm !== "" && m.penRival !== "" && m.penAtm !== undefined) {
                 resTxt += ` <br><span style="font-size:8px; color:#CB3524; font-weight:bold;">(Pen: ${m.penAtm} - ${m.penRival})</span>`;
             }
 
