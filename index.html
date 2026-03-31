@@ -33,7 +33,7 @@
 
     <main>
         <section id="section-porteros" class="fade-in">
-            <div class="section-header"><h2>Mis Porteros</h2><span class="badge" id="total-porteros">0</span></div>
+            <div class="section-header"><h2>Mis Porteros</h2><span class="badge" id="total-porteros">-</span></div>
             <div class="modern-card form-card" style="text-align:center;">
                 <div class="profile-upload-container">
                     <label for="fotoPorteroInput">
@@ -60,7 +60,10 @@
                 <button onclick="window.procesarPortero()" id="btn-save" class="btn-main">Añadir / Actualizar</button>
                 <button onclick="window.cancelarEdicion()" id="btn-cancel" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
-            <div id="lista-porteros" class="list-vertical"><div style="text-align:center; padding:20px; color:#aaa;">Cargando nube...</div></div>
+            <div id="lista-porteros" class="list-vertical">
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            </div>
         </section>
 
         <section id="section-sesiones" class="fade-in" style="display:none;">
@@ -94,7 +97,9 @@
                 <button id="btn-cancel-obj" onclick="window.cancelarEdicionObjetivos()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             <h3 class="section-divider">Historial Objetivos</h3>
-            <div id="lista-seguimientos" class="list-vertical"></div>
+            <div id="lista-seguimientos" class="list-vertical">
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            </div>
         </section>
 
         <section id="section-informes" class="fade-in" style="display:none;">
@@ -215,7 +220,9 @@
             </div>
             
             <h3 class="section-divider">Informes Guardados</h3>
-            <div id="lista-informes-guardados" class="list-vertical"></div>
+            <div id="lista-informes-guardados" class="list-vertical">
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            </div>
         </section>
 
         <section id="section-torneos" class="fade-in" style="display:none;">
@@ -298,7 +305,9 @@
             </div>
             
             <h3 class="section-divider">Historial de Torneos</h3>
-            <div id="lista-torneos-guardados" class="list-vertical"></div>
+            <div id="lista-torneos-guardados" class="list-vertical">
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            </div>
         </section>
     </main>
 
@@ -306,8 +315,8 @@
         <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;">
             <div style="width:100%; display:flex; justify-content:center; align-items:center; padding:15px; background:rgba(0,0,0,0.5); border-bottom:1px solid rgba(255,255,255,0.1);">
                 <h3 style="color:white; margin:0 20px 0 0;">Vista Previa</h3>
-                <button onclick="window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 25px; background:white; color:black; font-weight:bold; margin-right:10px; box-shadow:none;">🖨️ IMPRIMIR / PDF</button>
-                <button onclick="window.cerrarModal('modal-pdf-preview')" class="btn-small-red">Cerrar</button>
+                <button onclick="window.haptic('light'); window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 25px; background:white; color:black; font-weight:bold; margin-right:10px; box-shadow:none;">🖨️ IMPRIMIR / PDF</button>
+                <button onclick="window.haptic('light'); window.cerrarModal('modal-pdf-preview')" class="btn-small-red">Cerrar</button>
             </div>
             <div style="flex:1; overflow-y:auto; width:100%; display:flex; justify-content:center; padding:20px;">
                 <div id="preview-content" style="box-shadow: 0 0 40px rgba(0,0,0,0.8);"></div>
