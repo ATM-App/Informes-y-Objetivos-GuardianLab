@@ -60,6 +60,8 @@
                 <button onclick="window.procesarPortero()" id="btn-save" class="btn-main">Añadir / Actualizar</button>
                 <button onclick="window.cancelarEdicion()" id="btn-cancel" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
+            
+            <h3 class="section-divider" style="font-size:0.7rem; color:var(--text-sec);">Toca a un portero para ver su ficha completa</h3>
             <div id="lista-porteros" class="list-vertical">
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
@@ -105,8 +107,14 @@
         <section id="section-informes" class="fade-in" style="display:none;">
             <div class="section-header"><h2>Informe Semestral</h2></div>
             
-            <div class="modern-card">
-                <h3 class="section-divider" style="color:var(--atm-red)">1. Datos e Información de Portero</h3>
+            <div class="modern-card" id="form-informe-semestral" style="position:relative;">
+                
+                <div class="progress-container">
+                    <div class="progress-text"><span style="color:var(--neon-green)">PROGRESO DEL INFORME</span><span id="inf-progreso-text">0% Completado</span></div>
+                    <div class="progress-track"><div id="inf-progreso-fill" class="progress-fill"></div></div>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red); margin-top:10px;">1. Datos e Información de Portero</h3>
                 <div class="row">
                     <select id="inf-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
                 </div>
@@ -215,11 +223,11 @@
                     <option value="EXCEPCIONAL">EXCEPCIONAL</option>
                 </select>
 
-                <button id="btn-save-informe" onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER INFORME</button>
+                <button id="btn-save-informe" onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GENERAR Y GUARDAR (FINAL)</button>
                 <button id="btn-cancel-informe" onclick="window.cancelarEdicionInforme()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             
-            <h3 class="section-divider">Informes Guardados</h3>
+            <h3 class="section-divider">Informes Guardados (y Borradores)</h3>
             <div id="lista-informes-guardados" class="list-vertical">
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
             </div>
@@ -321,6 +329,48 @@
             <div style="flex:1; overflow-y:auto; width:100%; display:flex; justify-content:center; padding:20px;">
                 <div id="preview-content" style="box-shadow: 0 0 40px rgba(0,0,0,0.8);"></div>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-ficha-portero" class="modal" style="background: var(--bg-body); z-index: 2500; align-items:flex-start; padding:0;">
+        <div style="width:100%; max-width: 800px; margin: 0 auto; min-height: 100vh; background: var(--bg-body); position: relative;">
+            
+            <div class="ficha-header">
+                <button class="ficha-close" onclick="window.haptic('light'); window.cerrarModal('modal-ficha-portero')">✕</button>
+                <img id="ficha-foto" src="" class="ficha-photo">
+                <div id="ficha-nombre" class="ficha-name">Cargando...</div>
+                <div id="ficha-equipo" class="ficha-team">Cargando...</div>
+            </div>
+
+            <div class="ficha-tabs">
+                <button class="ficha-tab-btn active" onclick="window.cambiarTabFicha('datos')">Datos Personales</button>
+                <button class="ficha-tab-btn" onclick="window.cambiarTabFicha('objetivos')">Objetivos</button>
+                <button class="ficha-tab-btn" onclick="window.cambiarTabFicha('informes')">Informes</button>
+                <button class="ficha-tab-btn" onclick="window.cambiarTabFicha('torneos')">Torneos</button>
+            </div>
+
+            <div id="ficha-content-datos" class="ficha-content-tab active">
+                <div class="modern-card">
+                    <h3 class="section-divider" style="margin-top:0;">Información General</h3>
+                    <div class="row" style="margin-bottom:15px;">
+                        <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Año Nacimiento:</label><div id="f-anio" style="font-weight:bold; font-size:1.1rem;">-</div></div>
+                        <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Categoría:</label><div id="f-cat" style="font-weight:bold; font-size:1.1rem;">-</div></div>
+                    </div>
+                    <div class="row" style="margin-bottom:15px;">
+                        <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Nacionalidad:</label><div id="f-nac" style="font-weight:bold; font-size:1.1rem;">-</div></div>
+                        <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Pie Dominante:</label><div id="f-pie" style="font-weight:bold; font-size:1.1rem;">-</div></div>
+                    </div>
+                    <div class="row" style="margin-bottom:15px;">
+                        <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Años en el Club:</label><div id="f-anos" style="font-weight:bold; font-size:1.1rem;">-</div></div>
+                    </div>
+                    <button class="btn-main" onclick="window.cerrarModal('modal-ficha-portero'); window.cargarDatosEdicion(window.porteroActualFichaId);" style="margin-top:10px;">✏️ Editar Perfil</button>
+                </div>
+            </div>
+            
+            <div id="ficha-content-objetivos" class="ficha-content-tab"><div class="list-vertical" id="f-lista-obj"></div></div>
+            <div id="ficha-content-informes" class="ficha-content-tab"><div class="list-vertical" id="f-lista-inf"></div></div>
+            <div id="ficha-content-torneos" class="ficha-content-tab"><div class="list-vertical" id="f-lista-tor"></div></div>
+
         </div>
     </div>
 
