@@ -191,7 +191,19 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
     print-color-adjust: exact !important; 
     overflow: hidden; 
 }
-.cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; background-image: url('ESCUDO ATM.png'); background-size: contain; background-repeat: no-repeat; background-position: center; opacity: 0.06; z-index: 1; }
+/* ACTUALIZACIÓN DEL ESCUDO DE FONDO PARA QUE SIEMPRE SALGA EN PDF */
+.cover-bg-logo { 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    width: 80%; 
+    height: 80%; 
+    object-fit: contain; 
+    opacity: 0.06; 
+    z-index: 1; 
+}
+
 .cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
 .cover-photo { width: 220px; height: 280px; object-fit: cover; border-radius: 20px; border: 6px solid #CB3524; margin: 0 auto 30px auto; display: block; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; }
 .cover-title { font-size: 26px; font-weight: 800; letter-spacing: 3px; margin-bottom: 15px; color: #00E676 !important; text-transform: uppercase; }
