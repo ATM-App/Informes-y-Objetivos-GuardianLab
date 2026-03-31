@@ -59,12 +59,29 @@ h2 { font-size: 1.25rem; font-weight: 700; }
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.portero-card:active, .eval-card:active { transform: scale(0.98); }
 
-.portero-card, .eval-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: var(--radius-m); border-left: 4px solid var(--atm-red); }
+.portero-card, .eval-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: var(--radius-m); border-left: 4px solid var(--atm-red); cursor:pointer; }
+.portero-card:active, .eval-card:active { transform: scale(0.98); }
 .mini-foto-list { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--atm-red); margin-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .card-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 3px; }
 .card-subtitle { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; }
+
+/* FEEDBACK COLORES INPUTS */
+input.rating-red { background-color: rgba(231, 76, 60, 0.15) !important; border-color: rgba(231, 76, 60, 0.5) !important; color: #E74C3C !important; }
+input.rating-yellow { background-color: rgba(241, 196, 15, 0.15) !important; border-color: rgba(241, 196, 15, 0.5) !important; color: #F1C40F !important; }
+input.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; border-color: rgba(39, 174, 96, 0.5) !important; color: #27AE60 !important; }
+
+/* BARRA DE PROGRESO FLOTANTE */
+.progress-container { position: sticky; top: 0; background: var(--bg-body); z-index: 100; margin: -22px -22px 20px -22px; padding: 15px 22px; border-bottom: 1px solid var(--border-glass); border-radius: var(--radius-l) var(--radius-l) 0 0; }
+.progress-track { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--neon-green); width: 0%; transition: width 0.4s ease; box-shadow: 0 0 10px var(--neon-green); }
+.progress-text { font-size: 0.7rem; font-weight: bold; color: var(--text-sec); margin-bottom: 6px; display: flex; justify-content: space-between;}
+body.light-mode .progress-track { background: rgba(0,0,0,0.1); }
+body.light-mode .progress-container { background: #fff; }
+
+/* BORRADORES (DRAFT BADGE) */
+.draft-badge { background: #F1C40F; color: #000; padding: 3px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; vertical-align: middle;}
+.card-draft { border: 1px dashed #F1C40F !important; opacity: 0.9;}
 
 /* SKELETON LOADERS */
 .skeleton-card { background: rgba(255,255,255,0.02); border-radius: var(--radius-m); padding: 15px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid var(--border-glass); }
@@ -75,6 +92,21 @@ h2 { font-size: 1.25rem; font-weight: 700; }
 body.light-mode .skeleton-card { background: rgba(0,0,0,0.02); }
 body.light-mode .skeleton-avatar, body.light-mode .skeleton-line { background: rgba(0,0,0,0.08); }
 @keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+/* FICHA DEL JUGADOR (MODAL PESTAÑAS) */
+.ficha-header { display: flex; flex-direction: column; align-items: center; padding: 40px 20px 20px; background: linear-gradient(180deg, var(--atm-blue) 0%, transparent 100%); position: relative; }
+.ficha-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; display:flex; justify-content:center; align-items:center; transition:0.2s;}
+.ficha-close:active { transform: scale(0.9); background: var(--atm-red); }
+.ficha-photo { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid var(--atm-red); margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);}
+.ficha-name { font-size: 1.6rem; font-weight: 800; color: white; margin-bottom: 5px; text-align:center;}
+.ficha-team { font-size: 0.95rem; color: var(--text-sec); font-weight: 600; margin-bottom: 20px;}
+.ficha-tabs { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; -webkit-overflow-scrolling: touch;}
+.ficha-tabs::-webkit-scrollbar { display: none; }
+.ficha-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-sec); padding: 12px 22px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.3s;}
+.ficha-tab-btn.active { background: var(--atm-red); color: white; border-color: var(--atm-red); box-shadow: 0 4px 15px rgba(203,53,36,0.4);}
+.ficha-content-tab { display: none; padding: 0 20px; animation: fadeIn 0.4s ease;}
+.ficha-content-tab.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .row { display: flex; gap: 12px; }
 .full-width { width: 100%; }
@@ -124,7 +156,6 @@ input[type="file"] { display: none; }
 .nav-center-btn:active { transform: scale(0.9); box-shadow: 0 0 10px rgba(0, 230, 118, 0.8); }
 .nav-center-btn.active { border-color: #FFF; box-shadow: 0 0 25px rgba(255,255,255,0.6); transform: scale(1.05); }
 
-/* LÓGICA LIGHT MODE PARA EL NAV Y TARJETAS */
 body.light-mode .floating-nav { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 body.light-mode .nav-item { color: #64748B; }
 body.light-mode .nav-item.active { color: #1C2C5B; }
@@ -133,6 +164,9 @@ body.light-mode .item-temp-eval { background: rgba(0,0,0,0.05); color: #111827; 
 body.light-mode .p-penaltis-container { background: rgba(203,53,36,0.05); }
 body.light-mode .grid-ratings .rating-item { background: rgba(0,0,0,0.03); }
 body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
+body.light-mode .ficha-header { background: linear-gradient(180deg, #1C2C5B 0%, var(--bg-body) 100%); }
+body.light-mode .ficha-name { color: #1C2C5B; }
+body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 
 .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; }
 .competencia-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
@@ -175,35 +209,9 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
     .pdf-slide { page-break-after: avoid; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
 }
 
-/* PORTADA DEL PDF - FIJADA PARA QUE NO SE CORTE */
-.pdf-cover { 
-    display: block !important; 
-    position: relative; 
-    width: 210mm !important; 
-    height: 297mm !important; 
-    min-height: 297mm !important; 
-    max-height: 297mm !important; 
-    background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; 
-    color: white !important; 
-    page-break-after: always !important; 
-    box-sizing: border-box; 
-    -webkit-print-color-adjust: exact !important; 
-    print-color-adjust: exact !important; 
-    overflow: hidden; 
-}
-/* ACTUALIZACIÓN DEL ESCUDO DE FONDO PARA QUE SIEMPRE SALGA EN PDF */
-.cover-bg-logo { 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    width: 80%; 
-    height: 80%; 
-    object-fit: contain; 
-    opacity: 0.06; 
-    z-index: 1; 
-}
-
+/* PORTADA DEL PDF */
+.pdf-cover { display: block !important; position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; overflow: hidden; }
+.cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; }
 .cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
 .cover-photo { width: 220px; height: 280px; object-fit: cover; border-radius: 20px; border: 6px solid #CB3524; margin: 0 auto 30px auto; display: block; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; }
 .cover-title { font-size: 26px; font-weight: 800; letter-spacing: 3px; margin-bottom: 15px; color: #00E676 !important; text-transform: uppercase; }
