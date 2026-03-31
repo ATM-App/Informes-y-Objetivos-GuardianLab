@@ -9,9 +9,9 @@
     <link rel="shortcut icon" href="Informes y Objetivos_GuardianLab.png" type="image/png">
     <link rel="apple-touch-icon" href="Informes y Objetivos_GuardianLab.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1C2C5B">
+    <meta name="theme-color" content="#080C17">
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -29,7 +29,6 @@
                 <p>Objetivos e Informes Técnicos</p>
             </div>
         </div>
-        <button class="theme-toggle" onclick="window.alternarTema()" title="Cambiar Tema">☀️</button>
     </header>
 
     <main>
@@ -82,7 +81,7 @@
                 <input type="hidden" id="obj-competencia-val" value="">
                 <div class="row" style="align-items: center; margin-top:15px;">
                     <div style="flex:1"><label style="font-size:0.8rem; color:var(--text-sec);">Nota (1-5)</label><input type="number" id="obj-puntaje" min="1" max="5" value="1" style="margin-bottom:0;" oninput="validarRango(this,1,5)"></div>
-                    <button onclick="window.agregarEvaluacionTemporal()" class="btn-main" style="flex:2; background: #00ff88; color:black; font-weight:800; border:2px solid white; margin-top:18px;">➕ Añadir</button>
+                    <button onclick="window.agregarEvaluacionTemporal()" class="btn-main" style="flex:2; background: #00ff88; color:black; font-weight:800; border:2px solid transparent; margin-top:18px;">➕ Añadir</button>
                 </div>
             </div>
             <div id="contenedor-evaluacion-temporal" style="display:none; margin-bottom: 30px;">
@@ -90,14 +89,14 @@
                 <div id="lista-temp-evaluaciones" class="list-vertical" style="margin-bottom:15px;"></div>
                 <h3 class="section-divider">Observación Final</h3>
                 <textarea id="obj-observacion" class="pdf-input-read" placeholder="Observación..." style="width:100%; height:80px; margin-bottom:15px;"></textarea>
-                <button onclick="window.guardarReporteObjetivosCompleto()" class="btn-main">💾 GUARDAR Y VER PDF OBJETIVOS</button>
+                <button onclick="window.guardarReporteObjetivosCompleto()" class="btn-main">💾 GUARDAR Y VER PDF</button>
             </div>
             <h3 class="section-divider">Historial Objetivos</h3>
             <div id="lista-seguimientos" class="list-vertical"></div>
         </section>
 
         <section id="section-informes" class="fade-in" style="display:none;">
-            <div class="section-header"><h2>Nuevo Informe</h2></div>
+            <div class="section-header"><h2>Informe Semestral</h2></div>
             
             <div class="modern-card">
                 <h3 class="section-divider" style="color:var(--atm-red)">1. Datos e Información de Portero</h3>
@@ -121,19 +120,18 @@
                     <div><label>Jornada Actual</label><input type="number" id="dc-jornada"></div>
                     <div><label>Convocatorias</label><input type="number" id="dc-convocatorias"></div>
                     <div><label>Titular</label><input type="number" id="dc-titular"></div>
-                    <div><label>Minutos Posición 1</label><input type="number" id="dc-min1"></div>
-                    <div><label>Minutos Posición 2</label><input type="number" id="dc-min2"></div>
+                    <div><label>Min. Pos 1</label><input type="number" id="dc-min1"></div>
+                    <div><label>Min. Pos 2</label><input type="number" id="dc-min2"></div>
                     <div><label>Goles Encajados</label><input type="number" id="dc-goles"></div>
                     <div><label>Ausencia Lesión</label><input type="text" id="dc-lesion" placeholder="N/A o Nº"></div>
                     <div><label>Ausencia Disciplina</label><input type="text" id="dc-disciplina" placeholder="0"></div>
                     <div><label>Ausencia Dec. Técnica</label><input type="text" id="dc-tecnica" placeholder="0"></div>
-                    <div><label>Torneos Asistidos Equipo</label><input type="number" id="dc-torneos-asist"></div>
+                    <div><label>Torneos Asistidos</label><input type="number" id="dc-torneos-asist"></div>
                     <div><label>Torneos Convocado</label><input type="number" id="dc-torneos-conv"></div>
                 </div>
 
                 <h3 class="section-divider" style="color:var(--atm-red)">3. Valoración Deportiva (1-4)</h3>
-                
-                <h4 style="font-size:0.8rem; margin-top:10px; color:white;">Cualidades Generales</h4>
+                <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Cualidades Generales</h4>
                 <div class="grid-ratings">
                     <div class="rating-item"><label>Repertorio técnico defensivo</label><input type="number" id="cg-tec-def" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
                     <div class="rating-item"><label>Repertorio técnico ofensivo</label><input type="number" id="cg-tec-of" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
@@ -149,7 +147,7 @@
                     <div class="rating-item"><label>Comportamiento actitudinal</label><input type="number" id="cg-act" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
                 </div>
 
-                <h4 style="font-size:0.8rem; margin-top:15px; color:white;">Cualidades Puesto de Proyección 1: PORTERO</h4>
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Cualidades Puesto 1: PORTERO</h4>
                 <div class="grid-ratings">
                      <div class="rating-item"><label>Posición básica</label><input type="number" id="cpp-pos" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
                      <div class="rating-item"><label>Blocaje</label><input type="number" id="cpp-bloc" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
@@ -164,10 +162,10 @@
 
                 <h3 class="section-divider" style="color:var(--atm-red)">4. Valores por fase de Juego (1-5)</h3>
                 <div class="row">
-                    <div style="flex:1"><label>Ataque</label><input type="number" id="vfj-ataque" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div style="flex:1"><label>Transición Defensiva</label><input type="number" id="vfj-tr-def" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div style="flex:1"><label>Defensa</label><input type="number" id="vfj-defensa" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div style="flex:1"><label>Transición Ofensiva</label><input type="number" id="vfj-tr-of" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div style="flex:1"><label style="font-size:0.7rem;">Ataque</label><input type="number" id="vfj-ataque" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div style="flex:1"><label style="font-size:0.7rem;">Trans. Def</label><input type="number" id="vfj-tr-def" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div style="flex:1"><label style="font-size:0.7rem;">Defensa</label><input type="number" id="vfj-defensa" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div style="flex:1"><label style="font-size:0.7rem;">Trans. Of</label><input type="number" id="vfj-tr-of" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
                 </div>
                 <textarea id="vfj-obs" class="pdf-input-read" placeholder="Observaciones Técnico-Tácticas..." style="height:80px; margin-top:5px;"></textarea>
 
@@ -210,43 +208,148 @@
                     <option value="EXCEPCIONAL">EXCEPCIONAL</option>
                 </select>
 
-                <button onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00ff88; color:black; font-weight:800;">📄 PREVISUALIZAR INFORME PDF</button>
+                <button id="btn-save-informe" onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER INFORME</button>
+                <button id="btn-cancel-informe" onclick="window.cancelarEdicionInforme()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
             </div>
             
             <h3 class="section-divider">Informes Guardados</h3>
             <div id="lista-informes-guardados" class="list-vertical"></div>
         </section>
+
+        <section id="section-torneos" class="fade-in" style="display:none;">
+            <div class="section-header"><h2>Informe de Torneo</h2></div>
+            
+            <div class="modern-card">
+                <h3 class="section-divider" style="color:var(--atm-red)">1. Información del Torneo</h3>
+                
+                <div style="margin-bottom:15px; padding:10px; background:rgba(0,230,118,0.1); border:1px solid var(--neon-green); border-radius:12px;">
+                    <label style="font-size:0.75rem; color:var(--neon-green); font-weight:bold; margin-bottom:5px; display:block;">⚡ Copiar datos de un torneo previo (Opcional):</label>
+                    <select id="tor-copiar-base" onchange="window.copiarBaseTorneo(this)" style="margin-bottom:0; background:rgba(0,0,0,0.4);">
+                        <option value="">-- Seleccionar Torneo --</option>
+                    </select>
+                </div>
+
+                <select id="tor-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
+                <div class="row">
+                    <input type="text" id="tor-nombre" placeholder="Nombre del Torneo (ej: Iscar Cup)">
+                    <input type="text" id="tor-ubicacion" placeholder="Ciudad / País">
+                </div>
+                <div class="row">
+                    <input type="text" id="tor-pos-final" placeholder="Posición Final (ej: Campeón)">
+                    <select id="tor-superficie">
+                        <option value="Césped Natural">Césped Natural</option>
+                        <option value="Césped Artificial">Césped Artificial</option>
+                        <option value="Tierra / Otros">Tierra / Otros</option>
+                    </select>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">2. Partidos y Rendimiento</h3>
+                <div id="contenedor-partidos">
+                    </div>
+                <button onclick="window.agregarFilaPartido()" class="btn-main" style="background:rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); color: var(--text-main); margin-bottom:20px; box-shadow:none;">➕ Añadir Partido</button>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">3. Análisis del Portero (1-5)</h3>
+                
+                <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Psicología y Liderazgo</h4>
+                <div class="grid-ratings">
+                    <div class="rating-item"><label>Personalidad en Portería</label><input type="number" id="tor-val-personalidad" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Capacidad de Mando</label><input type="number" id="tor-val-mando" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Nivel de Concentración</label><input type="number" id="tor-val-conc" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Gestión del Error</label><input type="number" id="tor-val-error" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Confianza</label><input type="number" id="tor-val-confianza" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Mentalidad Competitiva</label><input type="number" id="tor-val-mentalidad" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Actitud tras Gol Encajado</label><input type="number" id="tor-val-actitud-gol" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                </div>
+
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Evolución y Entorno</h4>
+                <div class="grid-ratings">
+                    <div class="rating-item"><label>Primer partido vs Último</label><input type="number" id="tor-val-primer-ultimo" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Adaptación Ritmo Competitivo</label><input type="number" id="tor-val-ritmo" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Mejora o Bajón Rendimiento</label><input type="number" id="tor-val-mejora-bajon" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Adaptación Entorno (Viaje...)</label><input type="number" id="tor-val-entorno" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                </div>
+
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Técnico / Táctico Específico</h4>
+                <div class="grid-ratings">
+                    <div class="rating-item"><label>Rendimiento en 1vs1</label><input type="number" id="tor-val-1v1" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Organización del Equipo</label><input type="number" id="tor-val-org" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Comunicación</label><input type="number" id="tor-val-com" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales</h3>
+                <textarea id="tor-obs-penaltis" class="pdf-input-read" placeholder="Rendimiento en Penaltis (Si los hubo)..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-decisivas" class="pdf-input-read" placeholder="Acciones decisivas del torneo..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-pos" class="pdf-input-read" placeholder="Puntos Positivos Globales..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-neg" class="pdf-input-read" placeholder="Áreas de Mejora / Errores Clave..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-trans" class="pdf-input-read" placeholder="Trascendencia en el Torneo..." style="height:60px;"></textarea>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">5. Valoración General del Torneo</h3>
+                <select id="tor-val-general">
+                    <option value="BAJA">BAJA</option>
+                    <option value="MEDIA">MEDIA</option>
+                    <option value="ALTA">ALTA</option>
+                    <option value="EXCEPCIONAL">EXCEPCIONAL</option>
+                </select>
+
+                <button id="btn-save-torneo" onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GUARDAR Y VER INFORME</button>
+                <button id="btn-cancel-torneo" onclick="window.cancelarEdicionTorneo()" class="btn-main" style="display:none; background:#555; margin-top:10px; box-shadow:none;">Cancelar Edición</button>
+            </div>
+            
+            <h3 class="section-divider">Historial de Torneos</h3>
+            <div id="lista-torneos-guardados" class="list-vertical"></div>
+        </section>
     </main>
 
-    <div id="modal-pdf-preview" class="modal" style="background: rgba(10,10,10,0.98); z-index: 2000;">
+    <div id="modal-pdf-preview" class="modal" style="background: rgba(10,15,29,0.98); z-index: 2000; backdrop-filter: blur(10px);">
         <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div style="width:100%; display:flex; justify-content:center; align-items:center; padding:15px; background:#111; border-bottom:1px solid #333;">
+            <div style="width:100%; display:flex; justify-content:center; align-items:center; padding:15px; background:rgba(0,0,0,0.5); border-bottom:1px solid rgba(255,255,255,0.1);">
                 <h3 style="color:white; margin:0 20px 0 0;">Vista Previa</h3>
-                <button onclick="window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 25px; background:white; color:black; font-weight:bold; margin-right:10px;">🖨️ IMPRIMIR / PDF</button>
+                <button onclick="window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 25px; background:white; color:black; font-weight:bold; margin-right:10px; box-shadow:none;">🖨️ IMPRIMIR / PDF</button>
                 <button onclick="window.cerrarModal('modal-pdf-preview')" class="btn-small-red">Cerrar</button>
             </div>
-            <div style="flex:1; overflow-y:auto; background:#555; width:100%; display:flex; justify-content:center; padding:20px;">
-                <div id="preview-content" style="box-shadow: 0 0 30px rgba(0,0,0,0.5);"></div>
+            <div style="flex:1; overflow-y:auto; width:100%; display:flex; justify-content:center; padding:20px;">
+                <div id="preview-content" style="box-shadow: 0 0 40px rgba(0,0,0,0.8);"></div>
             </div>
         </div>
     </div>
 
-    <nav class="floating-nav">
-        <button onclick="window.cambiarSeccion('porteros')" id="btn-porteros" class="active">Porteros</button>
-        <button onclick="window.cambiarSeccion('sesiones')" id="btn-sesiones">Objetivos</button>
-        <button onclick="window.cambiarSeccion('informes')" id="btn-informes">Informes</button>
+    <nav class="floating-nav-container">
+        <div class="floating-nav">
+            <button onclick="window.cambiarSeccion('porteros')" id="btn-porteros" class="nav-item active">
+                <span class="nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                </span>
+                <span class="nav-text">PORTEROS</span>
+            </button>
+            <button onclick="window.cambiarSeccion('sesiones')" id="btn-sesiones" class="nav-item">
+                <span class="nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </span>
+                <span class="nav-text">OBJETIVOS</span>
+            </button>
+            
+            <div class="nav-center-wrapper">
+                <button onclick="window.cambiarSeccion('informes')" id="btn-informes" class="nav-center-btn">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.75 8.1l-2.43 1.76-2.43-1.76.92-2.85h3.02l.92 2.85zm-4.72 2.83L12 15.08l2.97-2.15-1.14 3.5H10.17l-1.14-3.5zM6.66 10.9l2.25 1.63-.85 2.62-2.8-2.04 1.4-2.21zm10.68 0l1.4 2.21-2.8 2.04-.85-2.62 2.25-1.63z"/></svg>
+                </button>
+            </div>
+
+            <button onclick="window.cambiarSeccion('torneos')" id="btn-torneos" class="nav-item">
+                <span class="nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5v18l7-3 7 3V3z"/></svg>
+                </span>
+                <span class="nav-text">TORNEOS</span>
+            </button>
+            <button onclick="window.alternarTema()" class="nav-item">
+                <span class="nav-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm1-11h-2v3H8v2h3v3h2v-3h3v-2h-3V8z"/></svg>
+                </span>
+                <span class="nav-text">TEMA</span>
+            </button>
+        </div>
     </nav>
     <div id="printable-area" class="printable-hidden"></div>
     
     <script src="app.js"></script>
-    <script>
-    if('serviceWorker' in navigator){
-        window.addEventListener('load',()=>{
-            navigator.serviceWorker.register('./sw.js')
-            .then(reg=>console.log('SW Registrado'))
-            .catch(err=>console.log('Error SW',err));
-        });
-    }
-    </script>
 </body>
 </html>
