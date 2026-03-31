@@ -202,10 +202,10 @@ function generarPDFObjetivos(reporte) {
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
         
-        // PORTADA ESPECTACULAR
+        // PORTADA ESPECTACULAR - INCLUYE IMG PARA EVITAR FALLO DE HTML2PDF
         const coverHtml = `
         <div class="pdf-slide pdf-cover">
-            <div class="cover-bg-logo"></div>
+            <img src="ESCUDO ATM.png" class="cover-bg-logo">
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
                 <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
@@ -369,10 +369,9 @@ function construirHTMLInformeVertical(p, d) {
     const rowStat = (lbl, val) => `<div class="pdf-stat-cell"><span class="pdf-stat-label">${lbl}</span><span class="pdf-stat-num">${val||'-'}</span></div>`;
     let valClass = "val-media"; if(d.perfil.val_gen === "BAJA") valClass = "val-baja"; if(d.perfil.val_gen === "ALTA") valClass = "val-alta"; if(d.perfil.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // PORTADA ESPECTACULAR
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
-        <div class="cover-bg-logo"></div>
+        <img src="ESCUDO ATM.png" class="cover-bg-logo">
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
             <div class="cover-title">${d.titulo}</div>
@@ -774,10 +773,10 @@ function construirHTMLTorneo(p, d) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // PORTADA ESPECTACULAR
+    // PORTADA ESPECTACULAR - INCLUYE IMG PARA EVITAR FALLO DE HTML2PDF
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
-        <div class="cover-bg-logo"></div>
+        <img src="ESCUDO ATM.png" class="cover-bg-logo">
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
             <div class="cover-title">INFORME DE TORNEO</div>
