@@ -8,6 +8,17 @@ function validarRango(input, min, max) {
     else if (val > max) { input.value = max; }
 }
 
+// MOTOR HÁPTICO (VIBRACIÓN)
+window.haptic = function(type) {
+    if(!navigator.vibrate) return;
+    try {
+        if(type === 'light') navigator.vibrate(15);
+        if(type === 'medium') navigator.vibrate(30);
+        if(type === 'success') navigator.vibrate([30, 50, 30]);
+        if(type === 'error') navigator.vibrate([50, 50, 50]);
+    } catch(e) {}
+}
+
 // --- CONFIGURACIÓN FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyA4yVCHsCCK7y4G6Sx_vut1FmCyrKOZGcY",
@@ -59,11 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- NAVEGACIÓN ESTILO iOS ---
 window.alternarTema = function() { 
+    window.haptic('medium');
     document.body.classList.toggle('light-mode'); 
     localStorage.setItem('guardian_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); 
 }
 
 window.cambiarSeccion = function(sec) {
+    window.haptic('light');
     document.getElementById('modal-pdf-preview').style.display = 'none';
     const secciones = ['porteros', 'sesiones', 'informes', 'torneos'];
     secciones.forEach(id => {
@@ -93,7 +106,11 @@ function cargarPorteros() {
     db.collection("porteros").onSnapshot((snapshot) => {
         const lista = []; snapshot.forEach(doc => lista.push({...doc.data(), id: doc.id}));
         document.getElementById('total-porteros').innerText = lista.length;
-        const c = document.getElementById('lista-porteros'); c.innerHTML = '';
+        const c = document.getElementById('lista-porteros'); 
+        
+        if(lista.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay datos aún.</div>'; }
+        else { c.innerHTML = ''; }
+        
         const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         lista.forEach(p => { c.innerHTML += `<div class="portero-card"><div style="display:flex; align-items:center;"><img src="${p.foto||def}" class="mini-foto-list"><div><div class="card-title">${p.nombre}</div><div class="card-subtitle">${p.equipo} (${p.anio||'-'})</div></div></div><div><button class="btn-icon-action" onclick="window.cargarDatosEdicion('${p.id}')">✏️</button><button class="btn-trash" onclick="window.borrarPortero('${p.id}')">🗑️</button></div></div>`; });
         const opts = '<option value="">Seleccionar...</option>' + lista.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
@@ -110,13 +127,13 @@ window.procesarPortero = function() {
         const data = { nombre:n, anio:a, categoria:c, equipo:eq, nacionalidad:nac, pie:pie, anosClub:anos };
         if(url) data.foto = url;
         const prom = porteroEnEdicionId ? db.collection("porteros").doc(porteroEnEdicionId).update(data) : db.collection("porteros").add(data);
-        prom.then(() => { window.cancelarEdicion(); }).catch(e => alert("Error: " + e.message)).finally(() => { btn.innerText = "Añadir / Actualizar"; btn.disabled = false; });
+        prom.then(() => { window.haptic('success'); window.cancelarEdicion(); }).catch(e => alert("Error: " + e.message)).finally(() => { btn.innerText = "Añadir / Actualizar"; btn.disabled = false; });
     };
     if(file) { const r = new FileReader(); r.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const max = 300; let w = img.width; let h = img.height; if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); guardar(canvas.toDataURL('image/jpeg', 0.5)); }; }; r.readAsDataURL(file); } else { guardar(null); }
 }
 window.cargarDatosEdicion = function(id) { db.collection("porteros").doc(id).get().then(doc => { const p = doc.data(); document.getElementById('nombrePortero').value = p.nombre; document.getElementById('anioPortero').value = p.anio; document.getElementById('catPortero').value = p.categoria; window.actualizarEquipos(); document.getElementById('equipoPortero').value = p.equipo; document.getElementById('fotoPreview').src = p.foto || ""; document.getElementById('nacionalidadPortero').value = p.nacionalidad || ""; document.getElementById('piePortero').value = p.pie || "DIESTRO"; document.getElementById('anosClub').value = p.anosClub || ""; porteroEnEdicionId = id; document.getElementById('btn-save').innerText = "Guardar Cambios"; document.getElementById('btn-cancel').style.display = "inline-block"; window.scrollTo({top:0, behavior:'smooth'}); }); }
 window.cancelarEdicion = function() { porteroEnEdicionId = null; document.getElementById('nombrePortero').value = ''; document.getElementById('anioPortero').value = ''; document.getElementById('catPortero').value = ''; document.getElementById('equipoPortero').innerHTML = ''; document.getElementById('nacionalidadPortero').value = ''; document.getElementById('anosClub').value = ''; document.getElementById('fotoPreview').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="; document.getElementById('btn-save').innerText = "Añadir / Actualizar"; document.getElementById('btn-cancel').style.display = "none"; }
-window.borrarPortero = function(id) { if(confirm("¿Borrar?")) db.collection("porteros").doc(id).delete(); }
+window.borrarPortero = function(id) { if(confirm("¿Borrar?")) { window.haptic('medium'); db.collection("porteros").doc(id).delete(); } }
 
 // --- OBJETIVOS ---
 window.resetearEvaluacionTemporal = function() { 
@@ -130,8 +147,8 @@ window.resetearEvaluacionTemporal = function() {
     document.getElementById('btn-cancel-obj').style.display = "none";
 }
 window.cargarAccionesObjetivos = function() { const tipo = document.getElementById('obj-tipo').value; const sel = document.getElementById('obj-accion'); sel.innerHTML = '<option value="">Seleccionar Acción...</option>'; sel.disabled = true; if (tipo && ACCIONES_EVALUACION[tipo]) { sel.disabled = false; ACCIONES_EVALUACION[tipo].forEach(acc => { if (!evaluacionesTemporales.some(e => e.accion === acc)) { sel.innerHTML += `<option value="${acc}">${acc}</option>`; } }); } }
-window.selectCompetencia = function(val) { competenciaSeleccionada = val; document.querySelectorAll('.btn-comp').forEach(b => b.classList.remove('active')); if(val) document.querySelector(`.btn-comp.comp-${val}`).classList.add('active'); document.getElementById('obj-competencia-val').value = val; }
-window.agregarEvaluacionTemporal = function() { const pid = document.getElementById('obj-portero').value; const tipo = document.getElementById('obj-tipo').value; const accion = document.getElementById('obj-accion').value; const comp = competenciaSeleccionada; const score = document.getElementById('obj-puntaje').value; if(!pid || !accion || !comp) return alert("Completa los datos"); evaluacionesTemporales.push({ accion: accion, tipo: tipo, competencia: parseInt(comp), puntaje: parseInt(score) }); window.renderizarListaTemporal(); document.getElementById('obj-accion').value = ""; window.selectCompetencia(null); document.getElementById('obj-puntaje').value = "1"; window.cargarAccionesObjetivos(); document.getElementById('contenedor-evaluacion-temporal').style.display = 'block'; }
+window.selectCompetencia = function(val) { window.haptic('light'); competenciaSeleccionada = val; document.querySelectorAll('.btn-comp').forEach(b => b.classList.remove('active')); if(val) document.querySelector(`.btn-comp.comp-${val}`).classList.add('active'); document.getElementById('obj-competencia-val').value = val; }
+window.agregarEvaluacionTemporal = function() { window.haptic('light'); const pid = document.getElementById('obj-portero').value; const tipo = document.getElementById('obj-tipo').value; const accion = document.getElementById('obj-accion').value; const comp = competenciaSeleccionada; const score = document.getElementById('obj-puntaje').value; if(!pid || !accion || !comp) return alert("Completa los datos"); evaluacionesTemporales.push({ accion: accion, tipo: tipo, competencia: parseInt(comp), puntaje: parseInt(score) }); window.renderizarListaTemporal(); document.getElementById('obj-accion').value = ""; window.selectCompetencia(null); document.getElementById('obj-puntaje').value = "1"; window.cargarAccionesObjetivos(); document.getElementById('contenedor-evaluacion-temporal').style.display = 'block'; }
 window.renderizarListaTemporal = function() { const cont = document.getElementById('lista-temp-evaluaciones'); cont.innerHTML = ''; evaluacionesTemporales.forEach(item => { let col='#ccc', txt=''; if(item.competencia===1){col='var(--comp-1)';txt='Inc. Inconsciente';} if(item.competencia===2){col='var(--comp-2)';txt='Inc. Consciente';} if(item.competencia===3){col='var(--comp-3)';txt='Comp. Consciente';} if(item.competencia===4){col='var(--comp-4)';txt='Comp. Inconsciente';} cont.innerHTML += `<div class="item-temp-eval" style="border-left: 4px solid ${col}"><strong>${item.accion}</strong><br><span style="color:${col}">${txt}</span> | Nota: ${item.puntaje}</div>`; }); }
 
 window.editarInformeObjetivos = function(id) {
@@ -172,6 +189,7 @@ window.guardarReporteObjetivosCompleto = function() {
         : db.collection('reportes_objetivos').add(reporte);
 
     operacion.then(() => { 
+        window.haptic('success');
         generarPDFObjetivos(reporte); 
         window.cancelarEdicionObjetivos(); 
     }); 
@@ -183,14 +201,30 @@ function generarPDFObjetivos(reporte) {
         let filas = ''; let sum = 0; reporte.acciones.forEach(item => { sum += parseInt(item.puntaje); let bg='#ccc', fg='white', label=''; if(item.competencia===1){bg='#E74C3C';label='INCOMP. INCONSCIENTE';} if(item.competencia===2){bg='#E67E22';label='INCOMP. CONSCIENTE';} if(item.competencia===3){bg='#F1C40F';label='COMP. CONSCIENTE';fg='black';} if(item.competencia===4){bg='#27AE60';label='COMP. INCONSCIENTE';} filas += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${item.accion}</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><span style="background:${bg}; color:${fg}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${label}</span></td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center; font-weight:bold;">${item.puntaje}</td></tr>`; });
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
-        const html = `<div class="pdf-objectives-container"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
+        
+        // PORTADA ESPECTACULAR
+        const coverHtml = `
+        <div class="pdf-slide pdf-cover">
+            <div class="cover-bg-logo"></div>
+            <div class="cover-content">
+                <img src="${foto}" class="cover-photo">
+                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-name">${p.nombre}</div>
+                <div class="cover-details"><span>${p.equipo}</span> | <span>${p.categoria}</span> | <span>${reporte.fecha}</span></div>
+            </div>
+            <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
+        </div>`;
+
+        const html = coverHtml + `<div class="pdf-slide"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
         document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait');
         document.getElementById('preview-content').innerHTML = html; document.getElementById('printable-area').innerHTML = html; document.getElementById('modal-pdf-preview').style.display = 'flex';
     });
 }
 function cargarHistorialObjetivos() { 
     db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { 
-        const cont = document.getElementById('lista-seguimientos'); cont.innerHTML = ''; 
+        const cont = document.getElementById('lista-seguimientos');
+        if(snap.empty) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay datos aún.</div>'; return; }
+        cont.innerHTML = ''; 
         snap.forEach(doc => { 
             const rep = doc.data(); 
             db.collection("porteros").doc(rep.porteroId).get().then(pDoc => { 
@@ -316,6 +350,7 @@ window.generarPDFInforme = function() {
         : db.collection('informes_semestrales').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos });
 
     operacion.then(() => { 
+        window.haptic('success');
         db.collection("porteros").doc(pid).get().then(doc => { 
             const p = doc.data(); 
             const html = construirHTMLInformeVertical(p, datos); 
@@ -334,7 +369,20 @@ function construirHTMLInformeVertical(p, d) {
     const rowStat = (lbl, val) => `<div class="pdf-stat-cell"><span class="pdf-stat-label">${lbl}</span><span class="pdf-stat-num">${val||'-'}</span></div>`;
     let valClass = "val-media"; if(d.perfil.val_gen === "BAJA") valClass = "val-baja"; if(d.perfil.val_gen === "ALTA") valClass = "val-alta"; if(d.perfil.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    return `
+    // PORTADA ESPECTACULAR
+    const coverHtml = `
+    <div class="pdf-slide pdf-cover">
+        <div class="cover-bg-logo"></div>
+        <div class="cover-content">
+            <img src="${foto}" class="cover-photo">
+            <div class="cover-title">${d.titulo}</div>
+            <div class="cover-name">${p.nombre}</div>
+            <div class="cover-details"><span>${p.equipo}</span> | <span>${p.categoria}</span> | <span>${d.tipoInforme}</span></div>
+        </div>
+        <div class="cover-footer">GUARDIANLAB ATM • INFORME TÉCNICO</div>
+    </div>`;
+
+    return coverHtml + `
     <div class="pdf-slide">
         <div class="pdf-top-header"><div><div class="pdf-top-title">VALORACIÓN POSICIÓN</div><div class="pdf-top-subtitle">${d.titulo}</div><div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.tipoInforme}</div></div><img src="ESCUDO ATM.png" style="height:40px;"></div>
         
@@ -381,7 +429,8 @@ function construirHTMLInformeVertical(p, d) {
 
 function cargarHistorialInformes() { 
     db.collection("informes_semestrales").orderBy("fecha", "desc").limit(10).onSnapshot(snap => { 
-        const cont = document.getElementById('lista-informes-guardados'); if(!cont) return; 
+        const cont = document.getElementById('lista-informes-guardados');
+        if(snap.empty) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay datos aún.</div>'; return; }
         cont.innerHTML = ''; 
         snap.forEach(doc => { 
             const inf = doc.data(); 
@@ -409,19 +458,20 @@ function cargarHistorialTorneos() {
     db.collection("informes_torneo").orderBy("fecha", "desc").limit(20).onSnapshot(snap => {
         const cont = document.getElementById('lista-torneos-guardados');
         const selCopiar = document.getElementById('tor-copiar-base');
-        if(!cont) return;
-        cont.innerHTML = '';
+        if(snap.empty) { 
+            if(cont) cont.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay datos aún.</div>'; 
+            return; 
+        }
+        if(cont) cont.innerHTML = '';
         
         let opcionesCopiar = '<option value="">-- Seleccionar Torneo --</option>';
 
         snap.forEach(doc => {
             const inf = doc.data();
-            
             db.collection("porteros").doc(inf.porteroId).get().then(pDoc => {
                 if(pDoc.exists) {
                     const p = pDoc.data();
-                    
-                    cont.innerHTML += `<div class="eval-card">
+                    if(cont) cont.innerHTML += `<div class="eval-card">
                         <div>
                             <div style="font-weight:bold;">${p.nombre}</div>
                             <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
@@ -464,6 +514,7 @@ window.copiarBaseTorneo = function(selectEl) {
 }
 
 window.agregarFilaPartido = function(data = null) {
+    window.haptic('light');
     const container = document.getElementById('contenedor-partidos');
     const div = document.createElement('div');
     div.className = 'partido-row';
@@ -479,7 +530,7 @@ window.agregarFilaPartido = function(data = null) {
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles Rival</label><select class="p-goles-riv" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
             <div style="flex:1; display:none;" class="p-gc-portero-container"><label style="font-size:0.6rem; color:var(--atm-red); font-weight:bold;">G.C. Portero</label><select class="p-gc-portero">${optGoles}</select></div>
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Min. Jugados</label><input type="number" class="p-min" placeholder="Min"></div>
-            <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
+            <button onclick="window.haptic('light'); this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
         </div>
         <div class="p-penaltis-container row" style="display:none; background:rgba(203,53,36,0.1); padding:10px; border-radius:10px; margin-top:5px; border:1px dashed var(--atm-red);">
             <div style="flex:1.5; display:flex; align-items:center;">
@@ -504,7 +555,7 @@ window.agregarFilaPartido = function(data = null) {
         
         window.actualizarFilaPartido(div.querySelector('.p-goles-atm'));
         
-        if (data.penAtm !== "" && data.penRival !== "") {
+        if (data.penAtm !== "" && data.penRival !== "" && data.penAtm !== undefined) {
             div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
@@ -668,6 +719,7 @@ window.generarPDFTorneo = function() {
         : db.collection('informes_torneo').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos });
 
     operacion.then(() => {
+        window.haptic('success');
         db.collection("porteros").doc(pid).get().then(doc => {
             const html = construirHTMLTorneo(doc.data(), datos);
             document.body.classList.remove('print-landscape'); 
@@ -709,7 +761,6 @@ function construirHTMLTorneo(p, d) {
             let paisTxt = m.pais ? ` <span class="badge-pais">[${m.pais.toUpperCase()}]</span>` : '';
             let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
-            // LÓGICA CORREGIDA: Si hay datos de penaltis, imprímelos SIEMPRE.
             if (m.penAtm !== "" && m.penRival !== "" && m.penAtm !== undefined) {
                 resTxt += ` <br><span style="font-size:8px; color:#CB3524; font-weight:bold;">(Pen: ${m.penAtm} - ${m.penRival})</span>`;
             }
@@ -725,7 +776,20 @@ function construirHTMLTorneo(p, d) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    return `
+    // PORTADA ESPECTACULAR
+    const coverHtml = `
+    <div class="pdf-slide pdf-cover">
+        <div class="cover-bg-logo"></div>
+        <div class="cover-content">
+            <img src="${foto}" class="cover-photo">
+            <div class="cover-title">INFORME DE TORNEO</div>
+            <div class="cover-name">${p.nombre}</div>
+            <div class="cover-details"><span>${d.torneo}</span> | <span>${d.ubicacion}</span> | <span>Posición: ${d.posFinal}</span></div>
+        </div>
+        <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
+    </div>`;
+
+    return coverHtml + `
     <div class="pdf-slide">
         <div class="pdf-top-header">
             <div>
