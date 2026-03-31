@@ -1,20 +1,7 @@
 // --- FUNCIONES GLOBALES ---
 function cerrarModal(id){ document.getElementById(id).style.display='none'; }
 
-function validarRango(input, min, max) {
-    let val = parseInt(input.value);
-    if (isNaN(val) || input.value === '') { input.value = ''; input.classList.remove('rating-red', 'rating-yellow', 'rating-green'); return; }
-    else if (val < min) { input.value = min; val = min; }
-    else if (val > max) { input.value = max; val = max; }
-
-    input.classList.remove('rating-red', 'rating-yellow', 'rating-green');
-    if (max === 4 || max === 5) {
-        if (val <= 2) input.classList.add('rating-red');
-        else if (val === 3) input.classList.add('rating-yellow');
-        else if (val >= 4) input.classList.add('rating-green');
-    }
-}
-
+// FUNCION DE COLORES PARA LOS SELECTS
 window.aplicarColorSelect = function(sel, max) {
     let val = parseInt(sel.value);
     sel.classList.remove('rating-red', 'rating-yellow', 'rating-green');
@@ -30,6 +17,7 @@ window.aplicarColorSelect = function(sel, max) {
     if(formId) window.actualizarProgresoGeneral(formId);
 }
 
+// MOTOR HÁPTICO (VIBRACIÓN)
 window.haptic = function(type) {
     if(!navigator.vibrate) return;
     try {
@@ -66,14 +54,16 @@ let informeEnEdicionId = null;
 let objetivoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
+let autoSaveTimeout = null;
 
 let ACCIONES_EVALUACION = {
     "DEFENSIVAS": ["Blocaje Frontales Medio y Raso", "Blocaje lateral raso", "Blocaje lateral media altura", "Desvío raso", "Desvío a Media Altura", "Reducción de espacios y Posición Cruz", "Apertura", "Reincorporaciones", "Blocaje Aéreo", "Despeje de Puños"],
     "OFENSIVAS": ["Pase mano raso", "Pase mano alto", "Pase mano picado", "Perfilamiento y Controles", "Pase Raso con el Píe", "Pase alto con el Píe", "Voleas"]
 };
 
+// --- INICIO ---
 document.addEventListener('DOMContentLoaded', () => {
-    auth.signInAnonymously().catch((error) => console.error(error));
+    auth.signInAnonymously().then(() => console.log("Sesión anónima iniciada.")).catch((error) => console.error(error));
 
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -88,12 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const fObj = document.getElementById('obj-fecha'); if(fObj) fObj.value=today;
     if(localStorage.getItem('guardian_theme') === 'light'){ document.body.classList.add('light-mode'); }
 
+    // Listener global para la barra de progreso
     const formSemestral = document.getElementById('form-informe-semestral');
     if(formSemestral) {
         formSemestral.addEventListener('input', () => { window.actualizarProgresoGeneral('form-informe-semestral'); });
     }
 });
 
+// --- NAVEGACIÓN ESTILO iOS ---
 window.alternarTema = function() { 
     window.haptic('medium');
     document.body.classList.toggle('light-mode'); 
@@ -116,6 +108,7 @@ window.cambiarSeccion = function(sec) {
     const targetBtn = document.getElementById('btn-' + sec);
     if (targetBtn) targetBtn.classList.add('active');
     
+    // Resetear la barra flotante si salimos de las zonas de informe
     if (sec !== 'informes' && sec !== 'torneos') {
         document.getElementById('floating-progress').classList.remove('visible');
     }
@@ -163,7 +156,7 @@ function cargarPorteros() {
     });
 }
 
-// FICHA DEL JUGADOR
+// NUEVA FICHA DEL JUGADOR
 window.porteroActualFichaId = null;
 window.cambiarTabFicha = function(tab) {
     window.haptic('light');
@@ -189,6 +182,7 @@ window.abrirFichaPortero = function(id) {
         document.getElementById('f-pie').innerText = p.pie || '-';
         document.getElementById('f-anos').innerText = p.anosClub || '-';
 
+        // Objetivos Pestaña
         db.collection("reportes_objetivos").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-obj'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
@@ -198,6 +192,7 @@ window.abrirFichaPortero = function(id) {
             });
         });
 
+        // Informes Pestaña
         db.collection("informes_semestrales").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-inf'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin informes.</div>';
@@ -208,6 +203,7 @@ window.abrirFichaPortero = function(id) {
             });
         });
 
+        // Torneos Pestaña
         db.collection("informes_torneo").where("porteroId", "==", id).get().then(snap => {
             const c = document.getElementById('f-lista-tor'); c.innerHTML = '';
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin torneos.</div>';
@@ -219,9 +215,10 @@ window.abrirFichaPortero = function(id) {
         });
 
         document.getElementById('modal-ficha-portero').style.display = 'block';
-        document.querySelectorAll('.ficha-tab-btn')[0].click(); 
+        document.querySelectorAll('.ficha-tab-btn')[0].click(); // Iniciar en Datos
     });
 }
+
 
 window.procesarPortero = function() {
     const n = document.getElementById('nombrePortero').value; const a = document.getElementById('anioPortero').value; const c = document.getElementById('catPortero').value; const eq = document.getElementById('equipoPortero').value; const nac = document.getElementById('nacionalidadPortero').value; const pie = document.getElementById('piePortero').value; const anos = document.getElementById('anosClub').value; const file = document.getElementById('fotoPorteroInput').files[0];
@@ -301,12 +298,12 @@ window.guardarReporteObjetivosCompleto = function() {
 
 function generarPDFObjetivos(reporte) {
     db.collection("porteros").doc(reporte.porteroId).get().then(doc => {
-        const p = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' }; 
-        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const p = doc.data(); const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         let filas = ''; let sum = 0; reporte.acciones.forEach(item => { sum += parseInt(item.puntaje); let bg='#ccc', fg='white', label=''; if(item.competencia===1){bg='#E74C3C';label='INCOMP. INCONSCIENTE';} if(item.competencia===2){bg='#E67E22';label='INCOMP. CONSCIENTE';} if(item.competencia===3){bg='#F1C40F';label='COMP. CONSCIENTE';fg='black';} if(item.competencia===4){bg='#27AE60';label='COMP. INCONSCIENTE';} filas += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${item.accion}</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><span style="background:${bg}; color:${fg}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${label}</span></td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center; font-weight:bold;">${item.puntaje}</td></tr>`; });
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
         
+        // PORTADA ESPECTACULAR
         const coverHtml = `
         <div class="pdf-slide pdf-cover">
             <img src="ESCUDO ATM.png" class="cover-bg-logo">
@@ -320,8 +317,18 @@ function generarPDFObjetivos(reporte) {
         </div>`;
 
         const html = coverHtml + `<div class="pdf-slide"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
+        
         document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait');
-        document.getElementById('preview-content').innerHTML = html; document.getElementById('printable-area').innerHTML = html; document.getElementById('modal-pdf-preview').style.display = 'flex';
+        
+        // BLINDAJE DE SEGURIDAD
+        const previewEl = document.getElementById('preview-content');
+        const printEl = document.getElementById('printable-area');
+        const modalEl = document.getElementById('modal-pdf-preview');
+        
+        if(previewEl) previewEl.innerHTML = html;
+        if(printEl) printEl.innerHTML = html;
+        if(modalEl) modalEl.style.display = 'flex';
+        else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
     });
 }
 function cargarHistorialObjetivos() { 
@@ -356,9 +363,11 @@ window.actualizarProgresoGeneral = function(formId) {
     
     const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
     const progressEl = document.getElementById('floating-progress');
-    progressEl.classList.add('visible');
-    document.getElementById('fp-fill').style.height = pct + '%';
-    document.getElementById('fp-pct-text').innerText = pct + '%';
+    if(progressEl) {
+        progressEl.classList.add('visible');
+        document.getElementById('fp-fill').style.height = pct + '%';
+        document.getElementById('fp-pct-text').innerText = pct + '%';
+    }
 }
 
 window.guardarBorradorSemestral = function() {
@@ -496,8 +505,10 @@ window.cancelarEdicionInforme = function() {
     const textInputs = ['inf-titulo', 'perfil-pos-1', 'perfil-pos-2', 'dc-jornada', 'dc-convocatorias', 'dc-titular', 'dc-min1', 'dc-min2', 'dc-goles', 'dc-lesion', 'dc-disciplina', 'dc-tecnica', 'dc-torneos-asist', 'dc-torneos-conv', 'cg-tec-def', 'cg-tec-of', 'cg-rec-tec', 'cg-niv-comp', 'cg-const', 'cg-comp-juego', 'cg-imp', 'cg-lid', 'cg-des', 'cg-con', 'cg-mot', 'cg-act', 'cpp-pos', 'cpp-bloc', 'cpp-col', 'cpp-desp', 'cpp-aereo', 'cpp-pie', 'cpp-1v1', 'cpp-vel', 'cpp-agi', 'vfj-ataque', 'vfj-tr-def', 'vfj-defensa', 'vfj-tr-of', 'vfj-obs', 'vac-soc', 'vac-const', 'vac-disc', 'vac-act', 'vac-comp', 'vac-evo', 'vac-obs', 'aca-1-media', 'aca-1-asig', 'aca-1-susp', 'aca-2-media', 'aca-2-asig', 'aca-2-susp', 'aca-3-media', 'aca-3-asig', 'aca-3-susp'];
     textInputs.forEach(id => { 
         let inp = document.getElementById(id);
-        inp.value = ''; 
-        inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+        if(inp){
+            inp.value = ''; 
+            inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+        }
     });
     document.getElementById('inf-tipo').value = 'INFORME DICIEMBRE';
     document.getElementById('perfil-val-general').value = 'MEDIA';
@@ -532,9 +543,17 @@ window.generarPDFInforme = function() {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             const html = construirHTMLInformeVertical(pData, datos); 
             document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); 
-            document.getElementById('preview-content').innerHTML = html; 
-            document.getElementById('printable-area').innerHTML = html; 
-            document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+            
+            // BLINDAJE DE SEGURIDAD
+            const pEl = document.getElementById('preview-content');
+            const prEl = document.getElementById('printable-area');
+            const mEl = document.getElementById('modal-pdf-preview');
+            
+            if(pEl) pEl.innerHTML = html; 
+            if(prEl) prEl.innerHTML = html; 
+            if(mEl) mEl.style.display = 'flex'; 
+            else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
+            
             cancelarEdicionInforme();
         }); 
     });
@@ -652,9 +671,15 @@ window.verPDFInformeGuardado = function(id) {
                 const html = construirHTMLInformeVertical(pData, data.datos); 
                 document.body.classList.remove('print-landscape'); 
                 document.body.classList.add('print-portrait'); 
-                document.getElementById('preview-content').innerHTML = html; 
-                document.getElementById('printable-area').innerHTML = html; 
-                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+                
+                // BLINDAJE DE SEGURIDAD
+                const pEl = document.getElementById('preview-content');
+                const prEl = document.getElementById('printable-area');
+                const mEl = document.getElementById('modal-pdf-preview');
+                if(pEl) pEl.innerHTML = html; 
+                if(prEl) prEl.innerHTML = html; 
+                if(mEl) mEl.style.display = 'flex'; 
+                else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
             }).catch(err => console.error("Error al obtener portero:", err)); 
         } 
     }).catch(err => console.error("Error al obtener informe:", err)); 
@@ -833,13 +858,9 @@ window.agregarFilaPartido = function(data = null) {
         let gAtm = data.golesAtm !== undefined ? data.golesAtm : '';
         let gRiv = data.golesRival !== undefined ? data.golesRival : (data.goles || '');
         
-        // Tratar de recuperar goles si era un informe muy antiguo con "resultado: '2-1'"
         if (data.resultado && gAtm === '' && gRiv === '') {
             let parts = data.resultado.split('-');
-            if(parts.length === 2) {
-                gAtm = parts[0].trim();
-                gRiv = parts[1].trim();
-            }
+            if(parts.length === 2) { gAtm = parts[0].trim(); gRiv = parts[1].trim(); }
         }
         
         div.querySelector('.p-goles-atm').value = gAtm;
@@ -941,8 +962,10 @@ window.cancelarEdicionTorneo = function() {
     
     ['personalidad', 'mando', 'conc', 'error', 'confianza', 'mentalidad', 'actitud-gol', 'primer-ultimo', 'ritmo', 'mejora-bajon', 'entorno', '1v1', 'org', 'com'].forEach(id => {
         let inp = document.getElementById('tor-val-' + id);
-        inp.value = '';
-        inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+        if(inp){
+            inp.value = '';
+            inp.classList.remove('rating-red', 'rating-yellow', 'rating-green');
+        }
     });
     
     ['penaltis', 'decisivas', 'pos', 'neg', 'trans'].forEach(id => {
@@ -988,27 +1011,10 @@ window.generarPDFTorneo = function() {
         superficie: document.getElementById('tor-superficie').value,
         partidos: partidos,
         val: {
-            personalidad: document.getElementById('tor-val-personalidad').value,
-            mando: document.getElementById('tor-val-mando').value,
-            concentracion: document.getElementById('tor-val-conc').value,
-            error: document.getElementById('tor-val-error').value,
-            confianza: document.getElementById('tor-val-confianza').value,
-            mentalidad: document.getElementById('tor-val-mentalidad').value,
-            actitudGol: document.getElementById('tor-val-actitud-gol').value,
-            primerUltimo: document.getElementById('tor-val-primer-ultimo').value,
-            ritmo: document.getElementById('tor-val-ritmo').value,
-            mejoraBajon: document.getElementById('tor-val-mejora-bajon').value,
-            entorno: document.getElementById('tor-val-entorno').value,
-            unoVuno: document.getElementById('tor-val-1v1').value,
-            organizacion: document.getElementById('tor-val-org').value,
-            comunicacion: document.getElementById('tor-val-com').value
+            personalidad: document.getElementById('tor-val-personalidad').value, mando: document.getElementById('tor-val-mando').value, concentracion: document.getElementById('tor-val-conc').value, error: document.getElementById('tor-val-error').value, confianza: document.getElementById('tor-val-confianza').value, mentalidad: document.getElementById('tor-val-mentalidad').value, actitudGol: document.getElementById('tor-val-actitud-gol').value, primerUltimo: document.getElementById('tor-val-primer-ultimo').value, ritmo: document.getElementById('tor-val-ritmo').value, mejoraBajon: document.getElementById('tor-val-mejora-bajon').value, entorno: document.getElementById('tor-val-entorno').value, unoVuno: document.getElementById('tor-val-1v1').value, organizacion: document.getElementById('tor-val-org').value, comunicacion: document.getElementById('tor-val-com').value
         },
         obs: {
-            penaltis: document.getElementById('tor-obs-penaltis').value,
-            decisivas: document.getElementById('tor-obs-decisivas').value,
-            pos: document.getElementById('tor-obs-pos').value,
-            neg: document.getElementById('tor-obs-neg').value,
-            trans: document.getElementById('tor-obs-trans').value
+            penaltis: document.getElementById('tor-obs-penaltis').value, decisivas: document.getElementById('tor-obs-decisivas').value, pos: document.getElementById('tor-obs-pos').value, neg: document.getElementById('tor-obs-neg').value, trans: document.getElementById('tor-obs-trans').value
         },
         val_gen: document.getElementById('tor-val-general').value
     };
@@ -1026,9 +1032,16 @@ window.generarPDFTorneo = function() {
             const html = construirHTMLTorneo(pData, datos);
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
-            document.getElementById('preview-content').innerHTML = html;
-            document.getElementById('printable-area').innerHTML = html;
-            document.getElementById('modal-pdf-preview').style.display = 'flex';
+            
+            // BLINDAJE DE SEGURIDAD
+            const pEl = document.getElementById('preview-content');
+            const prEl = document.getElementById('printable-area');
+            const mEl = document.getElementById('modal-pdf-preview');
+            
+            if(pEl) pEl.innerHTML = html; 
+            if(prEl) prEl.innerHTML = html; 
+            if(mEl) mEl.style.display = 'flex'; 
+            else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
             
             cancelarEdicionTorneo(); 
         });
@@ -1091,7 +1104,6 @@ function construirHTMLTorneo(p, d) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // PORTADA ESPECTACULAR - INCLUYE IMG PARA EVITAR FALLO DE HTML2PDF
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
         <img src="ESCUDO ATM.png" class="cover-bg-logo">
@@ -1179,15 +1191,24 @@ function construirHTMLTorneo(p, d) {
 
 window.verPDFTorneoGuardado = function(id) {
     db.collection("informes_torneo").doc(id).get().then(doc => {
-        const data = doc.data();
-        db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
-            const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
-            const html = construirHTMLTorneo(pData, data.datos);
-            document.body.classList.remove('print-landscape');
-            document.body.classList.add('print-portrait');
-            document.getElementById('preview-content').innerHTML = html;
-            document.getElementById('printable-area').innerHTML = html;
-            document.getElementById('modal-pdf-preview').style.display = 'flex';
-        }).catch(err => console.error("Error al obtener portero:", err));
+        if(doc.exists) {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+                const html = construirHTMLTorneo(pData, data.datos);
+                document.body.classList.remove('print-landscape');
+                document.body.classList.add('print-portrait');
+                
+                // BLINDAJE DE SEGURIDAD
+                const pEl = document.getElementById('preview-content');
+                const prEl = document.getElementById('printable-area');
+                const mEl = document.getElementById('modal-pdf-preview');
+                
+                if(pEl) pEl.innerHTML = html; 
+                if(prEl) prEl.innerHTML = html; 
+                if(mEl) mEl.style.display = 'flex'; 
+                else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
+            }).catch(err => console.error("Error al obtener portero:", err));
+        }
     }).catch(err => console.error("Error al obtener informe:", err));
 }
