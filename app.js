@@ -468,10 +468,12 @@ function cargarHistorialTorneos() {
 
         snap.forEach(doc => {
             const inf = doc.data();
+            
             db.collection("porteros").doc(inf.porteroId).get().then(pDoc => {
                 if(pDoc.exists) {
                     const p = pDoc.data();
-                    if(cont) cont.innerHTML += `<div class="eval-card">
+                    
+                    cont.innerHTML += `<div class="eval-card">
                         <div>
                             <div style="font-weight:bold;">${p.nombre}</div>
                             <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
@@ -534,8 +536,7 @@ window.agregarFilaPartido = function(data = null) {
         </div>
         <div class="p-penaltis-container row" style="display:none; background:rgba(203,53,36,0.1); padding:10px; border-radius:10px; margin-top:5px; border:1px dashed var(--atm-red);">
             <div style="flex:1.5; display:flex; align-items:center;">
-                <input type="checkbox" class="p-jugo-pen" style="width:auto; margin-right:10px;">
-                <label style="font-size:0.75rem; color:var(--text-main);">¿Portero en Penaltis?</label>
+                <label style="font-size:0.75rem; color:var(--text-main);">Hubo Penaltis:</label>
             </div>
             <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. ATM</label><select class="p-pen-atm">${optGoles}</select></div>
             <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. Rival</label><select class="p-pen-riv">${optGoles}</select></div>
@@ -556,7 +557,6 @@ window.agregarFilaPartido = function(data = null) {
         window.actualizarFilaPartido(div.querySelector('.p-goles-atm'));
         
         if (data.penAtm !== "" && data.penRival !== "" && data.penAtm !== undefined) {
-            div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
             div.querySelector('.p-penaltis-container').style.display = 'flex'; 
@@ -575,7 +575,6 @@ window.actualizarFilaPartido = function(selectElement) {
         penContainer.style.display = 'flex';
     } else {
         penContainer.style.display = 'none';
-        row.querySelector('.p-jugo-pen').checked = false;
         row.querySelector('.p-pen-atm').value = '';
         row.querySelector('.p-pen-riv').value = '';
     }
@@ -676,7 +675,6 @@ window.generarPDFTorneo = function() {
             golesRival: riv,
             golesEncajados: gc,
             minutos: row.querySelector('.p-min').value || 0,
-            jugoPen: row.querySelector('.p-jugo-pen').checked,
             penAtm: row.querySelector('.p-pen-atm').value,
             penRival: row.querySelector('.p-pen-riv').value
         });
