@@ -62,18 +62,18 @@ window.alternarTema = function() {
 
 window.cambiarSeccion = function(sec) {
     document.getElementById('modal-pdf-preview').style.display = 'none';
-    
-    // Ocultar todas las secciones y quitar estado activo de TODOS los botones del nav
-    ['porteros','sesiones','informes', 'torneos'].forEach(id => {
-        document.getElementById('section-'+id).style.display = 'none';
-        const btn = document.getElementById('btn-'+id);
-        if(btn) btn.classList.remove('active');
+    const secciones = ['porteros', 'sesiones', 'informes', 'torneos'];
+    secciones.forEach(id => {
+        const secElement = document.getElementById('section-' + id);
+        if (secElement) secElement.style.display = 'none';
+        const btnElement = document.getElementById('btn-' + id);
+        if (btnElement) btnElement.classList.remove('active');
     });
 
-    // Mostrar sección actual y darle estado activo a su botón
-    document.getElementById('section-'+sec).style.display = 'block';
-    const targetBtn = document.getElementById('btn-'+sec);
-    if(targetBtn) targetBtn.classList.add('active');
+    const targetSec = document.getElementById('section-' + sec);
+    if (targetSec) targetSec.style.display = 'block';
+    const targetBtn = document.getElementById('btn-' + sec);
+    if (targetBtn) targetBtn.classList.add('active');
 }
 
 // --- PORTEROS ---
@@ -137,7 +137,7 @@ function generarPDFObjetivos(reporte) {
 function cargarHistorialObjetivos() { db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { const cont = document.getElementById('lista-seguimientos'); cont.innerHTML = ''; snap.forEach(doc => { const rep = doc.data(); db.collection("porteros").doc(rep.porteroId).get().then(pDoc => { if(pDoc.exists) { const p = pDoc.data(); cont.innerHTML += `<div class="eval-card"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${rep.fecha} - ${rep.acciones.length} Acciones</div></div><div style="display:flex;gap:5px;"><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button><button class="btn-trash" onclick="db.collection('reportes_objetivos').doc('${doc.id}').delete()">🗑️</button></div></div>`; } }); }); }); }
 window.verPDFObjetivosGuardado = function(rep) { generarPDFObjetivos(rep); }
 
-// --- INFORMES SEMESTRALES (VERTICAL A4 DEFINITIVO) ---
+// --- INFORMES SEMESTRALES ---
 window.generarPDFInforme = function() {
     const pid = document.getElementById('inf-portero').value; if(!pid) return alert("Selecciona un portero");
     const datos = {
@@ -209,31 +209,56 @@ window.imprimirPDFNativo = function() { window.print(); }
 // --- MÓDULO DE TORNEOS ---
 // ==========================================
 
+const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
+const optPaises = `<option value="">🌍 País Rival...</option><option value="🇪🇸">🇪🇸 España</option><option value="🇫🇷">🇫🇷 Francia</option><option value="🇵🇹">🇵🇹 Portugal</option><option value="🇮🇹">🇮🇹 Italia</option><option value="🇩🇪">🇩🇪 Alemania</option><option value="🏴󠁧󠁢󠁥󠁮󠁧󠁿">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra</option><option value="🌍">🌍 Otro</option>`;
+
 window.agregarFilaPartido = function() {
     const container = document.getElementById('contenedor-partidos');
     const div = document.createElement('div');
     div.className = 'partido-row';
     div.innerHTML = `
         <div class="row">
-            <select class="p-fase" style="flex:1.5">
-                <option value="Fase Grupos">Fase Grupos</option>
-                <option value="1/16 Final">1/16 Final</option>
-                <option value="1/8 Final">1/8 Final</option>
-                <option value="1/4 Final">1/4 Final</option>
-                <option value="Semifinal">Semifinal</option>
-                <option value="Final">Final</option>
-                <option value="3º/4º Puesto">3º/4º Puesto</option>
+            <select class="p-jornada" style="flex:1">
+                <option value="J1">J1</option><option value="J2">J2</option><option value="J3">J3</option>
+                <option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option>
+                <option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option>
+                <option value="Final">Final</option><option value="3º/4º">3º/4º</option>
             </select>
-            <input type="text" class="p-rival" placeholder="Rival" style="flex:2">
+            <select class="p-pais" style="flex:1">${optPaises}</select>
+            <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
         </div>
         <div class="row">
-            <input type="text" class="p-res" placeholder="Res (ej: 2-1)" style="flex:1">
-            <input type="number" class="p-min" placeholder="Minutos" style="flex:1">
-            <input type="number" class="p-goles" placeholder="Goles Enc." style="flex:1">
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles ATM</label><select class="p-goles-atm" onchange="verificarEmpate(this)">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles Rival</label><select class="p-goles-riv" onchange="verificarEmpate(this)">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Min. Jugados</label><input type="number" class="p-min" placeholder="Min"></div>
             <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
+        </div>
+        <div class="p-penaltis-container row" style="display:none; background:rgba(203,53,36,0.1); padding:10px; border-radius:10px; margin-top:5px; border:1px dashed var(--atm-red);">
+            <div style="flex:1.5; display:flex; align-items:center;">
+                <input type="checkbox" class="p-jugo-pen" style="width:auto; margin-right:10px;">
+                <label style="font-size:0.75rem; color:var(--text-main);">¿Portero en Penaltis?</label>
+            </div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. ATM</label><select class="p-pen-atm">${optGoles}</select></div>
+            <div style="flex:1"><label style="font-size:0.6rem; color:var(--atm-red);">Pen. Rival</label><select class="p-pen-riv">${optGoles}</select></div>
         </div>
     `;
     container.appendChild(div);
+}
+
+window.verificarEmpate = function(selectElement) {
+    const row = selectElement.closest('.partido-row');
+    const atm = row.querySelector('.p-goles-atm').value;
+    const riv = row.querySelector('.p-goles-riv').value;
+    const penContainer = row.querySelector('.p-penaltis-container');
+    
+    if (atm === riv && atm !== "") {
+        penContainer.style.display = 'flex';
+    } else {
+        penContainer.style.display = 'none';
+        row.querySelector('.p-jugo-pen').checked = false;
+        row.querySelector('.p-pen-atm').value = '';
+        row.querySelector('.p-pen-riv').value = '';
+    }
 }
 
 window.generarPDFTorneo = function() {
@@ -243,11 +268,15 @@ window.generarPDFTorneo = function() {
     const partidos = [];
     document.querySelectorAll('.partido-row').forEach(row => {
         partidos.push({
-            fase: row.querySelector('.p-fase').value,
+            jornada: row.querySelector('.p-jornada').value,
+            pais: row.querySelector('.p-pais').value,
             rival: row.querySelector('.p-rival').value,
-            resultado: row.querySelector('.p-res').value,
+            golesAtm: row.querySelector('.p-goles-atm').value,
+            golesRival: row.querySelector('.p-goles-riv').value,
             minutos: row.querySelector('.p-min').value || 0,
-            goles: row.querySelector('.p-goles').value || 0
+            jugoPen: row.querySelector('.p-jugo-pen').checked,
+            penAtm: row.querySelector('.p-pen-atm').value,
+            penRival: row.querySelector('.p-pen-riv').value
         });
     });
 
@@ -258,14 +287,24 @@ window.generarPDFTorneo = function() {
         superficie: document.getElementById('tor-superficie').value,
         partidos: partidos,
         val: {
-            entorno: document.getElementById('tor-val-entorno').value,
+            personalidad: document.getElementById('tor-val-personalidad').value,
+            mando: document.getElementById('tor-val-mando').value,
             concentracion: document.getElementById('tor-val-conc').value,
-            presion: document.getElementById('tor-val-presion').value,
-            aereo: document.getElementById('tor-val-aereo').value,
-            comunicacion: document.getElementById('tor-val-com').value,
-            penaltis: document.getElementById('tor-val-penaltis').value
+            error: document.getElementById('tor-val-error').value,
+            confianza: document.getElementById('tor-val-confianza').value,
+            mentalidad: document.getElementById('tor-val-mentalidad').value,
+            actitudGol: document.getElementById('tor-val-actitud-gol').value,
+            primerUltimo: document.getElementById('tor-val-primer-ultimo').value,
+            ritmo: document.getElementById('tor-val-ritmo').value,
+            mejoraBajon: document.getElementById('tor-val-mejora-bajon').value,
+            entorno: document.getElementById('tor-val-entorno').value,
+            unoVuno: document.getElementById('tor-val-1v1').value,
+            organizacion: document.getElementById('tor-val-org').value,
+            comunicacion: document.getElementById('tor-val-com').value
         },
         obs: {
+            penaltis: document.getElementById('tor-obs-penaltis').value,
+            decisivas: document.getElementById('tor-obs-decisivas').value,
             pos: document.getElementById('tor-obs-pos').value,
             neg: document.getElementById('tor-obs-neg').value,
             trans: document.getElementById('tor-obs-trans').value
@@ -286,12 +325,24 @@ window.generarPDFTorneo = function() {
 
 function construirHTMLTorneo(p, d) {
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     
     let filasPartidos = '';
     let tMin = 0, tGol = 0;
+    
     d.partidos.forEach(m => {
-        tMin += parseInt(m.minutos); tGol += parseInt(m.goles);
-        filasPartidos += `<tr><td>${m.fase}</td><td>${m.rival}</td><td>${m.resultado}</td><td>${m.minutos}'</td><td>${m.goles}</td></tr>`;
+        tMin += parseInt(m.minutos); 
+        if(m.golesRival) tGol += parseInt(m.golesRival);
+        
+        let resClass = (m.jornada.toLowerCase().includes('final') || m.jornada.toLowerCase().includes('semi')) ? 'fase-highlight' : '';
+        let flag = m.pais ? m.pais : '';
+        let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
+        
+        if (m.golesAtm === m.golesRival && m.jugoPen && m.penAtm !== "" && m.penRival !== "") {
+            resTxt += ` <span style="font-size:7px; color:#CB3524;">(P: ${m.penAtm}-${m.penRival})</span>`;
+        }
+
+        filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${flag} ${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td>${m.golesRival || '-'}</td></tr>`;
     });
 
     const mediaGoles = d.partidos.length > 0 ? (tGol / d.partidos.length).toFixed(1) : 0;
@@ -313,7 +364,7 @@ function construirHTMLTorneo(p, d) {
                 <div class="pdf-player-info">
                     <div class="pdf-player-name">${p.nombre}</div>
                     <div class="pdf-info-row"><span>CAT: ${p.categoria}</span><span>EQ: ${p.equipo}</span></div>
-                    <div class="pdf-info-row" style="font-weight:bold; color:#CB3524;">POS. FINAL: ${d.posFinal}</div>
+                    <div class="pdf-info-row" style="font-weight:bold; color:#CB3524;">POS. FINAL: 🏆 ${d.posFinal}</div>
                 </div>
             </div>
             <div style="width:60%" class="pdf-rating-box">
@@ -329,32 +380,35 @@ function construirHTMLTorneo(p, d) {
 
         <div class="pdf-section-header">DETALLE DE PARTIDOS</div>
         <table class="pdf-table-torneo">
-            <thead><tr><th>Fase</th><th>Rival</th><th>Resultado</th><th>Minutos</th><th>G.E.</th></tr></thead>
+            <thead><tr><th>Jornada/Fase</th><th>País y Rival</th><th>Resultado ATM - RIV</th><th>Minutos</th><th>Goles Enc.</th></tr></thead>
             <tbody>${filasPartidos}</tbody>
         </table>
 
-        <div class="pdf-section-header">VALORACIÓN TÉCNICA DEL TORNEO (1-5)</div>
-        <div class="pdf-row">
-            <div class="pdf-half-col pdf-rating-box">
-                <div class="pdf-rating-row"><span>Adaptación Entorno</span><span class="pdf-rating-val">${d.val.entorno || '-'}</span></div>
-                <div class="pdf-rating-row"><span>Nivel Concentración</span><span class="pdf-rating-val">${d.val.concentracion || '-'}</span></div>
-                <div class="pdf-rating-row"><span>Gestión de Presión</span><span class="pdf-rating-val">${d.val.presion || '-'}</span></div>
+        <div class="pdf-section-header">ANÁLISIS DE RENDIMIENTO (1-5)</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:5px;">
+            <div class="pdf-rating-box">
+                <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">PSICOLOGÍA Y LIDERAZGO</div>
+                ${rowRat("Personalidad", d.val.personalidad)}${rowRat("Mando", d.val.mando)}${rowRat("Concentración", d.val.concentracion)}${rowRat("Gestión Error", d.val.error)}${rowRat("Confianza", d.val.confianza)}${rowRat("Mentalidad", d.val.mentalidad)}${rowRat("Actitud tras Gol", d.val.actitudGol)}
             </div>
-            <div class="pdf-half-col pdf-rating-box">
-                <div class="pdf-rating-row"><span>Juego Aéreo</span><span class="pdf-rating-val">${d.val.aereo || '-'}</span></div>
-                <div class="pdf-rating-row"><span>Comunicación</span><span class="pdf-rating-val">${d.val.comunicacion || '-'}</span></div>
-                <div class="pdf-rating-row"><span>Penaltis</span><span class="pdf-rating-val">${d.val.penaltis || 'N/A'}</span></div>
+            <div class="pdf-rating-box">
+                <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">EVOLUCIÓN EN TORNEO</div>
+                ${rowRat("1º vs Último", d.val.primerUltimo)}${rowRat("Adapt. Ritmo", d.val.ritmo)}${rowRat("Mejora/Bajón", d.val.mejoraBajon)}${rowRat("Adapt. Entorno", d.val.entorno)}
+                <div class="pdf-box-title" style="background:#ddd; color:#333; border:none; margin-top:8px;">TÉCNICO / TÁCTICO</div>
+                ${rowRat("Rend. 1vs1", d.val.unoVuno)}${rowRat("Organización", d.val.organizacion)}${rowRat("Comunicación", d.val.comunicacion)}
+            </div>
+            <div class="pdf-rating-box" style="display:flex; flex-direction:column;">
+                <div class="pdf-box-title" style="background:#27AE60; color:white; border:none;">PUNTOS POSITIVOS</div>
+                <div class="pdf-text-obs" style="flex:1;">${d.obs.pos}</div>
+                <div class="pdf-box-title" style="background:#E74C3C; color:white; border:none; margin-top:5px;">ÁREAS DE MEJORA</div>
+                <div class="pdf-text-obs" style="flex:1;">${d.obs.neg}</div>
             </div>
         </div>
 
-        <div class="pdf-section-header">ANÁLISIS CUALITATIVO</div>
-        <div class="pdf-rating-box">
-            <div class="pdf-box-title" style="background:#27AE60; color:white; border:none;">PUNTOS POSITIVOS</div>
-            <div class="pdf-text-obs">${d.obs.pos}</div>
-            <div class="pdf-box-title" style="background:#E74C3C; color:white; border:none; margin-top:5px;">ÁREAS DE MEJORA</div>
-            <div class="pdf-text-obs">${d.obs.neg}</div>
-            <div class="pdf-box-title" style="background:#1C2C5B; color:white; border:none; margin-top:5px;">TRASCENDENCIA EN EL TORNEO</div>
-            <div class="pdf-text-obs">${d.obs.trans}</div>
+        <div class="pdf-section-header">SITUACIONES ESPECÍFICAS Y CONCLUSIÓN</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div class="pdf-rating-box"><div class="pdf-box-title">Rendimiento en Penaltis</div><div class="pdf-text-obs">${d.obs.penaltis}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title">Acciones Decisivas</div><div class="pdf-text-obs">${d.obs.decisivas}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia en el Torneo</div><div class="pdf-text-obs">${d.obs.trans}</div></div>
         </div>
 
         <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe de Torneo</div>

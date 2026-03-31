@@ -131,7 +131,6 @@
                 </div>
 
                 <h3 class="section-divider" style="color:var(--atm-red)">3. Valoración Deportiva (1-4)</h3>
-                
                 <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Cualidades Generales</h4>
                 <div class="grid-ratings">
                     <div class="rating-item"><label>Repertorio técnico defensivo</label><input type="number" id="cg-tec-def" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
@@ -241,19 +240,39 @@
                 <button onclick="window.agregarFilaPartido()" class="btn-main" style="background:rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); color: var(--text-main); margin-bottom:20px; box-shadow:none;">➕ Añadir Partido</button>
 
                 <h3 class="section-divider" style="color:var(--atm-red)">3. Análisis del Portero (1-5)</h3>
+                
+                <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Psicología y Liderazgo</h4>
                 <div class="grid-ratings">
-                    <div class="rating-item"><label>Adaptación Entorno</label><input type="number" id="tor-val-entorno" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div class="rating-item"><label>Nivel Concentración</label><input type="number" id="tor-val-conc" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div class="rating-item"><label>Gestión de Presión</label><input type="number" id="tor-val-presion" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div class="rating-item"><label>Juego Aéreo</label><input type="number" id="tor-val-aereo" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div class="rating-item"><label>Comunicación</label><input type="number" id="tor-val-com" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
-                    <div class="rating-item"><label>Penaltis (si hubo)</label><input type="text" id="tor-val-penaltis" placeholder="ej: 2/3 parados"></div>
+                    <div class="rating-item"><label>Personalidad en Portería</label><input type="number" id="tor-val-personalidad" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Capacidad de Mando</label><input type="number" id="tor-val-mando" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Nivel de Concentración</label><input type="number" id="tor-val-conc" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Gestión del Error</label><input type="number" id="tor-val-error" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Confianza</label><input type="number" id="tor-val-confianza" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Mentalidad Competitiva</label><input type="number" id="tor-val-mentalidad" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Actitud tras Gol Encajado</label><input type="number" id="tor-val-actitud-gol" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
                 </div>
 
-                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales</h3>
-                <textarea id="tor-obs-pos" class="pdf-input-read" placeholder="Puntos Positivos..." style="height:80px; margin-bottom:10px;"></textarea>
-                <textarea id="tor-obs-neg" class="pdf-input-read" placeholder="Áreas de Mejora / Errores..." style="height:80px; margin-bottom:10px;"></textarea>
-                <textarea id="tor-obs-trans" class="pdf-input-read" placeholder="Trascendencia en el Torneo..." style="height:80px;"></textarea>
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Evolución y Entorno</h4>
+                <div class="grid-ratings">
+                    <div class="rating-item"><label>Primer partido vs Último</label><input type="number" id="tor-val-primer-ultimo" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Adaptación Ritmo Competitivo</label><input type="number" id="tor-val-ritmo" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Mejora o Bajón Rendimiento</label><input type="number" id="tor-val-mejora-bajon" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Adaptación Entorno (Viaje...)</label><input type="number" id="tor-val-entorno" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                </div>
+
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Técnico / Táctico Específico</h4>
+                <div class="grid-ratings">
+                    <div class="rating-item"><label>Rendimiento en 1vs1</label><input type="number" id="tor-val-1v1" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Organización del Equipo</label><input type="number" id="tor-val-org" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                    <div class="rating-item"><label>Comunicación</label><input type="number" id="tor-val-com" min="1" max="5" placeholder="1-5" oninput="validarRango(this,1,5)"></div>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales y Situaciones</h3>
+                <textarea id="tor-obs-penaltis" class="pdf-input-read" placeholder="Rendimiento en Penaltis (Si los hubo)..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-decisivas" class="pdf-input-read" placeholder="Acciones decisivas del torneo..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-pos" class="pdf-input-read" placeholder="Puntos Positivos Globales..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-neg" class="pdf-input-read" placeholder="Áreas de Mejora / Errores Clave..." style="height:60px; margin-bottom:10px;"></textarea>
+                <textarea id="tor-obs-trans" class="pdf-input-read" placeholder="Trascendencia en el Torneo..." style="height:60px;"></textarea>
 
                 <button onclick="window.generarPDFTorneo()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">📄 GENERAR INFORME TORNEO</button>
             </div>
@@ -318,7 +337,7 @@
     if('serviceWorker' in navigator){
         window.addEventListener('load',()=>{
             navigator.serviceWorker.register('./sw.js')
-            .then(reg=>console.log('SW Registrado v2'))
+            .then(reg=>console.log('SW Registrado v3'))
             .catch(err=>console.log('Error SW',err));
         });
     }
