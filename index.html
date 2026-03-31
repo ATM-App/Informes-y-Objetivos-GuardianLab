@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="Informes y Objetivos_GuardianLab.png" type="image/png">
     <link rel="apple-touch-icon" href="Informes y Objetivos_GuardianLab.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0A0F1D">
+    <meta name="theme-color" content="#080C17">
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -29,7 +29,7 @@
                 <p>Objetivos e Informes Técnicos</p>
             </div>
         </div>
-        </header>
+    </header>
 
     <main>
         <section id="section-porteros" class="fade-in">
@@ -89,7 +89,7 @@
                 <div id="lista-temp-evaluaciones" class="list-vertical" style="margin-bottom:15px;"></div>
                 <h3 class="section-divider">Observación Final</h3>
                 <textarea id="obj-observacion" class="pdf-input-read" placeholder="Observación..." style="width:100%; height:80px; margin-bottom:15px;"></textarea>
-                <button onclick="window.guardarReporteObjetivosCompleto()" class="btn-main">💾 GUARDAR Y VER PDF OBJETIVOS</button>
+                <button onclick="window.guardarReporteObjetivosCompleto()" class="btn-main">💾 GUARDAR Y VER PDF</button>
             </div>
             <h3 class="section-divider">Historial Objetivos</h3>
             <div id="lista-seguimientos" class="list-vertical"></div>
@@ -120,13 +120,13 @@
                     <div><label>Jornada Actual</label><input type="number" id="dc-jornada"></div>
                     <div><label>Convocatorias</label><input type="number" id="dc-convocatorias"></div>
                     <div><label>Titular</label><input type="number" id="dc-titular"></div>
-                    <div><label>Minutos Posición 1</label><input type="number" id="dc-min1"></div>
-                    <div><label>Minutos Posición 2</label><input type="number" id="dc-min2"></div>
+                    <div><label>Min. Pos 1</label><input type="number" id="dc-min1"></div>
+                    <div><label>Min. Pos 2</label><input type="number" id="dc-min2"></div>
                     <div><label>Goles Encajados</label><input type="number" id="dc-goles"></div>
                     <div><label>Ausencia Lesión</label><input type="text" id="dc-lesion" placeholder="N/A o Nº"></div>
                     <div><label>Ausencia Disciplina</label><input type="text" id="dc-disciplina" placeholder="0"></div>
                     <div><label>Ausencia Dec. Técnica</label><input type="text" id="dc-tecnica" placeholder="0"></div>
-                    <div><label>Torneos Asistidos Equipo</label><input type="number" id="dc-torneos-asist"></div>
+                    <div><label>Torneos Asistidos</label><input type="number" id="dc-torneos-asist"></div>
                     <div><label>Torneos Convocado</label><input type="number" id="dc-torneos-conv"></div>
                 </div>
 
@@ -148,7 +148,7 @@
                     <div class="rating-item"><label>Comportamiento actitudinal</label><input type="number" id="cg-act" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
                 </div>
 
-                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Cualidades Puesto de Proyección 1: PORTERO</h4>
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Cualidades Puesto 1: PORTERO</h4>
                 <div class="grid-ratings">
                      <div class="rating-item"><label>Posición básica</label><input type="number" id="cpp-pos" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
                      <div class="rating-item"><label>Blocaje</label><input type="number" id="cpp-bloc" min="1" max="4" placeholder="1-4" oninput="validarRango(this,1,4)"></div>
@@ -209,7 +209,7 @@
                     <option value="EXCEPCIONAL">EXCEPCIONAL</option>
                 </select>
 
-                <button onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00ff88; color:black; font-weight:800;">📄 PREVISUALIZAR INFORME PDF</button>
+                <button onclick="window.generarPDFInforme()" class="btn-main" style="margin-top:20px; background: #00ff88; color:black; font-weight:800;">📄 PREVISUALIZAR PDF</button>
             </div>
             
             <h3 class="section-divider">Informes Guardados</h3>
@@ -227,7 +227,7 @@
                     <input type="text" id="tor-ubicacion" placeholder="Ciudad / País">
                 </div>
                 <div class="row">
-                    <input type="text" id="tor-pos-final" placeholder="Posición Final Equipo (ej: Campeón)">
+                    <input type="text" id="tor-pos-final" placeholder="Posición Final (ej: Campeón)">
                     <select id="tor-superficie">
                         <option value="Césped Natural">Césped Natural</option>
                         <option value="Césped Artificial">Césped Artificial</option>
@@ -238,7 +238,7 @@
                 <h3 class="section-divider" style="color:var(--atm-red)">2. Partidos y Rendimiento</h3>
                 <div id="contenedor-partidos">
                     </div>
-                <button onclick="window.agregarFilaPartido()" class="btn-main" style="background:rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); color: var(--text-main); margin-bottom:20px; box-shadow:none;">➕ Añadir Partido / Fase</button>
+                <button onclick="window.agregarFilaPartido()" class="btn-main" style="background:rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); color: var(--text-main); margin-bottom:20px; box-shadow:none;">➕ Añadir Partido</button>
 
                 <h3 class="section-divider" style="color:var(--atm-red)">3. Análisis del Portero (1-5)</h3>
                 <div class="grid-ratings">
@@ -318,7 +318,7 @@
     if('serviceWorker' in navigator){
         window.addEventListener('load',()=>{
             navigator.serviceWorker.register('./sw.js')
-            .then(reg=>console.log('SW Registrado'))
+            .then(reg=>console.log('SW Registrado v2'))
             .catch(err=>console.log('Error SW',err));
         });
     }
