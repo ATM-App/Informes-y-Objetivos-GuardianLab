@@ -15,7 +15,6 @@ function validarRango(input, min, max) {
     }
 }
 
-// FUNCION DE COLORES PARA LOS SELECTS
 window.aplicarColorSelect = function(sel, max) {
     let val = parseInt(sel.value);
     sel.classList.remove('rating-red', 'rating-yellow', 'rating-green');
@@ -31,7 +30,6 @@ window.aplicarColorSelect = function(sel, max) {
     if(formId) window.actualizarProgresoGeneral(formId);
 }
 
-// MOTOR HÁPTICO (VIBRACIÓN)
 window.haptic = function(type) {
     if(!navigator.vibrate) return;
     try {
@@ -74,9 +72,8 @@ let ACCIONES_EVALUACION = {
     "OFENSIVAS": ["Pase mano raso", "Pase mano alto", "Pase mano picado", "Perfilamiento y Controles", "Pase Raso con el Píe", "Pase alto con el Píe", "Voleas"]
 };
 
-// --- INICIO ---
 document.addEventListener('DOMContentLoaded', () => {
-    auth.signInAnonymously().then(() => console.log("Sesión anónima iniciada.")).catch((error) => console.error(error));
+    auth.signInAnonymously().catch((error) => console.error(error));
 
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -91,14 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const fObj = document.getElementById('obj-fecha'); if(fObj) fObj.value=today;
     if(localStorage.getItem('guardian_theme') === 'light'){ document.body.classList.add('light-mode'); }
 
-    // Listener global para la barra de progreso
     const formSemestral = document.getElementById('form-informe-semestral');
     if(formSemestral) {
         formSemestral.addEventListener('input', () => { window.actualizarProgresoGeneral('form-informe-semestral'); });
     }
 });
 
-// --- NAVEGACIÓN ESTILO iOS ---
 window.alternarTema = function() { 
     window.haptic('medium');
     document.body.classList.toggle('light-mode'); 
@@ -168,7 +163,7 @@ function cargarPorteros() {
     });
 }
 
-// NUEVA FICHA DEL JUGADOR
+// FICHA DEL JUGADOR
 window.porteroActualFichaId = null;
 window.cambiarTabFicha = function(tab) {
     window.haptic('light');
@@ -306,7 +301,8 @@ window.guardarReporteObjetivosCompleto = function() {
 
 function generarPDFObjetivos(reporte) {
     db.collection("porteros").doc(reporte.porteroId).get().then(doc => {
-        const p = doc.data(); const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const p = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' }; 
+        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         let filas = ''; let sum = 0; reporte.acciones.forEach(item => { sum += parseInt(item.puntaje); let bg='#ccc', fg='white', label=''; if(item.competencia===1){bg='#E74C3C';label='INCOMP. INCONSCIENTE';} if(item.competencia===2){bg='#E67E22';label='INCOMP. CONSCIENTE';} if(item.competencia===3){bg='#F1C40F';label='COMP. CONSCIENTE';fg='black';} if(item.competencia===4){bg='#27AE60';label='COMP. INCONSCIENTE';} filas += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${item.accion}</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><span style="background:${bg}; color:${fg}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${label}</span></td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center; font-weight:bold;">${item.puntaje}</td></tr>`; });
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
@@ -412,68 +408,79 @@ window.editarInformeSemestral = function(id) {
         document.getElementById('inf-titulo').value = data.titulo || '';
         document.getElementById('inf-tipo').value = data.tipoInforme || 'INFORME DICIEMBRE';
 
-        document.getElementById('perfil-pos-1').value = data.perfil.pos1 || '';
-        document.getElementById('perfil-pos-2').value = data.perfil.pos2 || '';
-        document.getElementById('perfil-val-general').value = data.perfil.val_gen || 'MEDIA';
+        const perfil = data.perfil || {};
+        const dc = data.dc || {};
+        const cg = data.cg || {};
+        const cpp = data.cpp || {};
+        const vfj = data.vfj || {};
+        const vac = data.vac || {};
+        const aca = data.aca || {};
+        const ev1 = aca.ev1 || {};
+        const ev2 = aca.ev2 || {};
+        const ev3 = aca.ev3 || {};
 
-        document.getElementById('dc-jornada').value = data.dc.jornada || '';
-        document.getElementById('dc-convocatorias').value = data.dc.convocatorias || '';
-        document.getElementById('dc-titular').value = data.dc.titular || '';
-        document.getElementById('dc-min1').value = data.dc.min1 || '';
-        document.getElementById('dc-min2').value = data.dc.min2 || '';
-        document.getElementById('dc-goles').value = data.dc.goles || '';
-        document.getElementById('dc-lesion').value = data.dc.lesion || '';
-        document.getElementById('dc-disciplina').value = data.dc.disciplina || '';
-        document.getElementById('dc-tecnica').value = data.dc.tecnica || '';
-        document.getElementById('dc-torneos-asist').value = data.dc.t_asist || '';
-        document.getElementById('dc-torneos-conv').value = data.dc.t_conv || '';
+        document.getElementById('perfil-pos-1').value = perfil.pos1 || '';
+        document.getElementById('perfil-pos-2').value = perfil.pos2 || '';
+        document.getElementById('perfil-val-general').value = perfil.val_gen || 'MEDIA';
 
-        document.getElementById('cg-tec-def').value = data.cg.tec_def || ''; window.aplicarColorSelect(document.getElementById('cg-tec-def'), 4);
-        document.getElementById('cg-tec-of').value = data.cg.tec_of || ''; window.aplicarColorSelect(document.getElementById('cg-tec-of'), 4);
-        document.getElementById('cg-rec-tec').value = data.cg.rec_tec || ''; window.aplicarColorSelect(document.getElementById('cg-rec-tec'), 4);
-        document.getElementById('cg-niv-comp').value = data.cg.niv_comp || ''; window.aplicarColorSelect(document.getElementById('cg-niv-comp'), 4);
-        document.getElementById('cg-const').value = data.cg.const || ''; window.aplicarColorSelect(document.getElementById('cg-const'), 4);
-        document.getElementById('cg-comp-juego').value = data.cg.comp_juego || ''; window.aplicarColorSelect(document.getElementById('cg-comp-juego'), 4);
-        document.getElementById('cg-imp').value = data.cg.imp || ''; window.aplicarColorSelect(document.getElementById('cg-imp'), 4);
-        document.getElementById('cg-lid').value = data.cg.lid || ''; window.aplicarColorSelect(document.getElementById('cg-lid'), 4);
-        document.getElementById('cg-des').value = data.cg.des || ''; window.aplicarColorSelect(document.getElementById('cg-des'), 4);
-        document.getElementById('cg-con').value = data.cg.con || ''; window.aplicarColorSelect(document.getElementById('cg-con'), 4);
-        document.getElementById('cg-mot').value = data.cg.mot || ''; window.aplicarColorSelect(document.getElementById('cg-mot'), 4);
-        document.getElementById('cg-act').value = data.cg.act || ''; window.aplicarColorSelect(document.getElementById('cg-act'), 4);
+        document.getElementById('dc-jornada').value = dc.jornada || '';
+        document.getElementById('dc-convocatorias').value = dc.convocatorias || '';
+        document.getElementById('dc-titular').value = dc.titular || '';
+        document.getElementById('dc-min1').value = dc.min1 || '';
+        document.getElementById('dc-min2').value = dc.min2 || '';
+        document.getElementById('dc-goles').value = dc.goles || '';
+        document.getElementById('dc-lesion').value = dc.lesion || '';
+        document.getElementById('dc-disciplina').value = dc.disciplina || '';
+        document.getElementById('dc-tecnica').value = dc.tecnica || '';
+        document.getElementById('dc-torneos-asist').value = dc.t_asist || '';
+        document.getElementById('dc-torneos-conv').value = dc.t_conv || '';
 
-        document.getElementById('cpp-pos').value = data.cpp.pos || ''; window.aplicarColorSelect(document.getElementById('cpp-pos'), 4);
-        document.getElementById('cpp-bloc').value = data.cpp.bloc || ''; window.aplicarColorSelect(document.getElementById('cpp-bloc'), 4);
-        document.getElementById('cpp-col').value = data.cpp.col || ''; window.aplicarColorSelect(document.getElementById('cpp-col'), 4);
-        document.getElementById('cpp-desp').value = data.cpp.desp || ''; window.aplicarColorSelect(document.getElementById('cpp-desp'), 4);
-        document.getElementById('cpp-aereo').value = data.cpp.aereo || ''; window.aplicarColorSelect(document.getElementById('cpp-aereo'), 4);
-        document.getElementById('cpp-pie').value = data.cpp.pie || ''; window.aplicarColorSelect(document.getElementById('cpp-pie'), 4);
-        document.getElementById('cpp-1v1').value = data.cpp.uno || ''; window.aplicarColorSelect(document.getElementById('cpp-1v1'), 4);
-        document.getElementById('cpp-vel').value = data.cpp.vel || ''; window.aplicarColorSelect(document.getElementById('cpp-vel'), 4);
-        document.getElementById('cpp-agi').value = data.cpp.agi || ''; window.aplicarColorSelect(document.getElementById('cpp-agi'), 4);
+        document.getElementById('cg-tec-def').value = cg.tec_def || ''; window.aplicarColorSelect(document.getElementById('cg-tec-def'), 4);
+        document.getElementById('cg-tec-of').value = cg.tec_of || ''; window.aplicarColorSelect(document.getElementById('cg-tec-of'), 4);
+        document.getElementById('cg-rec-tec').value = cg.rec_tec || ''; window.aplicarColorSelect(document.getElementById('cg-rec-tec'), 4);
+        document.getElementById('cg-niv-comp').value = cg.niv_comp || ''; window.aplicarColorSelect(document.getElementById('cg-niv-comp'), 4);
+        document.getElementById('cg-const').value = cg.const || ''; window.aplicarColorSelect(document.getElementById('cg-const'), 4);
+        document.getElementById('cg-comp-juego').value = cg.comp_juego || ''; window.aplicarColorSelect(document.getElementById('cg-comp-juego'), 4);
+        document.getElementById('cg-imp').value = cg.imp || ''; window.aplicarColorSelect(document.getElementById('cg-imp'), 4);
+        document.getElementById('cg-lid').value = cg.lid || ''; window.aplicarColorSelect(document.getElementById('cg-lid'), 4);
+        document.getElementById('cg-des').value = cg.des || ''; window.aplicarColorSelect(document.getElementById('cg-des'), 4);
+        document.getElementById('cg-con').value = cg.con || ''; window.aplicarColorSelect(document.getElementById('cg-con'), 4);
+        document.getElementById('cg-mot').value = cg.mot || ''; window.aplicarColorSelect(document.getElementById('cg-mot'), 4);
+        document.getElementById('cg-act').value = cg.act || ''; window.aplicarColorSelect(document.getElementById('cg-act'), 4);
 
-        document.getElementById('vfj-ataque').value = data.vfj.ataque || ''; window.aplicarColorSelect(document.getElementById('vfj-ataque'), 5);
-        document.getElementById('vfj-tr-def').value = data.vfj.tr_def || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-def'), 5);
-        document.getElementById('vfj-defensa').value = data.vfj.defensa || ''; window.aplicarColorSelect(document.getElementById('vfj-defensa'), 5);
-        document.getElementById('vfj-tr-of').value = data.vfj.tr_of || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-of'), 5);
-        document.getElementById('vfj-obs').value = data.vfj.obs || '';
+        document.getElementById('cpp-pos').value = cpp.pos || ''; window.aplicarColorSelect(document.getElementById('cpp-pos'), 4);
+        document.getElementById('cpp-bloc').value = cpp.bloc || ''; window.aplicarColorSelect(document.getElementById('cpp-bloc'), 4);
+        document.getElementById('cpp-col').value = cpp.col || ''; window.aplicarColorSelect(document.getElementById('cpp-col'), 4);
+        document.getElementById('cpp-desp').value = cpp.desp || ''; window.aplicarColorSelect(document.getElementById('cpp-desp'), 4);
+        document.getElementById('cpp-aereo').value = cpp.aereo || ''; window.aplicarColorSelect(document.getElementById('cpp-aereo'), 4);
+        document.getElementById('cpp-pie').value = cpp.pie || ''; window.aplicarColorSelect(document.getElementById('cpp-pie'), 4);
+        document.getElementById('cpp-1v1').value = cpp.uno || ''; window.aplicarColorSelect(document.getElementById('cpp-1v1'), 4);
+        document.getElementById('cpp-vel').value = cpp.vel || ''; window.aplicarColorSelect(document.getElementById('cpp-vel'), 4);
+        document.getElementById('cpp-agi').value = cpp.agi || ''; window.aplicarColorSelect(document.getElementById('cpp-agi'), 4);
 
-        document.getElementById('vac-soc').value = data.vac.soc || ''; window.aplicarColorSelect(document.getElementById('vac-soc'), 5);
-        document.getElementById('vac-const').value = data.vac.const || ''; window.aplicarColorSelect(document.getElementById('vac-const'), 5);
-        document.getElementById('vac-disc').value = data.vac.disc || ''; window.aplicarColorSelect(document.getElementById('vac-disc'), 5);
-        document.getElementById('vac-act').value = data.vac.act || ''; window.aplicarColorSelect(document.getElementById('vac-act'), 5);
-        document.getElementById('vac-comp').value = data.vac.comp || ''; window.aplicarColorSelect(document.getElementById('vac-comp'), 5);
-        document.getElementById('vac-evo').value = data.vac.evo || ''; window.aplicarColorSelect(document.getElementById('vac-evo'), 5);
-        document.getElementById('vac-obs').value = data.vac.obs || '';
+        document.getElementById('vfj-ataque').value = vfj.ataque || ''; window.aplicarColorSelect(document.getElementById('vfj-ataque'), 5);
+        document.getElementById('vfj-tr-def').value = vfj.tr_def || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-def'), 5);
+        document.getElementById('vfj-defensa').value = vfj.defensa || ''; window.aplicarColorSelect(document.getElementById('vfj-defensa'), 5);
+        document.getElementById('vfj-tr-of').value = vfj.tr_of || ''; window.aplicarColorSelect(document.getElementById('vfj-tr-of'), 5);
+        document.getElementById('vfj-obs').value = vfj.obs || '';
 
-        document.getElementById('aca-1-media').value = data.aca.ev1.media || '';
-        document.getElementById('aca-1-asig').value = data.aca.ev1.asig || '';
-        document.getElementById('aca-1-susp').value = data.aca.ev1.susp || '';
-        document.getElementById('aca-2-media').value = data.aca.ev2.media || '';
-        document.getElementById('aca-2-asig').value = data.aca.ev2.asig || '';
-        document.getElementById('aca-2-susp').value = data.aca.ev2.susp || '';
-        document.getElementById('aca-3-media').value = data.aca.ev3.media || '';
-        document.getElementById('aca-3-asig').value = data.aca.ev3.asig || '';
-        document.getElementById('aca-3-susp').value = data.aca.ev3.susp || '';
+        document.getElementById('vac-soc').value = vac.soc || ''; window.aplicarColorSelect(document.getElementById('vac-soc'), 5);
+        document.getElementById('vac-const').value = vac.const || ''; window.aplicarColorSelect(document.getElementById('vac-const'), 5);
+        document.getElementById('vac-disc').value = vac.disc || ''; window.aplicarColorSelect(document.getElementById('vac-disc'), 5);
+        document.getElementById('vac-act').value = vac.act || ''; window.aplicarColorSelect(document.getElementById('vac-act'), 5);
+        document.getElementById('vac-comp').value = vac.comp || ''; window.aplicarColorSelect(document.getElementById('vac-comp'), 5);
+        document.getElementById('vac-evo').value = vac.evo || ''; window.aplicarColorSelect(document.getElementById('vac-evo'), 5);
+        document.getElementById('vac-obs').value = vac.obs || '';
+
+        document.getElementById('aca-1-media').value = ev1.media || '';
+        document.getElementById('aca-1-asig').value = ev1.asig || '';
+        document.getElementById('aca-1-susp').value = ev1.susp || '';
+        document.getElementById('aca-2-media').value = ev2.media || '';
+        document.getElementById('aca-2-asig').value = ev2.asig || '';
+        document.getElementById('aca-2-susp').value = ev2.susp || '';
+        document.getElementById('aca-3-media').value = ev3.media || '';
+        document.getElementById('aca-3-asig').value = ev3.asig || '';
+        document.getElementById('aca-3-susp').value = ev3.susp || '';
 
         window.actualizarProgresoGeneral('form-informe-semestral'); 
 
@@ -522,8 +529,8 @@ window.generarPDFInforme = function() {
     operacion.then(() => { 
         window.haptic('success');
         db.collection("porteros").doc(pid).get().then(doc => { 
-            const p = doc.data(); 
-            const html = construirHTMLInformeVertical(p, datos); 
+            const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+            const html = construirHTMLInformeVertical(pData, datos); 
             document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); 
             document.getElementById('preview-content').innerHTML = html; 
             document.getElementById('printable-area').innerHTML = html; 
@@ -534,62 +541,78 @@ window.generarPDFInforme = function() {
 }
 
 function construirHTMLInformeVertical(p, d) {
+    p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     const rowStat = (lbl, val) => `<div class="pdf-stat-cell"><span class="pdf-stat-label">${lbl}</span><span class="pdf-stat-num">${val||'-'}</span></div>`;
-    let valClass = "val-media"; if(d.perfil.val_gen === "BAJA") valClass = "val-baja"; if(d.perfil.val_gen === "ALTA") valClass = "val-alta"; if(d.perfil.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
+    
+    const perfil = d.perfil || {};
+    const dc = d.dc || {};
+    const cg = d.cg || {};
+    const cpp = d.cpp || {};
+    const vfj = d.vfj || {};
+    const vac = d.vac || {};
+    const aca = d.aca || {};
+    const ev1 = aca.ev1 || {};
+    const ev2 = aca.ev2 || {};
+    const ev3 = aca.ev3 || {};
+
+    let valClass = "val-media"; 
+    if(perfil.val_gen === "BAJA") valClass = "val-baja"; 
+    if(perfil.val_gen === "ALTA") valClass = "val-alta"; 
+    if(perfil.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
         <img src="ESCUDO ATM.png" class="cover-bg-logo">
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
-            <div class="cover-title">${d.titulo}</div>
+            <div class="cover-title">${d.titulo || '-'}</div>
             <div class="cover-name">${p.nombre}</div>
-            <div class="cover-details"><span>${p.equipo}</span> | <span>${p.categoria}</span> | <span>${d.tipoInforme}</span></div>
+            <div class="cover-details"><span>${p.equipo}</span> | <span>${p.categoria}</span> | <span>${d.tipoInforme || '-'}</span></div>
         </div>
         <div class="cover-footer">GUARDIANLAB ATM • INFORME TÉCNICO</div>
     </div>`;
 
     return coverHtml + `
     <div class="pdf-slide">
-        <div class="pdf-top-header"><div><div class="pdf-top-title">VALORACIÓN POSICIÓN</div><div class="pdf-top-subtitle">${d.titulo}</div><div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.tipoInforme}</div></div><img src="ESCUDO ATM.png" style="height:40px;"></div>
+        <div class="pdf-top-header"><div><div class="pdf-top-title">VALORACIÓN POSICIÓN</div><div class="pdf-top-subtitle">${d.titulo || '-'}</div><div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.tipoInforme || '-'}</div></div><img src="ESCUDO ATM.png" style="height:40px;"></div>
         
         <div class="pdf-row">
             <div style="width:40%" class="pdf-player-card">
                 <img src="${foto}" class="pdf-player-photo">
-                <div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>NAC: ${p.anio}</span><span>NAC: ${p.nacionalidad||'-'}</span></div><div class="pdf-info-row"><span>CAT: ${p.categoria}</span><span>EQ: ${p.equipo}</span></div><div class="pdf-info-row"><span>AÑOS: ${p.anosClub||'-'}</span><span>PIE: ${p.pie||'-'}</span></div><div class="pdf-info-row" style="margin-top:5px; font-weight:bold; color:#1C2C5B">PROY: 1ª ${d.perfil.pos1} | 2ª ${d.perfil.pos2}</div>
+                <div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>NAC: ${p.anio||'-'}</span><span>NAC: ${p.nacionalidad||'-'}</span></div><div class="pdf-info-row"><span>CAT: ${p.categoria}</span><span>EQ: ${p.equipo}</span></div><div class="pdf-info-row"><span>AÑOS: ${p.anosClub||'-'}</span><span>PIE: ${p.pie||'-'}</span></div><div class="pdf-info-row" style="margin-top:5px; font-weight:bold; color:#1C2C5B">PROY: 1ª ${perfil.pos1||'-'} | 2ª ${perfil.pos2||'-'}</div>
                 <div class="pdf-mini-field"><div class="field-line field-center"></div><div class="field-line field-circle"></div><div class="field-line field-area"></div><div class="field-pos-1">1</div></div>
                 </div>
             </div>
-            <div style="width:60%" class="pdf-rating-box"><div class="pdf-box-title">2. DATOS DE COMPETICIÓN</div><div class="pdf-stats-grid">${rowStat("Jornada Actual", d.dc.jornada)}${rowStat("Convocatorias", d.dc.convocatorias)}${rowStat("Titular", d.dc.titular)}${rowStat("Min. Pos 1", d.dc.min1)}${rowStat("Min. Pos 2", d.dc.min2)}${rowStat("Goles Enc.", d.dc.goles)}${rowStat("Ausencia Lesión", d.dc.lesion)}${rowStat("Ausencia Disc.", d.dc.disciplina)}</div><div class="pdf-stats-grid" style="margin-top:2px;">${rowStat("Ausencia Tec.", d.dc.tecnica)}${rowStat("Torneos Asist.", d.dc.t_asist)}${rowStat("Torneos Conv.", d.dc.t_conv)}</div></div>
+            <div style="width:60%" class="pdf-rating-box"><div class="pdf-box-title">2. DATOS DE COMPETICIÓN</div><div class="pdf-stats-grid">${rowStat("Jornada Actual", dc.jornada)}${rowStat("Convocatorias", dc.convocatorias)}${rowStat("Titular", dc.titular)}${rowStat("Min. Pos 1", dc.min1)}${rowStat("Min. Pos 2", dc.min2)}${rowStat("Goles Enc.", dc.goles)}${rowStat("Ausencia Lesión", dc.lesion)}${rowStat("Ausencia Disc.", dc.disciplina)}</div><div class="pdf-stats-grid" style="margin-top:2px;">${rowStat("Ausencia Tec.", dc.tecnica)}${rowStat("Torneos Asist.", dc.t_asist)}${rowStat("Torneos Conv.", dc.t_conv)}</div></div>
         </div>
 
         <div class="pdf-section-header">3. VALORACIÓN DEPORTIVA</div>
         <div class="pdf-row">
-            <div class="pdf-half-col pdf-rating-box"><div class="pdf-box-title">CUALIDADES GENERALES</div>${rowRat("Repertorio técnico defensivo", d.cg.tec_def)}${rowRat("Repertorio técnico ofensivo", d.cg.tec_of)}${rowRat("Adecuación uso recursos", d.cg.rec_tec)}${rowRat("Nivel competitivo", d.cg.niv_comp)}${rowRat("Constancia rendimiento", d.cg.const)}${rowRat("Comprensión del juego", d.cg.comp_juego)}${rowRat("Implicación entrenamientos", d.cg.imp)}${rowRat("Liderazgo con el grupo", d.cg.lid)}${rowRat("Destreza general etapa", d.cg.des)}${rowRat("Conciencia objetivos", d.cg.con)}${rowRat("Motivación individual", d.cg.mot)}${rowRat("Comportamiento actitudinal", d.cg.act)}</div>
-            <div class="pdf-half-col pdf-rating-box"><div class="pdf-box-title">CUALIDADES PUESTO PROYECCIÓN 1: PORTERO</div>${rowRat("Posición básica", d.cpp.pos)}${rowRat("Blocaje", d.cpp.bloc)}${rowRat("Colocación", d.cpp.col)}${rowRat("Desplazamientos y caídas", d.cpp.desp)}${rowRat("Dominio área (aéreo)", d.cpp.aereo)}${rowRat("Reinicio (mano y pie)", d.cpp.pie)}${rowRat("Uno contra uno", d.cpp.uno)}${rowRat("Velocidad específica", d.cpp.vel)}${rowRat("Agilidad", d.cpp.agi)}</div>
+            <div class="pdf-half-col pdf-rating-box"><div class="pdf-box-title">CUALIDADES GENERALES</div>${rowRat("Repertorio técnico defensivo", cg.tec_def)}${rowRat("Repertorio técnico ofensivo", cg.tec_of)}${rowRat("Adecuación uso recursos", cg.rec_tec)}${rowRat("Nivel competitivo", cg.niv_comp)}${rowRat("Constancia rendimiento", cg.const)}${rowRat("Comprensión del juego", cg.comp_juego)}${rowRat("Implicación entrenamientos", cg.imp)}${rowRat("Liderazgo con el grupo", cg.lid)}${rowRat("Destreza general etapa", cg.des)}${rowRat("Conciencia objetivos", cg.con)}${rowRat("Motivación individual", cg.mot)}${rowRat("Comportamiento actitudinal", cg.act)}</div>
+            <div class="pdf-half-col pdf-rating-box"><div class="pdf-box-title">CUALIDADES PUESTO PROYECCIÓN 1: PORTERO</div>${rowRat("Posición básica", cpp.pos)}${rowRat("Blocaje", cpp.bloc)}${rowRat("Colocación", cpp.col)}${rowRat("Desplazamientos y caídas", cpp.desp)}${rowRat("Dominio área (aéreo)", cpp.aereo)}${rowRat("Reinicio (mano y pie)", cpp.pie)}${rowRat("Uno contra uno", cpp.uno)}${rowRat("Velocidad específica", cpp.vel)}${rowRat("Agilidad", cpp.agi)}</div>
         </div>
 
         <div class="pdf-section-header">4. VALORES POR FASE DE JUEGO (1-5)</div>
         <div class="pdf-rating-box">
-            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:bold; margin-bottom:4px; padding:0 10px;"><span>ATAQUE: ${d.vfj.ataque}</span><span>TRANS. DEF: ${d.vfj.tr_def}</span><span>DEFENSA: ${d.vfj.defensa}</span><span>TRANS. OF: ${d.vfj.tr_of}</span></div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:bold; margin-bottom:4px; padding:0 10px;"><span>ATAQUE: ${vfj.ataque||'-'}</span><span>TRANS. DEF: ${vfj.tr_def||'-'}</span><span>DEFENSA: ${vfj.defensa||'-'}</span><span>TRANS. OF: ${vfj.tr_of||'-'}</span></div>
             <div class="pdf-box-title" style="margin-top:5px; background:#ddd; color:#333;">OBSERVACIONES TÉCNICO-TÁCTICAS</div>
-            <div class="pdf-text-obs">${d.vfj.obs}</div>
+            <div class="pdf-text-obs">${vfj.obs||'-'}</div>
         </div>
 
         <div class="pdf-section-header">5. VALORES ACTITUDINALES (1-5)</div>
         <div class="pdf-rating-box">
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:5px;">${rowRat("Sociabilidad", d.vac.soc)}${rowRat("Constancia", d.vac.const)}${rowRat("Disciplina", d.vac.disc)}${rowRat("Actitud", d.vac.act)}${rowRat("Compromiso", d.vac.comp)}${rowRat("Evolución", d.vac.evo)}</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:5px;">${rowRat("Sociabilidad", vac.soc)}${rowRat("Constancia", vac.const)}${rowRat("Disciplina", vac.disc)}${rowRat("Actitud", vac.act)}${rowRat("Compromiso", vac.comp)}${rowRat("Evolución", vac.evo)}</div>
             <div class="pdf-box-title" style="margin-top:5px; background:#ddd; color:#333;">OBSERVACIONES ACTITUDINALES</div>
-            <div class="pdf-text-obs">${d.vac.obs}</div>
+            <div class="pdf-text-obs">${vac.obs||'-'}</div>
         </div>
 
-        <div class="pdf-rating-box"><div class="pdf-box-title">6. CONTROL ACADÉMICO</div><div class="pdf-academic-box"><div class="pdf-aca-item"><span><strong>1ª EVAL:</strong></span> Media: ${d.aca.ev1.media} | Asig: ${d.aca.ev1.asig} | Susp: ${d.aca.ev1.susp}</div><div class="pdf-aca-item"><span><strong>2ª EVAL:</strong></span> Media: ${d.aca.ev2.media} | Asig: ${d.aca.ev2.asig} | Susp: ${d.aca.ev2.susp}</div><div class="pdf-aca-item" style="border:none"><span><strong>3ª EVAL:</strong></span> Media: ${d.aca.ev3.media} | Asig: ${d.aca.ev3.asig} | Susp: ${d.aca.ev3.susp}</div></div></div>
+        <div class="pdf-rating-box"><div class="pdf-box-title">6. CONTROL ACADÉMICO</div><div class="pdf-academic-box"><div class="pdf-aca-item"><span><strong>1ª EVAL:</strong></span> Media: ${ev1.media||'-'} | Asig: ${ev1.asig||'-'} | Susp: ${ev1.susp||'-'}</div><div class="pdf-aca-item"><span><strong>2ª EVAL:</strong></span> Media: ${ev2.media||'-'} | Asig: ${ev2.asig||'-'} | Susp: ${ev2.susp||'-'}</div><div class="pdf-aca-item" style="border:none"><span><strong>3ª EVAL:</strong></span> Media: ${ev3.media||'-'} | Asig: ${ev3.asig||'-'} | Susp: ${ev3.susp||'-'}</div></div></div>
         
         <div style="margin-top:auto; padding-top:10px; text-align:center;">
             <div style="font-size:12px; font-weight:bold; color:#1C2C5B; margin-bottom:6px; text-transform:uppercase;">VALORACIÓN GENERAL DEL SEMESTRE</div>
-            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${d.perfil.val_gen || 'NO EVALUADO'}</div>
+            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${perfil.val_gen || 'NO EVALUADO'}</div>
         </div>
         
         <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe Técnico</div>
@@ -620,11 +643,26 @@ function cargarHistorialInformes() {
     }); 
 }
 
-window.verPDFInformeGuardado = function(id) { db.collection("informes_semestrales").doc(id).get().then(doc => { if(doc.exists) { const data = doc.data(); db.collection("porteros").doc(data.porteroId).get().then(pDoc => { const html = construirHTMLInformeVertical(pDoc.data(), data.datos); document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); document.getElementById('preview-content').innerHTML = html; document.getElementById('printable-area').innerHTML = html; document.getElementById('modal-pdf-preview').style.display = 'flex'; }); } }); }
+window.verPDFInformeGuardado = function(id) { 
+    db.collection("informes_semestrales").doc(id).get().then(doc => { 
+        if(doc.exists) { 
+            const data = doc.data(); 
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => { 
+                const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+                const html = construirHTMLInformeVertical(pData, data.datos); 
+                document.body.classList.remove('print-landscape'); 
+                document.body.classList.add('print-portrait'); 
+                document.getElementById('preview-content').innerHTML = html; 
+                document.getElementById('printable-area').innerHTML = html; 
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+            }).catch(err => console.error("Error al obtener portero:", err)); 
+        } 
+    }).catch(err => console.error("Error al obtener informe:", err)); 
+}
 window.imprimirPDFNativo = function() { window.print(); }
 
 // ==========================================
-// --- MÓDULO DE TORNEOS Y BORRADOR ---
+// --- MÓDULO DE TORNEOS ---
 // ==========================================
 
 const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
@@ -788,18 +826,31 @@ window.agregarFilaPartido = function(data = null) {
     container.appendChild(div);
     
     if (data) {
-        div.querySelector('.p-jornada').value = data.jornada || 'Grupos J1';
+        div.querySelector('.p-jornada').value = data.jornada || data.fase || 'Grupos J1';
         div.querySelector('.p-pais').value = data.pais || '';
         div.querySelector('.p-rival').value = data.rival || '';
-        div.querySelector('.p-goles-atm').value = data.golesAtm || '';
-        div.querySelector('.p-goles-riv').value = data.golesRival || '';
+        
+        let gAtm = data.golesAtm !== undefined ? data.golesAtm : '';
+        let gRiv = data.golesRival !== undefined ? data.golesRival : (data.goles || '');
+        
+        // Tratar de recuperar goles si era un informe muy antiguo con "resultado: '2-1'"
+        if (data.resultado && gAtm === '' && gRiv === '') {
+            let parts = data.resultado.split('-');
+            if(parts.length === 2) {
+                gAtm = parts[0].trim();
+                gRiv = parts[1].trim();
+            }
+        }
+        
+        div.querySelector('.p-goles-atm').value = gAtm;
+        div.querySelector('.p-goles-riv').value = gRiv;
         div.querySelector('.p-min').value = data.minutos || '';
         
-        div.querySelector('.p-gc-portero').value = data.golesEncajados !== undefined ? data.golesEncajados : (data.golesRival || '0');
+        div.querySelector('.p-gc-portero').value = data.golesEncajados !== undefined ? data.golesEncajados : (gRiv || '0');
         
         window.actualizarFilaPartido(div.querySelector('.p-goles-atm'));
         
-        if (data.penAtm !== "" && data.penRival !== "" && data.penAtm !== undefined) {
+        if (data.penAtm !== undefined && data.penAtm !== "" && data.penRival !== undefined && data.penRival !== "") {
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
             div.querySelector('.p-penaltis-container').style.display = 'flex'; 
@@ -971,7 +1022,8 @@ window.generarPDFTorneo = function() {
     operacion.then(() => {
         window.haptic('success');
         db.collection("porteros").doc(pid).get().then(doc => {
-            const html = construirHTMLTorneo(doc.data(), datos);
+            const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+            const html = construirHTMLTorneo(pData, datos);
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
             document.getElementById('preview-content').innerHTML = html;
@@ -984,6 +1036,7 @@ window.generarPDFTorneo = function() {
 }
 
 function construirHTMLTorneo(p, d) {
+    p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     
@@ -996,11 +1049,15 @@ function construirHTMLTorneo(p, d) {
     if (d.partidos) {
         d.partidos.forEach(m => {
             tMin += parseInt(m.minutos || 0); 
-            const gcReal = m.golesEncajados !== undefined ? m.golesEncajados : (m.golesRival || 0);
-            tGol += parseInt(gcReal);
             
+            const golesRivVal = m.golesRival !== undefined ? m.golesRival : (m.goles || '');
+            const gcReal = m.golesEncajados !== undefined ? m.golesEncajados : (golesRivVal || 0);
+            tGol += parseInt(gcReal || 0);
+            
+            let jornadaVal = m.jornada || m.fase || '';
             let resClass = '';
-            let j = m.jornada.toLowerCase();
+            let j = jornadaVal.toLowerCase();
+            
             if (j.includes('grupo')) resClass = 'fase-grupos';
             else if (j.includes('1/16')) resClass = 'fase-16';
             else if (j.includes('1/8')) resClass = 'fase-8';
@@ -1009,13 +1066,21 @@ function construirHTMLTorneo(p, d) {
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
             let paisTxt = m.pais ? ` <span class="badge-pais">[${m.pais.toUpperCase()}]</span>` : '';
-            let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
-            if (m.penAtm !== "" && m.penRival !== "" && m.penAtm !== undefined) {
+            let resTxt = '';
+            if (m.resultado) {
+                resTxt = m.resultado; 
+            } else if (m.golesAtm !== undefined && m.golesAtm !== "" && golesRivVal !== "") {
+                resTxt = `${m.golesAtm} - ${golesRivVal}`;
+            } else {
+                resTxt = '-';
+            }
+            
+            if (m.penAtm !== undefined && m.penAtm !== "" && m.penRival !== undefined && m.penRival !== "") {
                 resTxt += ` <br><span style="font-size:8px; color:#CB3524; font-weight:bold;">(Pen: ${m.penAtm} - ${m.penRival})</span>`;
             }
 
-            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${m.rival}${paisTxt}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
+            filasPartidos += `<tr class="${resClass}"><td>${jornadaVal}</td><td>${m.rival || '-'}${paisTxt}</td><td>${resTxt}</td><td>${m.minutos || 0}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
         });
     }
 
@@ -1034,7 +1099,7 @@ function construirHTMLTorneo(p, d) {
             <img src="${foto}" class="cover-photo">
             <div class="cover-title">INFORME DE TORNEO</div>
             <div class="cover-name">${p.nombre}</div>
-            <div class="cover-details"><span>${d.torneo}</span> | <span>${d.ubicacion}</span> | <span>Posición: ${d.posFinal}</span></div>
+            <div class="cover-details"><span>${d.torneo || '-'}</span> | <span>${d.ubicacion || '-'}</span> | <span>Posición: ${d.posFinal || '-'}</span></div>
         </div>
         <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
@@ -1044,8 +1109,8 @@ function construirHTMLTorneo(p, d) {
         <div class="pdf-top-header">
             <div>
                 <div class="pdf-top-title">INFORME DE TORNEO</div>
-                <div class="pdf-top-subtitle">${d.torneo}</div>
-                <div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.ubicacion} | ${d.superficie}</div>
+                <div class="pdf-top-subtitle">${d.torneo || '-'}</div>
+                <div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.ubicacion || '-'} | ${d.superficie || '-'}</div>
             </div>
             <img src="ESCUDO ATM.png" style="height:40px;">
         </div>
@@ -1056,7 +1121,7 @@ function construirHTMLTorneo(p, d) {
                 <div class="pdf-player-info">
                     <div class="pdf-player-name">${p.nombre}</div>
                     <div class="pdf-info-row"><span>CAT: ${p.categoria}</span><span>EQ: ${p.equipo}</span></div>
-                    <div class="pdf-info-row" style="font-weight:bold; color:#CB3524;">POS. FINAL: 🏆 ${d.posFinal}</div>
+                    <div class="pdf-info-row" style="font-weight:bold; color:#CB3524;">POS. FINAL: 🏆 ${d.posFinal || '-'}</div>
                 </div>
             </div>
             <div style="width:60%" class="pdf-rating-box">
@@ -1116,12 +1181,13 @@ window.verPDFTorneoGuardado = function(id) {
     db.collection("informes_torneo").doc(id).get().then(doc => {
         const data = doc.data();
         db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
-            const html = construirHTMLTorneo(pDoc.data(), data.datos);
+            const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+            const html = construirHTMLTorneo(pData, data.datos);
             document.body.classList.remove('print-landscape');
             document.body.classList.add('print-portrait');
             document.getElementById('preview-content').innerHTML = html;
             document.getElementById('printable-area').innerHTML = html;
             document.getElementById('modal-pdf-preview').style.display = 'flex';
-        });
-    });
+        }).catch(err => console.error("Error al obtener portero:", err));
+    }).catch(err => console.error("Error al obtener informe:", err));
 }
