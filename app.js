@@ -31,6 +31,7 @@ const auth = firebase.auth();
 let porteroEnEdicionId = null;
 let torneoEnEdicionId = null; 
 let informeEnEdicionId = null; 
+let objetivoEnEdicionId = null; // NUEVA VARIABLE PARA EDITAR OBJETIVOS
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
 let ACCIONES_EVALUACION = {
@@ -118,12 +119,63 @@ window.cancelarEdicion = function() { porteroEnEdicionId = null; document.getEle
 window.borrarPortero = function(id) { if(confirm("¿Borrar?")) db.collection("porteros").doc(id).delete(); }
 
 // --- OBJETIVOS ---
-window.resetearEvaluacionTemporal = function() { evaluacionesTemporales = []; competenciaSeleccionada = null; window.selectCompetencia(null); window.renderizarListaTemporal(); document.getElementById('contenedor-evaluacion-temporal').style.display = 'none'; document.getElementById('obj-observacion').value = ''; window.cargarAccionesObjetivos(); }
+window.resetearEvaluacionTemporal = function() { 
+    evaluacionesTemporales = []; competenciaSeleccionada = null; 
+    window.selectCompetencia(null); window.renderizarListaTemporal(); 
+    document.getElementById('contenedor-evaluacion-temporal').style.display = 'none'; 
+    document.getElementById('obj-observacion').value = ''; 
+    window.cargarAccionesObjetivos();
+    objetivoEnEdicionId = null;
+    document.getElementById('btn-save-obj').innerText = "💾 GUARDAR Y VER PDF";
+    document.getElementById('btn-cancel-obj').style.display = "none";
+}
 window.cargarAccionesObjetivos = function() { const tipo = document.getElementById('obj-tipo').value; const sel = document.getElementById('obj-accion'); sel.innerHTML = '<option value="">Seleccionar Acción...</option>'; sel.disabled = true; if (tipo && ACCIONES_EVALUACION[tipo]) { sel.disabled = false; ACCIONES_EVALUACION[tipo].forEach(acc => { if (!evaluacionesTemporales.some(e => e.accion === acc)) { sel.innerHTML += `<option value="${acc}">${acc}</option>`; } }); } }
 window.selectCompetencia = function(val) { competenciaSeleccionada = val; document.querySelectorAll('.btn-comp').forEach(b => b.classList.remove('active')); if(val) document.querySelector(`.btn-comp.comp-${val}`).classList.add('active'); document.getElementById('obj-competencia-val').value = val; }
 window.agregarEvaluacionTemporal = function() { const pid = document.getElementById('obj-portero').value; const tipo = document.getElementById('obj-tipo').value; const accion = document.getElementById('obj-accion').value; const comp = competenciaSeleccionada; const score = document.getElementById('obj-puntaje').value; if(!pid || !accion || !comp) return alert("Completa los datos"); evaluacionesTemporales.push({ accion: accion, tipo: tipo, competencia: parseInt(comp), puntaje: parseInt(score) }); window.renderizarListaTemporal(); document.getElementById('obj-accion').value = ""; window.selectCompetencia(null); document.getElementById('obj-puntaje').value = "1"; window.cargarAccionesObjetivos(); document.getElementById('contenedor-evaluacion-temporal').style.display = 'block'; }
 window.renderizarListaTemporal = function() { const cont = document.getElementById('lista-temp-evaluaciones'); cont.innerHTML = ''; evaluacionesTemporales.forEach(item => { let col='#ccc', txt=''; if(item.competencia===1){col='var(--comp-1)';txt='Inc. Inconsciente';} if(item.competencia===2){col='var(--comp-2)';txt='Inc. Consciente';} if(item.competencia===3){col='var(--comp-3)';txt='Comp. Consciente';} if(item.competencia===4){col='var(--comp-4)';txt='Comp. Inconsciente';} cont.innerHTML += `<div class="item-temp-eval" style="border-left: 4px solid ${col}"><strong>${item.accion}</strong><br><span style="color:${col}">${txt}</span> | Nota: ${item.puntaje}</div>`; }); }
-window.guardarReporteObjetivosCompleto = function() { const pid = document.getElementById('obj-portero').value; const fecha = document.getElementById('obj-fecha').value; const observacion = document.getElementById('obj-observacion').value; if(!pid || !fecha || evaluacionesTemporales.length === 0) return alert("Sin datos"); const reporte = { porteroId: pid, fecha: fecha, acciones: evaluacionesTemporales, observacion: observacion, timestamp: Date.now() }; db.collection("reportes_objetivos").add(reporte).then(() => { generarPDFObjetivos(reporte); window.resetearEvaluacionTemporal(); }); }
+
+window.editarInformeObjetivos = function(id) {
+    db.collection("reportes_objetivos").doc(id).get().then(doc => {
+        const data = doc.data();
+        objetivoEnEdicionId = id; 
+        document.getElementById('obj-portero').value = data.porteroId;
+        document.getElementById('obj-fecha').value = data.fecha;
+        document.getElementById('obj-observacion').value = data.observacion || '';
+        
+        evaluacionesTemporales = data.acciones || [];
+        window.renderizarListaTemporal();
+        document.getElementById('contenedor-evaluacion-temporal').style.display = 'block';
+        
+        document.getElementById('btn-save-obj').innerText = "💾 ACTUALIZAR Y VER PDF";
+        document.getElementById('btn-cancel-obj').style.display = "inline-block";
+        window.scrollTo({top:0, behavior:'smooth'});
+    });
+}
+
+window.cancelarEdicionObjetivos = function() {
+    window.resetearEvaluacionTemporal();
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('obj-fecha').value = today;
+    document.getElementById('obj-portero').value = '';
+}
+
+window.guardarReporteObjetivosCompleto = function() { 
+    const pid = document.getElementById('obj-portero').value; 
+    const fecha = document.getElementById('obj-fecha').value; 
+    const observacion = document.getElementById('obj-observacion').value; 
+    if(!pid || !fecha || evaluacionesTemporales.length === 0) return alert("Sin datos"); 
+    
+    const reporte = { porteroId: pid, fecha: fecha, acciones: evaluacionesTemporales, observacion: observacion, timestamp: Date.now() }; 
+    
+    const operacion = objetivoEnEdicionId 
+        ? db.collection('reportes_objetivos').doc(objetivoEnEdicionId).update(reporte)
+        : db.collection('reportes_objetivos').add(reporte);
+
+    operacion.then(() => { 
+        generarPDFObjetivos(reporte); 
+        window.cancelarEdicionObjetivos(); 
+    }); 
+}
 
 function generarPDFObjetivos(reporte) {
     db.collection("porteros").doc(reporte.porteroId).get().then(doc => {
@@ -136,7 +188,20 @@ function generarPDFObjetivos(reporte) {
         document.getElementById('preview-content').innerHTML = html; document.getElementById('printable-area').innerHTML = html; document.getElementById('modal-pdf-preview').style.display = 'flex';
     });
 }
-function cargarHistorialObjetivos() { db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { const cont = document.getElementById('lista-seguimientos'); cont.innerHTML = ''; snap.forEach(doc => { const rep = doc.data(); db.collection("porteros").doc(rep.porteroId).get().then(pDoc => { if(pDoc.exists) { const p = pDoc.data(); cont.innerHTML += `<div class="eval-card"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${rep.fecha} - ${rep.acciones.length} Acciones</div></div><div style="display:flex;gap:5px;"><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button><button class="btn-trash" onclick="db.collection('reportes_objetivos').doc('${doc.id}').delete()">🗑️</button></div></div>`; } }); }); }); }
+function cargarHistorialObjetivos() { 
+    db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { 
+        const cont = document.getElementById('lista-seguimientos'); cont.innerHTML = ''; 
+        snap.forEach(doc => { 
+            const rep = doc.data(); 
+            db.collection("porteros").doc(rep.porteroId).get().then(pDoc => { 
+                if(pDoc.exists) { 
+                    const p = pDoc.data(); 
+                    cont.innerHTML += `<div class="eval-card"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${rep.fecha} - ${rep.acciones.length} Acciones</div></div><div style="display:flex;gap:5px;"><button class="btn-icon-action" onclick="window.editarInformeObjetivos('${doc.id}')" title="Editar">✏️</button><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})' title="Ver PDF">📄</button><button class="btn-trash" onclick="db.collection('reportes_objetivos').doc('${doc.id}').delete()">🗑️</button></div></div>`; 
+                } 
+            }); 
+        }); 
+    }); 
+}
 window.verPDFObjetivosGuardado = function(rep) { generarPDFObjetivos(rep); }
 
 // ==========================================
@@ -406,8 +471,8 @@ window.agregarFilaPartido = function(data = null) {
     div.innerHTML = `
         <div class="row align-items-center">
             <select class="p-jornada" style="flex:1">${optFases}</select>
-            <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1">
             <input type="text" class="p-rival" placeholder="Nombre Rival" style="flex:2">
+            <input type="text" class="p-pais" placeholder="País (Opcional)" style="flex:1">
         </div>
         <div class="row align-items-end">
             <div style="flex:1"><label style="font-size:0.6rem; color:#aaa;">Goles ATM</label><select class="p-goles-atm" onchange="window.actualizarFilaPartido(this)">${optGoles}</select></div>
@@ -443,6 +508,7 @@ window.agregarFilaPartido = function(data = null) {
             div.querySelector('.p-jugo-pen').checked = data.jugoPen || false;
             div.querySelector('.p-pen-atm').value = data.penAtm || '';
             div.querySelector('.p-pen-riv').value = data.penRival || '';
+            div.querySelector('.p-penaltis-container').style.display = 'flex'; // Forzamos mostrar si hay penaltis
         }
     }
 }
@@ -640,14 +706,14 @@ function construirHTMLTorneo(p, d) {
             else if (j.includes('semi')) resClass = 'fase-semi';
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
-            let paisTxt = m.pais ? `<span style="font-weight:bold; color:#1C2C5B;">${m.pais}</span> - ` : '';
+            let paisTxt = m.pais ? ` <span class="badge-pais">[${m.pais.toUpperCase()}]</span>` : '';
             let resTxt = (m.golesAtm !== "" && m.golesRival !== "") ? `${m.golesAtm} - ${m.golesRival}` : '-';
             
             if (m.penAtm !== "" && m.penRival !== "") {
                 resTxt += ` <br><span style="font-size:8px; color:#CB3524; font-weight:bold;">(Pen: ${m.penAtm} - ${m.penRival})</span>`;
             }
 
-            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${paisTxt}${m.rival}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
+            filasPartidos += `<tr class="${resClass}"><td>${m.jornada}</td><td>${m.rival}${paisTxt}</td><td>${resTxt}</td><td>${m.minutos}'</td><td style="font-weight:bold;">${gcReal}</td></tr>`;
         });
     }
 
@@ -691,7 +757,7 @@ function construirHTMLTorneo(p, d) {
 
         <div class="pdf-section-header">DETALLE DE PARTIDOS</div>
         <table class="pdf-table-torneo">
-            <thead><tr><th>Jornada/Fase</th><th>País y Rival</th><th>Resultado ATM - RIV</th><th>Minutos</th><th>G.C.</th></tr></thead>
+            <thead><tr><th>Jornada/Fase</th><th>Rival y País</th><th>Resultado ATM - RIV</th><th>Minutos</th><th>G.C.</th></tr></thead>
             <tbody>${filasPartidos}</tbody>
         </table>
 
