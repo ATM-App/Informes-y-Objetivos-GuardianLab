@@ -72,7 +72,7 @@ select.rating-red { background-color: rgba(231, 76, 60, 0.15) !important; border
 select.rating-yellow { background-color: rgba(241, 196, 15, 0.15) !important; border-color: rgba(241, 196, 15, 0.5) !important; color: #F1C40F !important; }
 select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; border-color: rgba(39, 174, 96, 0.5) !important; color: #27AE60 !important; }
 
-/* BARRA DE PROGRESO FLOTANTE */
+/* BARRA DE PROGRESO FLOTANTE (LATERAL DERECHO) */
 .floating-progress {
     position: fixed; right: 15px; top: 50%; transform: translateY(-50%);
     background: rgba(16, 24, 43, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -152,24 +152,29 @@ input[type="file"] { display: none; }
 
 .section-divider { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass); color: var(--text-sec); font-weight: 700; }
 
-/* NAVEGACIÓN iOS 26 */
+/* NAVEGACIÓN iOS 26 (MODIFICADA COMO PEDISTE) */
 .floating-nav-container { position: fixed; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
-.floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 8px 15px; width: 95%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent !important; border: none; color: #64748B; font-size: 0.55rem; font-weight: 800; cursor: pointer; transition: 0.3s; width: 65px; padding: 6px 0; letter-spacing: 0.5px; }
-.nav-item.active { color: #FFFFFF; background: transparent !important; }
-.nav-icon { margin-bottom: 4px; transition: 0.3s; filter: opacity(0.5); display: flex; align-items: center; justify-content: center; }
-.nav-item.active .nav-icon { filter: opacity(1); transform: scale(1.15); filter: drop-shadow(0 2px 5px rgba(255,255,255,0.3));}
+.floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; width: 95%; max-width: 480px; height: 65px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
-.nav-center-wrapper { position: relative; width: 70px; height: 50px; display: flex; justify-content: center; }
-.nav-center-btn { position: absolute; bottom: -8px; width: 65px; height: 65px; border-radius: 50%; background: var(--atm-red) !important; border: 4px solid var(--neon-green); box-shadow: 0 0 20px rgba(0, 230, 118, 0.5), inset 0 0 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; z-index: 10; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.nav-center-btn svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); transition: 0.3s; }
-.nav-center-btn:active { transform: scale(0.9); box-shadow: 0 0 10px rgba(0, 230, 118, 0.8); }
-.nav-center-btn.active { border-color: #FFF; box-shadow: 0 0 25px rgba(255,255,255,0.6); transform: scale(1.05); }
+.nav-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent !important; border: none; color: #64748B; width: 65px; height: 100%; cursor: pointer; }
+.nav-item .nav-icon { display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); background: transparent; border: 3px solid transparent; }
+.nav-item .nav-text { position: absolute; bottom: 6px; font-size: 0.55rem; font-weight: 800; transition: all 0.3s; opacity: 1; letter-spacing: 0.5px; }
 
-/* LÓGICA LIGHT MODE PARA EL NAV Y TARJETAS */
+/* EL EFECTO ACTIVO SOLO EN EL MÓDULO QUE TE ENCUENTRES */
+.nav-item.active .nav-icon {
+    background: var(--atm-red);
+    border: 3px solid var(--neon-green);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.4), inset 0 0 10px rgba(0,0,0,0.3);
+    color: white;
+    transform: translateY(-20px);
+    width: 58px; height: 58px;
+}
+.nav-item.active .nav-icon svg { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); transform: scale(1.1); }
+.nav-item.active .nav-text { transform: translateY(2px); color: #FFFFFF; font-size: 0.6rem; opacity: 1;}
+
 body.light-mode .floating-nav { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 body.light-mode .nav-item { color: #64748B; }
-body.light-mode .nav-item.active { color: #1C2C5B; }
+body.light-mode .nav-item.active .nav-text { color: #1C2C5B; }
 body.light-mode .partido-row { background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.1); }
 body.light-mode .item-temp-eval { background: rgba(0,0,0,0.05); color: #111827; }
 body.light-mode .p-penaltis-container { background: rgba(203,53,36,0.05); }
@@ -192,7 +197,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .grid-ratings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-ratings .rating-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); }
 .grid-ratings label { font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 6px; font-weight: 700; }
-.grid-ratings input, .grid-ratings select { margin-bottom: 0; padding: 10px; text-align-last: center; font-size: 1.1rem; font-weight: 800; }
+.grid-ratings input, .grid-ratings select { margin-bottom: 0; padding: 10px; text-align: center; font-size: 1.1rem; font-weight: 800; }
 .grid-stats-input { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .grid-stats-input label { font-size: 0.65rem; color: var(--text-sec); display:block; margin-bottom: 4px; font-weight: 600; }
 .grid-stats-input input { padding: 10px; margin-bottom: 0; }
@@ -204,8 +209,8 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     .row { flex-direction: column; gap: 5px; }
     .grid-stats-input { grid-template-columns: 1fr 1fr; }
     .grid-ratings { grid-template-columns: 1fr; }
-    .floating-nav { padding: 8px 5px; width: 98%; }
-    .nav-item { width: 55px; font-size: 0.5rem; }
+    .floating-nav { padding: 0 5px; width: 98%; }
+    .nav-item { width: 55px; }
 }
 
 /* ========================================================
@@ -220,7 +225,6 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     .pdf-slide { page-break-after: avoid; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
 }
 
-/* PORTADA DEL PDF */
 .pdf-cover { display: block !important; position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; overflow: hidden; }
 .cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; }
 .cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
@@ -231,7 +235,6 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .cover-details span { display: inline-block; margin: 0 10px; }
 .cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
-/* PAGINAS DEL PDF */
 .pdf-slide { width: 210mm; height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; }
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 10px; }
 .pdf-top-title { font-size: 20px; font-weight: 800; color: #1C2C5B; }
