@@ -25,7 +25,7 @@ try {
 } catch(e) { console.error("Error Firebase", e); }
 
 const db = firebase.firestore();
-const auth = firebase.auth(); // Instancia de Auth
+const auth = firebase.auth(); 
 
 // --- VARIABLES ---
 let porteroEnEdicionId = null;
@@ -38,21 +38,14 @@ let ACCIONES_EVALUACION = {
 
 // --- INICIO ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Autenticación Anónima Segura
-    auth.signInAnonymously()
-        .then(() => {
-            console.log("Sesión anónima iniciada.");
-        })
-        .catch((error) => {
-            console.error("Error de autenticación:", error);
-        });
+    auth.signInAnonymously().then(() => console.log("Sesión anónima iniciada.")).catch((error) => console.error(error));
 
-    // Solo cargar datos si el usuario está autenticado
     auth.onAuthStateChanged((user) => {
         if (user) {
             cargarPorteros();
             cargarHistorialObjetivos();
             cargarHistorialInformes();
+            cargarHistorialTorneos(); 
         }
     });
 
@@ -61,16 +54,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if(localStorage.getItem('guardian_theme') === 'light'){ document.body.classList.add('light-mode'); }
 });
 
-// --- NAVEGACIÓN ---
-window.alternarTema = function() { document.body.classList.toggle('light-mode'); localStorage.setItem('guardian_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); }
+// --- NAVEGACIÓN ESTILO iOS ---
+window.alternarTema = function() { 
+    document.body.classList.toggle('light-mode'); 
+    localStorage.setItem('guardian_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark'); 
+}
+
 window.cambiarSeccion = function(sec) {
     document.getElementById('modal-pdf-preview').style.display = 'none';
-    ['porteros','sesiones','informes'].forEach(id => {
+    
+    // Ocultar todas las secciones y quitar estado activo de TODOS los botones del nav
+    ['porteros','sesiones','informes', 'torneos'].forEach(id => {
         document.getElementById('section-'+id).style.display = 'none';
-        document.getElementById('btn-'+id).classList.remove('active');
+        const btn = document.getElementById('btn-'+id);
+        if(btn) btn.classList.remove('active');
     });
+
+    // Mostrar sección actual y darle estado activo a su botón
     document.getElementById('section-'+sec).style.display = 'block';
-    document.getElementById('btn-'+sec).classList.add('active');
+    const targetBtn = document.getElementById('btn-'+sec);
+    if(targetBtn) targetBtn.classList.add('active');
 }
 
 // --- PORTEROS ---
@@ -93,6 +96,7 @@ function cargarPorteros() {
         const opts = '<option value="">Seleccionar...</option>' + lista.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
         if(document.getElementById('obj-portero')) document.getElementById('obj-portero').innerHTML = opts;
         if(document.getElementById('inf-portero')) document.getElementById('inf-portero').innerHTML = opts;
+        if(document.getElementById('tor-portero')) document.getElementById('tor-portero').innerHTML = opts; 
     });
 }
 window.procesarPortero = function() {
@@ -200,3 +204,200 @@ function construirHTMLInformeVertical(p, d) {
 function cargarHistorialInformes() { db.collection("informes_semestrales").orderBy("fecha", "desc").limit(10).onSnapshot(snap => { const cont = document.getElementById('lista-informes-guardados'); if(!cont) return; cont.innerHTML = ''; snap.forEach(doc => { const inf = doc.data(); db.collection("porteros").doc(inf.porteroId).get().then(pDoc => { if(pDoc.exists) { const p = pDoc.data(); cont.innerHTML += `<div class="eval-card"><div><div style="font-weight:bold;">${p.nombre}</div><div style="font-size:0.8rem;">${inf.datos.titulo}</div><div style="font-size:0.7rem; color:#aaa">${inf.fecha.substring(0,10)}</div></div><div style="display:flex; gap:5px;"><button class="btn-icon-action" onclick="window.verPDFInformeGuardado('${doc.id}')">📄</button><button class="btn-trash" onclick="db.collection('informes_semestrales').doc('${doc.id}').delete()">🗑️</button></div></div>`; } }); }); }); }
 window.verPDFInformeGuardado = function(id) { db.collection("informes_semestrales").doc(id).get().then(doc => { if(doc.exists) { const data = doc.data(); db.collection("porteros").doc(data.porteroId).get().then(pDoc => { const html = construirHTMLInformeVertical(pDoc.data(), data.datos); document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); document.getElementById('preview-content').innerHTML = html; document.getElementById('printable-area').innerHTML = html; document.getElementById('modal-pdf-preview').style.display = 'flex'; }); } }); }
 window.imprimirPDFNativo = function() { window.print(); }
+
+// ==========================================
+// --- MÓDULO DE TORNEOS ---
+// ==========================================
+
+window.agregarFilaPartido = function() {
+    const container = document.getElementById('contenedor-partidos');
+    const div = document.createElement('div');
+    div.className = 'partido-row';
+    div.innerHTML = `
+        <div class="row">
+            <select class="p-fase" style="flex:1.5">
+                <option value="Fase Grupos">Fase Grupos</option>
+                <option value="1/16 Final">1/16 Final</option>
+                <option value="1/8 Final">1/8 Final</option>
+                <option value="1/4 Final">1/4 Final</option>
+                <option value="Semifinal">Semifinal</option>
+                <option value="Final">Final</option>
+                <option value="3º/4º Puesto">3º/4º Puesto</option>
+            </select>
+            <input type="text" class="p-rival" placeholder="Rival" style="flex:2">
+        </div>
+        <div class="row">
+            <input type="text" class="p-res" placeholder="Res (ej: 2-1)" style="flex:1">
+            <input type="number" class="p-min" placeholder="Minutos" style="flex:1">
+            <input type="number" class="p-goles" placeholder="Goles Enc." style="flex:1">
+            <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--atm-red); font-size:1.2rem; cursor:pointer;">❌</button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+window.generarPDFTorneo = function() {
+    const pid = document.getElementById('tor-portero').value;
+    if(!pid) return alert("Selecciona un portero");
+
+    const partidos = [];
+    document.querySelectorAll('.partido-row').forEach(row => {
+        partidos.push({
+            fase: row.querySelector('.p-fase').value,
+            rival: row.querySelector('.p-rival').value,
+            resultado: row.querySelector('.p-res').value,
+            minutos: row.querySelector('.p-min').value || 0,
+            goles: row.querySelector('.p-goles').value || 0
+        });
+    });
+
+    const datos = {
+        torneo: document.getElementById('tor-nombre').value,
+        ubicacion: document.getElementById('tor-ubicacion').value,
+        posFinal: document.getElementById('tor-pos-final').value,
+        superficie: document.getElementById('tor-superficie').value,
+        partidos: partidos,
+        val: {
+            entorno: document.getElementById('tor-val-entorno').value,
+            concentracion: document.getElementById('tor-val-conc').value,
+            presion: document.getElementById('tor-val-presion').value,
+            aereo: document.getElementById('tor-val-aereo').value,
+            comunicacion: document.getElementById('tor-val-com').value,
+            penaltis: document.getElementById('tor-val-penaltis').value
+        },
+        obs: {
+            pos: document.getElementById('tor-obs-pos').value,
+            neg: document.getElementById('tor-obs-neg').value,
+            trans: document.getElementById('tor-obs-trans').value
+        }
+    };
+
+    db.collection('informes_torneo').add({ porteroId: pid, fecha: new Date().toISOString(), datos: datos }).then(() => {
+        db.collection("porteros").doc(pid).get().then(doc => {
+            const html = construirHTMLTorneo(doc.data(), datos);
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            document.getElementById('preview-content').innerHTML = html;
+            document.getElementById('printable-area').innerHTML = html;
+            document.getElementById('modal-pdf-preview').style.display = 'flex';
+        });
+    });
+}
+
+function construirHTMLTorneo(p, d) {
+    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    
+    let filasPartidos = '';
+    let tMin = 0, tGol = 0;
+    d.partidos.forEach(m => {
+        tMin += parseInt(m.minutos); tGol += parseInt(m.goles);
+        filasPartidos += `<tr><td>${m.fase}</td><td>${m.rival}</td><td>${m.resultado}</td><td>${m.minutos}'</td><td>${m.goles}</td></tr>`;
+    });
+
+    const mediaGoles = d.partidos.length > 0 ? (tGol / d.partidos.length).toFixed(1) : 0;
+
+    return `
+    <div class="pdf-slide">
+        <div class="pdf-top-header">
+            <div>
+                <div class="pdf-top-title">INFORME DE TORNEO</div>
+                <div class="pdf-top-subtitle">${d.torneo}</div>
+                <div style="font-size:10px; color:#1C2C5B; font-weight:bold;">${d.ubicacion} | ${d.superficie}</div>
+            </div>
+            <img src="ESCUDO ATM.png" style="height:40px;">
+        </div>
+        
+        <div class="pdf-row">
+            <div style="width:40%" class="pdf-player-card">
+                <img src="${foto}" class="pdf-player-photo">
+                <div class="pdf-player-info">
+                    <div class="pdf-player-name">${p.nombre}</div>
+                    <div class="pdf-info-row"><span>CAT: ${p.categoria}</span><span>EQ: ${p.equipo}</span></div>
+                    <div class="pdf-info-row" style="font-weight:bold; color:#CB3524;">POS. FINAL: ${d.posFinal}</div>
+                </div>
+            </div>
+            <div style="width:60%" class="pdf-rating-box">
+                <div class="pdf-box-title">RESUMEN ESTADÍSTICO</div>
+                <div class="pdf-resumen-box">
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${d.partidos.length}</span>PJ</div>
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${tMin}'</span>MIN</div>
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${tGol}</span>GC</div>
+                    <div class="pdf-resumen-item"><span class="pdf-resumen-val">${mediaGoles}</span>MEDIA</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header">DETALLE DE PARTIDOS</div>
+        <table class="pdf-table-torneo">
+            <thead><tr><th>Fase</th><th>Rival</th><th>Resultado</th><th>Minutos</th><th>G.E.</th></tr></thead>
+            <tbody>${filasPartidos}</tbody>
+        </table>
+
+        <div class="pdf-section-header">VALORACIÓN TÉCNICA DEL TORNEO (1-5)</div>
+        <div class="pdf-row">
+            <div class="pdf-half-col pdf-rating-box">
+                <div class="pdf-rating-row"><span>Adaptación Entorno</span><span class="pdf-rating-val">${d.val.entorno || '-'}</span></div>
+                <div class="pdf-rating-row"><span>Nivel Concentración</span><span class="pdf-rating-val">${d.val.concentracion || '-'}</span></div>
+                <div class="pdf-rating-row"><span>Gestión de Presión</span><span class="pdf-rating-val">${d.val.presion || '-'}</span></div>
+            </div>
+            <div class="pdf-half-col pdf-rating-box">
+                <div class="pdf-rating-row"><span>Juego Aéreo</span><span class="pdf-rating-val">${d.val.aereo || '-'}</span></div>
+                <div class="pdf-rating-row"><span>Comunicación</span><span class="pdf-rating-val">${d.val.comunicacion || '-'}</span></div>
+                <div class="pdf-rating-row"><span>Penaltis</span><span class="pdf-rating-val">${d.val.penaltis || 'N/A'}</span></div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header">ANÁLISIS CUALITATIVO</div>
+        <div class="pdf-rating-box">
+            <div class="pdf-box-title" style="background:#27AE60; color:white; border:none;">PUNTOS POSITIVOS</div>
+            <div class="pdf-text-obs">${d.obs.pos}</div>
+            <div class="pdf-box-title" style="background:#E74C3C; color:white; border:none; margin-top:5px;">ÁREAS DE MEJORA</div>
+            <div class="pdf-text-obs">${d.obs.neg}</div>
+            <div class="pdf-box-title" style="background:#1C2C5B; color:white; border:none; margin-top:5px;">TRASCENDENCIA EN EL TORNEO</div>
+            <div class="pdf-text-obs">${d.obs.trans}</div>
+        </div>
+
+        <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe de Torneo</div>
+    </div>`;
+}
+
+function cargarHistorialTorneos() {
+    db.collection("informes_torneo").orderBy("fecha", "desc").limit(10).onSnapshot(snap => {
+        const cont = document.getElementById('lista-torneos-guardados');
+        if(!cont) return;
+        cont.innerHTML = '';
+        snap.forEach(doc => {
+            const inf = doc.data();
+            db.collection("porteros").doc(inf.porteroId).get().then(pDoc => {
+                if(pDoc.exists) {
+                    const p = pDoc.data();
+                    cont.innerHTML += `<div class="eval-card">
+                        <div>
+                            <div style="font-weight:bold;">${p.nombre}</div>
+                            <div style="font-size:0.8rem; color:var(--text-sec);">${inf.datos.torneo}</div>
+                            <div style="font-size:0.7rem; color:var(--atm-red);">${inf.fecha.substring(0,10)}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-icon-action" onclick="window.verPDFTorneoGuardado('${doc.id}')">📄</button>
+                            <button class="btn-trash" onclick="db.collection('informes_torneo').doc('${doc.id}').delete()">🗑️</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    });
+}
+
+window.verPDFTorneoGuardado = function(id) {
+    db.collection("informes_torneo").doc(id).get().then(doc => {
+        const data = doc.data();
+        db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+            const html = construirHTMLTorneo(pDoc.data(), data.datos);
+            document.body.classList.remove('print-landscape');
+            document.body.classList.add('print-portrait');
+            document.getElementById('preview-content').innerHTML = html;
+            document.getElementById('printable-area').innerHTML = html;
+            document.getElementById('modal-pdf-preview').style.display = 'flex';
+        });
+    });
+}
