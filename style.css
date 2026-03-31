@@ -175,16 +175,32 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
     .pdf-slide { page-break-after: avoid; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
 }
 
-/* PORTADA DEL PDF */
-.pdf-cover { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always; height: 297mm; box-sizing: border-box; -webkit-print-color-adjust: exact !important; }
+/* PORTADA DEL PDF - FIJADA PARA QUE NO SE CORTE */
+.pdf-cover { 
+    display: block !important; 
+    position: relative; 
+    width: 210mm !important; 
+    height: 297mm !important; 
+    min-height: 297mm !important; 
+    max-height: 297mm !important; 
+    background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; 
+    color: white !important; 
+    page-break-after: always !important; 
+    box-sizing: border-box; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+    overflow: hidden; 
+}
 .cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; background-image: url('ESCUDO ATM.png'); background-size: contain; background-repeat: no-repeat; background-position: center; opacity: 0.06; z-index: 1; }
-.cover-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%; padding: 0 40px; }
-.cover-photo { width: 220px; height: 280px; object-fit: cover; border-radius: 20px; border: 6px solid #CB3524; margin-bottom: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; }
+.cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
+.cover-photo { width: 220px; height: 280px; object-fit: cover; border-radius: 20px; border: 6px solid #CB3524; margin: 0 auto 30px auto; display: block; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; }
 .cover-title { font-size: 26px; font-weight: 800; letter-spacing: 3px; margin-bottom: 15px; color: #00E676 !important; text-transform: uppercase; }
 .cover-name { font-size: 42px; font-weight: 800; text-transform: uppercase; margin-bottom: 25px; color: white !important; line-height: 1.1; }
-.cover-details { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #E5E7EB !important; padding: 15px 40px; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); display: flex; gap: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; }
-.cover-footer { position: absolute; bottom: 50px; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; }
+.cover-details { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #E5E7EB !important; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); border-radius: 10px; width: 90%; margin: 0 auto; display: block; text-align: center; }
+.cover-details span { display: inline-block; margin: 0 10px; }
+.cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
+/* PAGINAS DEL PDF */
 .pdf-slide { width: 210mm; height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; }
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 10px; }
 .pdf-top-title { font-size: 20px; font-weight: 800; color: #1C2C5B; }
