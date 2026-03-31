@@ -66,6 +66,16 @@ h2 { font-size: 1.25rem; font-weight: 700; }
 .card-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 3px; }
 .card-subtitle { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; }
 
+/* SKELETON LOADERS */
+.skeleton-card { background: rgba(255,255,255,0.02); border-radius: var(--radius-m); padding: 15px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid var(--border-glass); }
+.skeleton-avatar { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); margin-right: 15px; animation: shimmer 1.5s infinite linear; }
+.skeleton-text { flex: 1; }
+.skeleton-line { height: 12px; background: rgba(255,255,255,0.1); margin-bottom: 8px; border-radius: 6px; animation: shimmer 1.5s infinite linear; }
+.skeleton-line.short { width: 60%; }
+body.light-mode .skeleton-card { background: rgba(0,0,0,0.02); }
+body.light-mode .skeleton-avatar, body.light-mode .skeleton-line { background: rgba(0,0,0,0.08); }
+@keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
 .row { display: flex; gap: 12px; }
 .full-width { width: 100%; }
 
@@ -153,15 +163,27 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
     .nav-item { width: 55px; font-size: 0.5rem; }
 }
 
-/* ESTILOS PDF */
+/* ========================================================
+   ESTILOS PDF IMPRESIÓN (INCLUYE PORTADA ESPECTACULAR)
+   ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
     #printable-area, #printable-area * { visibility: visible; height: auto; overflow: visible; }
     #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; }
-    html, body { margin: 0; padding: 0; height: 100%; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    html, body { margin: 0; padding: 0; height: 100%; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     @page { size: A4 portrait; margin: 0; }
     .pdf-slide { page-break-after: avoid; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
 }
+
+/* PORTADA DEL PDF */
+.pdf-cover { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always; height: 297mm; box-sizing: border-box; -webkit-print-color-adjust: exact !important; }
+.cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; background-image: url('ESCUDO ATM.png'); background-size: contain; background-repeat: no-repeat; background-position: center; opacity: 0.06; z-index: 1; }
+.cover-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; width: 100%; padding: 0 40px; }
+.cover-photo { width: 220px; height: 280px; object-fit: cover; border-radius: 20px; border: 6px solid #CB3524; margin-bottom: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; }
+.cover-title { font-size: 26px; font-weight: 800; letter-spacing: 3px; margin-bottom: 15px; color: #00E676 !important; text-transform: uppercase; }
+.cover-name { font-size: 42px; font-weight: 800; text-transform: uppercase; margin-bottom: 25px; color: white !important; line-height: 1.1; }
+.cover-details { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #E5E7EB !important; padding: 15px 40px; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); display: flex; gap: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; }
+.cover-footer { position: absolute; bottom: 50px; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; }
 
 .pdf-slide { width: 210mm; height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; }
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 10px; }
@@ -206,7 +228,6 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
 .pdf-table-torneo th { background: #1C2C5B; color: white; padding: 5px; text-align: left; }
 .pdf-table-torneo td { border-bottom: 1px solid #eee; padding: 5px; color: #333; text-align: left; }
 
-/* COLORES DE FASES PDF */
 .fase-grupos { background-color: #ffffff; }
 .fase-16 { background-color: rgba(52, 152, 219, 0.08) !important; }
 .fase-8 { background-color: rgba(155, 89, 182, 0.08) !important; }
@@ -224,5 +245,4 @@ body.light-mode .badge-pais { background: #1C2C5B; color: #FFF; }
 .pdf-resumen-item { text-align: center; }
 .pdf-resumen-val { display: block; font-weight: bold; font-size: 13px; color: #CB3524; }
 
-/* ETIQUETA PAÍS/BANDERA */
 .badge-pais { background: #1C2C5B; padding: 2px 4px; border-radius: 3px; font-size: 7px; font-weight: bold; color: white; margin-left: 4px; display: inline-block; vertical-align: middle; }
