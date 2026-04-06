@@ -809,12 +809,12 @@ function construirHTMLInformeVertical(p, d, docId) {
 
         <div class="pdf-rating-box"><div class="pdf-box-title">6. CONTROL ACADÉMICO</div><div class="pdf-academic-box"><div class="pdf-aca-item"><span><strong>1ª EVAL:</strong></span> Media: ${ev1.media||'-'} | Asig: ${ev1.asig||'-'} | Susp: ${ev1.susp||'-'}</div><div class="pdf-aca-item"><span><strong>2ª EVAL:</strong></span> Media: ${ev2.media||'-'} | Asig: ${ev2.asig||'-'} | Susp: ${ev2.susp||'-'}</div><div class="pdf-aca-item" style="border:none"><span><strong>3ª EVAL:</strong></span> Media: ${ev3.media||'-'} | Asig: ${ev3.asig||'-'} | Susp: ${ev3.susp||'-'}</div></div></div>
         
-        <div style="margin-top:auto; padding-top:5px; text-align:center;">
-            <div style="font-size:11px; font-weight:bold; color:#1C2C5B; margin-bottom:4px; text-transform:uppercase;">VALORACIÓN GENERAL DEL SEMESTRE</div>
-            <div class="${valClass}" style="display:inline-block; padding:8px 30px; border-radius:20px; font-size:16px; font-weight:800; border: 2px solid rgba(0,0,0,0.1);">${perfil.val_gen || 'NO EVALUADO'}</div>
+        <div style="margin-top:auto; padding-top:10px; text-align:center;">
+            <div style="font-size:12px; font-weight:bold; color:#1C2C5B; margin-bottom:6px; text-transform:uppercase;">VALORACIÓN GENERAL DEL SEMESTRE</div>
+            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${perfil.val_gen || 'NO EVALUADO'}</div>
         </div>
         
-        <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">GuardianLab ATM - Informe Técnico</div>
+        <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe Técnico</div>
     </div>`;
 }
 
@@ -885,10 +885,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
+// CREADOR DE GRÁFICO INTELIGENTE (SIN CANVAS EN EL DOM DE IMPRESIÓN)
 window.generarGraficoRadar = function(rndId, val) {
-    const canvas = document.getElementById(`radar-preview-${rndId}`);
-    if(!canvas) return;
-    
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -897,6 +895,14 @@ window.generarGraficoRadar = function(rndId, val) {
     const avgTactica = ((parseVal(val.unoVuno) + parseVal(val.organizacion)) / 2).toFixed(1);
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
+
+    // Creamos un canvas virtual fuera de pantalla para que no cuelgue la impresión
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 600;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '-9999px';
+    document.body.appendChild(canvas);
 
     const chart = new Chart(canvas, {
         type: 'radar',
@@ -908,18 +914,16 @@ window.generarGraficoRadar = function(rndId, val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 2,
+                borderWidth: 3,
             }]
         },
         options: {
-            animation: false, // Sin animación para carga instantánea
-            responsive: true,
-            maintainAspectRatio: false,
-            devicePixelRatio: 2, 
+            animation: false,
+            responsive: false, 
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 16, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -928,19 +932,21 @@ window.generarGraficoRadar = function(rndId, val) {
         }
     });
 
-    // FIX TABLET PRINT: Pasar gráfico a imagen para no colgar Safari/Chrome
+    // Guardamos la imagen y destruimos el canvas fantasma
     setTimeout(() => {
         try {
-            const imgB64 = chart.toBase64Image();
+            const imgB64 = chart.toBase64Image('image/png', 1.0);
+            
             const imgPreview = document.getElementById(`radar-img-preview-${rndId}`);
             const imgPrint = document.getElementById(`radar-img-print-${rndId}`);
             
             if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
             if(imgPrint) { imgPrint.src = imgB64; imgPrint.style.display = 'block'; }
             
-            canvas.style.display = 'none'; // Ocultar el canvas original
-        } catch(e) { console.error("Error al generar imagen del radar:", e); }
-    }, 50);
+            chart.destroy();
+            canvas.remove();
+        } catch(e) { console.error("Error al generar radar:", e); }
+    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1331,7 +1337,10 @@ window.generarPDFTorneo = function() {
         window.haptic('success');
         db.collection("porteros").doc(pid).get().then(doc => {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
-            const html = construirHTMLTorneo(pData, datos, docId);
+            
+            const rndId = Date.now();
+            const html = construirHTMLTorneo(pData, datos, docId, rndId);
+            
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
             
@@ -1344,19 +1353,15 @@ window.generarPDFTorneo = function() {
             if(mEl) mEl.style.display = 'flex'; 
             else alert("Falta el contenedor del PDF en el HTML.");
             
-            setTimeout(() => {
-                const canvasMatch = html.match(/id="radar-target-(\d+)"/);
-                if(canvasMatch && canvasMatch[1]) {
-                    window.generarGraficoRadar(canvasMatch[1], datos.val);
-                }
-            }, 100);
+            // Disparador del Gráfico Seguro
+            window.generarGraficoRadar(rndId, datos.val);
 
             cancelarEdicionTorneo(); 
         });
     });
 }
 
-function construirHTMLTorneo(p, d, docId) {
+function construirHTMLTorneo(p, d, docId, rndId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1407,7 +1412,6 @@ function construirHTMLTorneo(p, d, docId) {
     if(d.val_gen === "ALTA") valClass = "val-alta";
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    const rnd = Date.now();
     const logoHtml = d.torneoLogo ? `<img src="${d.torneoLogo}" class="cover-logo-torneo">` : '';
 
     let qrHtml = "";
@@ -1501,10 +1505,8 @@ function construirHTMLTorneo(p, d, docId) {
         <div class="pdf-section-header">PERFIL TÉCNICO, TÁCTICO Y PSICOLÓGICO</div>
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
-                <div style="width:100%; height:150px; position:relative;">
-                    <canvas id="radar-preview-${rnd}" style="display:block; width:100%; height:100%;"></canvas>
-                    <img id="radar-img-preview-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
-                    <img id="radar-img-print-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
+                <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
+                    <img id="radar-img-target-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1564,7 +1566,7 @@ function construirHTMLTorneo(p, d, docId) {
         <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
     </div>`;
 
-    return coverHtml + page2Html + `<div id="target-placeholder"></div>`.replace(/<div id="target-placeholder"><\/div>/, page3Html.replace(/target/g, 'preview'));
+    return coverHtml + page2Html + page3Html;
 }
 
 window.verPDFTorneoGuardado = function(id) {
@@ -1573,7 +1575,10 @@ window.verPDFTorneoGuardado = function(id) {
             const data = doc.data();
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
-                const html = construirHTMLTorneo(pData, data.datos, doc.id);
+                
+                const rndId = Date.now();
+                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
+                
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
                 
@@ -1581,19 +1586,13 @@ window.verPDFTorneoGuardado = function(id) {
                 const prEl = document.getElementById('printable-area');
                 const mEl = document.getElementById('modal-pdf-preview');
                 
-                if(pEl) pEl.innerHTML = html; 
-                // Al imprimir en PDF, se reusa la imagen generada en la vista previa
-                if(prEl) prEl.innerHTML = html.replace(/preview/g, 'print').replace(/display:block; width:100%; height:100%;/g, 'display:none;'); 
+                if(pEl) pEl.innerHTML = html.replace(/target/g, 'preview'); 
+                if(prEl) prEl.innerHTML = html.replace(/target/g, 'print'); 
                 if(mEl) mEl.style.display = 'flex'; 
                 else alert("Falta el contenedor del PDF en el HTML.");
 
-                setTimeout(() => {
-                    const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
-                    if(canvasMatch && canvasMatch[1]) {
-                        const rndId = canvasMatch[1];
-                        window.generarGraficoRadar(rndId, data.datos.val);
-                    }
-                }, 100);
+                // Disparador del Gráfico Seguro
+                window.generarGraficoRadar(rndId, data.datos.val);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }
