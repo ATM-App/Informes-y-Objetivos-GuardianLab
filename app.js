@@ -208,6 +208,7 @@ window.compartirFichaWeb = function(tipo, id) {
     }
 }
 
+// CROMO EA FC
 window.generarCromo = function(porteroId) {
     window.haptic('success');
     if(!porteroId) return alert("Selecciona un portero primero.");
@@ -361,7 +362,7 @@ window.abrirFichaPortero = function(id) {
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
             snap.forEach(d => {
                 const rep = d.data();
-                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button></div>`;
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")}, "${d.id}")'>📄</button></div>`;
             });
         });
 
@@ -468,7 +469,7 @@ window.guardarReporteObjetivosCompleto = function() {
 function generarPDFObjetivos(reporte, docId) {
     db.collection("porteros").doc(reporte.porteroId).get().then(doc => {
         const p = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' }; 
-        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         let filas = ''; let sum = 0; reporte.acciones.forEach(item => { sum += parseInt(item.puntaje); let bg='#ccc', fg='white', label=''; if(item.competencia===1){bg='#E74C3C';label='INCOMP. INCONSCIENTE';} if(item.competencia===2){bg='#E67E22';label='INCOMP. CONSCIENTE';} if(item.competencia===3){bg='#F1C40F';label='COMP. CONSCIENTE';fg='black';} if(item.competencia===4){bg='#27AE60';label='COMP. INCONSCIENTE';} filas += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${item.accion}</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><span style="background:${bg}; color:${fg}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${label}</span></td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center; font-weight:bold;">${item.puntaje}</td></tr>`; });
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
@@ -506,6 +507,7 @@ function generarPDFObjetivos(reporte, docId) {
         else alert("Falta el contenedor del PDF en el HTML.");
     });
 }
+
 function cargarHistorialObjetivos() { 
     db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { 
         const cont = document.getElementById('lista-seguimientos');
@@ -731,7 +733,7 @@ window.generarPDFInforme = function() {
 
 function construirHTMLInformeVertical(p, d, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
-    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     const rowStat = (lbl, val) => `<div class="pdf-stat-cell"><span class="pdf-stat-label">${lbl}</span><span class="pdf-stat-num">${val||'-'}</span></div>`;
     
@@ -884,7 +886,7 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-window.generarGraficoRadar = function(canvasId, val) {
+window.generarGraficoRadar = function(canvasId, imgId, val) {
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
     
@@ -897,7 +899,7 @@ window.generarGraficoRadar = function(canvasId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    new Chart(canvas, {
+    const chart = new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -926,6 +928,16 @@ window.generarGraficoRadar = function(canvasId, val) {
             plugins: { legend: { display: false } }
         }
     });
+
+    // FIX TABLET: Convertir a imagen para que no se congele Safari al imprimir
+    setTimeout(() => {
+        const img = document.getElementById(imgId);
+        if(img && chart) {
+            img.src = chart.toBase64Image();
+            img.style.display = 'block';
+            canvas.style.display = 'none';
+        }
+    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1333,10 +1345,10 @@ window.generarPDFTorneo = function() {
                 const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
                 if(canvasMatch && canvasMatch[1]) {
                     const rndId = canvasMatch[1];
-                    window.generarGraficoRadar(`radar-preview-${rndId}`, datos.val);
-                    window.generarGraficoRadar(`radar-print-${rndId}`, datos.val);
+                    window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, datos.val);
+                    window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, datos.val);
                 }
-            }, 100);
+            }, 150);
 
             cancelarEdicionTorneo(); 
         });
@@ -1490,6 +1502,7 @@ function construirHTMLTorneo(p, d, docId) {
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:10px;">
                 <div style="width:100%; height:180px; position:relative;">
                     <canvas id="radar-target-${rnd}" style="display:block; width:100%; height:100%;"></canvas>
+                    <img id="radar-img-target-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1575,10 +1588,10 @@ window.verPDFTorneoGuardado = function(id) {
                     const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
                     if(canvasMatch && canvasMatch[1]) {
                         const rndId = canvasMatch[1];
-                        window.generarGraficoRadar(`radar-preview-${rndId}`, data.datos.val);
-                        window.generarGraficoRadar(`radar-print-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, data.datos.val);
                     }
-                }, 100);
+                }, 150);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }
