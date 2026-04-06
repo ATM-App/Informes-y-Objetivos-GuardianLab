@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR
+// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES CORREGIDOS
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -144,10 +144,10 @@ window.renderWebView = function(tipo, id) {
                     
                     filasPartidos += `
                     <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85rem; align-items:center;">
-                        <div style="flex:1; text-align:left; color:#aaa; font-size:0.7rem;">${m.jornada || m.fase || ''}</div>
-                        <div style="flex:1.5; text-align:left; font-weight:bold; color:white;">${m.rival || '-'}${m.pais ? ` <span style="color:#aaa; font-size:0.6rem;">(${m.pais})</span>` : ''}</div>
-                        <div style="flex:1; text-align:center; color:#00E676; font-weight:800;">${resTxt}</div>
-                        <div style="flex:0.8; text-align:right; color:#E74C3C; font-weight:bold;">${gcReal} GC</div>
+                        <div style="flex:1; text-align:left; color:var(--text-sec); font-size:0.7rem;">${m.jornada || m.fase || ''}</div>
+                        <div style="flex:1.5; text-align:left; font-weight:bold; color:var(--text-main);">${m.rival || '-'}${m.pais ? ` <span style="color:var(--text-sec); font-size:0.6rem;">(${m.pais})</span>` : ''}</div>
+                        <div style="flex:1; text-align:center; color:var(--neon-green); font-weight:800;">${resTxt}</div>
+                        <div style="flex:0.8; text-align:right; color:var(--atm-red); font-weight:bold;">${gcReal} GC</div>
                     </div>`;
                 });
                 
@@ -157,10 +157,10 @@ window.renderWebView = function(tipo, id) {
                 <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
                     <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:15px; text-transform:uppercase;">Resumen Estadístico</h3>
                     <div style="display:flex; justify-content:space-around;">
-                        <div><div style="font-size:1.6rem; font-weight:800; color:white;">${d.partidos.length}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">PJ</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:white;">${tMin}'</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">MIN</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:#E74C3C;">${tGol}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">G.C.</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:#F1C40F;">${mediaGoles}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">MEDIA</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--text-main);">${d.partidos.length}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">PJ</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--text-main);">${tMin}'</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">MIN</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--atm-red);">${tGol}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">G.C.</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:#F1C40F;">${mediaGoles}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">MEDIA</div></div>
                     </div>
                 </div>`;
                 
@@ -540,9 +540,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-details">
+                <div class="cover-info-bar">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -808,9 +808,9 @@ function construirHTMLInformeVertical(p, d, docId) {
         ${qrHtml}
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
-            <div class="cover-title">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
+            <div class="cover-subtitle">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
             <div class="cover-name-premium">${p.nombre}</div>
-            <div class="cover-details">
+            <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.titulo || '-'}</span>
             </div>
         </div>
@@ -925,15 +925,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// RADAR ORIGINAL NATIVO Y SEGURO (SIN DOBLE RENDER)
-window.generarGraficoRadar = function(val) {
-    const canvas = document.getElementById('radar-preview');
-    if(!canvas) return;
-    
-    if (window.radarChartInstance) {
-        window.radarChartInstance.destroy();
-    }
-    
+// CREADOR DE GRÁFICO INTELIGENTE (LA MAGIA ANTI-CUELGUES PARA TABLET)
+window.generarGraficoRadar = function(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -943,7 +936,15 @@ window.generarGraficoRadar = function(val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    window.radarChartInstance = new Chart(canvas, {
+    // Creamos un canvas fantasma (no entra al PDF, solo sirve para sacar la foto)
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 800;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '-9999px';
+    document.body.appendChild(canvas);
+
+    const chart = new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -953,17 +954,16 @@ window.generarGraficoRadar = function(val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 2,
+                borderWidth: 4,
             }]
         },
         options: {
             animation: false,
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: false, 
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 24, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -971,6 +971,22 @@ window.generarGraficoRadar = function(val) {
             plugins: { legend: { display: false } }
         }
     });
+
+    // Pasamos el Canvas a un simple JPG ultraligero y destruimos el Canvas
+    setTimeout(() => {
+        try {
+            const imgB64 = chart.toBase64Image('image/jpeg', 1.0);
+            
+            const imgs = document.querySelectorAll('.radar-img-' + rndId);
+            imgs.forEach(img => {
+                img.src = imgB64;
+                img.style.display = 'block';
+            });
+            
+            chart.destroy();
+            canvas.remove();
+        } catch(e) { console.error("Error al generar radar:", e); }
+    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1362,17 +1378,16 @@ window.generarPDFTorneo = function() {
         db.collection("porteros").doc(pid).get().then(doc => {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
-            const html = construirHTMLTorneo(pData, datos, docId);
-            
-            document.body.classList.remove('print-landscape'); 
-            document.body.classList.add('print-portrait');
+            const rndId = Date.now();
+            const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
+            // Generar el radar (crea imagen base64 y la inyecta)
             setTimeout(() => {
-                window.generarGraficoRadar(datos.val);
+                window.generarGraficoRadar(rndId, datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1380,7 +1395,7 @@ window.generarPDFTorneo = function() {
     });
 }
 
-function construirHTMLTorneo(p, d, docId) {
+function construirHTMLTorneo(p, d, docId, rndId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1547,7 +1562,7 @@ function construirHTMLTorneo(p, d, docId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <canvas id="radar-preview" style="display:block; width:100%; height:100%;"></canvas>
+                    <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1617,7 +1632,8 @@ window.verPDFTorneoGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
-                const html = construirHTMLTorneo(pData, data.datos, doc.id);
+                const rndId = Date.now();
+                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
@@ -1627,7 +1643,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    window.generarGraficoRadar(data.datos.val);
+                    window.generarGraficoRadar(rndId, data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1635,36 +1651,15 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA DEFINITIVA
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
     const pEl = document.getElementById('preview-content');
     const prEl = document.getElementById('printable-area');
     
-    // Clonamos el HTML de la vista previa al área de impresión oculta
     prEl.innerHTML = pEl.innerHTML; 
     
-    // TRUCO PARA TABLETS: Buscamos el radar Canvas en la preview y lo convertimos a IMG en el print
-    const originalCanvas = pEl.querySelector('#radar-preview');
-    const printCanvas = prEl.querySelector('#radar-preview');
-    
-    if (originalCanvas && printCanvas) {
-        try {
-            const img = document.createElement('img');
-            img.src = originalCanvas.toDataURL('image/png', 1.0);
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            printCanvas.parentNode.replaceChild(img, printCanvas);
-        } catch (e) {
-            console.error("Error al convertir radar a imagen para imprimir:", e);
-        }
-    }
-    
-    // Imprimimos asegurando que el DOM se haya actualizado
     setTimeout(() => {
         window.print();
-        // Limpiamos el área después de imprimir para no consumir RAM
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000);
-    }, 300);
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000); 
+    }, 200);
 }
