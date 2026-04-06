@@ -362,7 +362,7 @@ window.abrirFichaPortero = function(id) {
             if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
             snap.forEach(d => {
                 const rep = d.data();
-                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")}, "${d.id}")'>📄</button></div>`;
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button></div>`;
             });
         });
 
@@ -507,7 +507,6 @@ function generarPDFObjetivos(reporte, docId) {
         else alert("Falta el contenedor del PDF en el HTML.");
     });
 }
-
 function cargarHistorialObjetivos() { 
     db.collection("reportes_objetivos").orderBy("timestamp", "desc").limit(10).onSnapshot(snap => { 
         const cont = document.getElementById('lista-seguimientos');
@@ -810,12 +809,12 @@ function construirHTMLInformeVertical(p, d, docId) {
 
         <div class="pdf-rating-box"><div class="pdf-box-title">6. CONTROL ACADÉMICO</div><div class="pdf-academic-box"><div class="pdf-aca-item"><span><strong>1ª EVAL:</strong></span> Media: ${ev1.media||'-'} | Asig: ${ev1.asig||'-'} | Susp: ${ev1.susp||'-'}</div><div class="pdf-aca-item"><span><strong>2ª EVAL:</strong></span> Media: ${ev2.media||'-'} | Asig: ${ev2.asig||'-'} | Susp: ${ev2.susp||'-'}</div><div class="pdf-aca-item" style="border:none"><span><strong>3ª EVAL:</strong></span> Media: ${ev3.media||'-'} | Asig: ${ev3.asig||'-'} | Susp: ${ev3.susp||'-'}</div></div></div>
         
-        <div style="margin-top:auto; padding-top:10px; text-align:center;">
-            <div style="font-size:12px; font-weight:bold; color:#1C2C5B; margin-bottom:6px; text-transform:uppercase;">VALORACIÓN GENERAL DEL SEMESTRE</div>
-            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${perfil.val_gen || 'NO EVALUADO'}</div>
+        <div style="margin-top:auto; padding-top:5px; text-align:center;">
+            <div style="font-size:11px; font-weight:bold; color:#1C2C5B; margin-bottom:4px; text-transform:uppercase;">VALORACIÓN GENERAL DEL SEMESTRE</div>
+            <div class="${valClass}" style="display:inline-block; padding:8px 30px; border-radius:20px; font-size:16px; font-weight:800; border: 2px solid rgba(0,0,0,0.1);">${perfil.val_gen || 'NO EVALUADO'}</div>
         </div>
         
-        <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">GuardianLab ATM - Informe Técnico</div>
+        <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">GuardianLab ATM - Informe Técnico</div>
     </div>`;
 }
 
@@ -886,8 +885,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-window.generarGraficoRadar = function(canvasId, imgId, val) {
-    const canvas = document.getElementById(canvasId);
+window.generarGraficoRadar = function(rndId, val) {
+    const canvas = document.getElementById(`radar-preview-${rndId}`);
     if(!canvas) return;
     
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
@@ -913,7 +912,7 @@ window.generarGraficoRadar = function(canvasId, imgId, val) {
             }]
         },
         options: {
-            animation: false,
+            animation: false, // Sin animación para carga instantánea
             responsive: true,
             maintainAspectRatio: false,
             devicePixelRatio: 2, 
@@ -929,15 +928,19 @@ window.generarGraficoRadar = function(canvasId, imgId, val) {
         }
     });
 
-    // FIX TABLET: Convertir a imagen para que no se congele Safari al imprimir
+    // FIX TABLET PRINT: Pasar gráfico a imagen para no colgar Safari/Chrome
     setTimeout(() => {
-        const img = document.getElementById(imgId);
-        if(img && chart) {
-            img.src = chart.toBase64Image();
-            img.style.display = 'block';
-            canvas.style.display = 'none';
-        }
-    }, 150);
+        try {
+            const imgB64 = chart.toBase64Image();
+            const imgPreview = document.getElementById(`radar-img-preview-${rndId}`);
+            const imgPrint = document.getElementById(`radar-img-print-${rndId}`);
+            
+            if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
+            if(imgPrint) { imgPrint.src = imgB64; imgPrint.style.display = 'block'; }
+            
+            canvas.style.display = 'none'; // Ocultar el canvas original
+        } catch(e) { console.error("Error al generar imagen del radar:", e); }
+    }, 50);
 }
 
 function cargarHistorialTorneos() {
@@ -1336,19 +1339,17 @@ window.generarPDFTorneo = function() {
             const prEl = document.getElementById('printable-area');
             const mEl = document.getElementById('modal-pdf-preview');
             
-            if(pEl) pEl.innerHTML = html; 
-            if(prEl) prEl.innerHTML = html.replace(/preview/g, 'print'); 
+            if(pEl) pEl.innerHTML = html.replace(/target/g, 'preview'); 
+            if(prEl) prEl.innerHTML = html.replace(/target/g, 'print'); 
             if(mEl) mEl.style.display = 'flex'; 
             else alert("Falta el contenedor del PDF en el HTML.");
             
             setTimeout(() => {
-                const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
+                const canvasMatch = html.match(/id="radar-target-(\d+)"/);
                 if(canvasMatch && canvasMatch[1]) {
-                    const rndId = canvasMatch[1];
-                    window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, datos.val);
-                    window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, datos.val);
+                    window.generarGraficoRadar(canvasMatch[1], datos.val);
                 }
-            }, 150);
+            }, 100);
 
             cancelarEdicionTorneo(); 
         });
@@ -1498,11 +1499,12 @@ function construirHTMLTorneo(p, d, docId) {
         </div>
 
         <div class="pdf-section-header">PERFIL TÉCNICO, TÁCTICO Y PSICOLÓGICO</div>
-        <div class="pdf-row">
-            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:10px;">
-                <div style="width:100%; height:180px; position:relative;">
-                    <canvas id="radar-target-${rnd}" style="display:block; width:100%; height:100%;"></canvas>
-                    <img id="radar-img-target-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
+        <div class="pdf-row" style="margin-bottom: 5px;">
+            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
+                <div style="width:100%; height:150px; position:relative;">
+                    <canvas id="radar-preview-${rnd}" style="display:block; width:100%; height:100%;"></canvas>
+                    <img id="radar-img-preview-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
+                    <img id="radar-img-print-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1548,21 +1550,21 @@ function construirHTMLTorneo(p, d, docId) {
         </div>
 
         <div class="pdf-section-header">SITUACIONES ESPECÍFICAS Y CONCLUSIÓN</div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
             <div class="pdf-rating-box"><div class="pdf-box-title">Rendimiento en Penaltis</div><div class="pdf-text-obs">${obs.penaltis || '-'}</div></div>
             <div class="pdf-rating-box"><div class="pdf-box-title">Acciones Decisivas</div><div class="pdf-text-obs">${obs.decisivas || '-'}</div></div>
             <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia Torneo</div><div class="pdf-text-obs">${obs.trans || '-'}</div></div>
         </div>
 
-        <div style="margin-top:auto; padding-top:10px; text-align:center;">
-            <div style="font-size:12px; font-weight:bold; color:#1C2C5B; margin-bottom:5px; text-transform:uppercase;">VALORACIÓN GENERAL DEL TORNEO</div>
-            <div class="${valClass}" style="display:inline-block; padding:10px 40px; border-radius:25px; font-size:18px; font-weight:800; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">${d.val_gen || 'NO EVALUADO'}</div>
+        <div style="margin-top:auto; padding-top:5px; text-align:center;">
+            <div style="font-size:11px; font-weight:bold; color:#1C2C5B; margin-bottom:4px; text-transform:uppercase;">VALORACIÓN GENERAL DEL TORNEO</div>
+            <div class="${valClass}" style="display:inline-block; padding:8px 30px; border-radius:20px; font-size:16px; font-weight:800; border: 2px solid rgba(0,0,0,0.1);">${d.val_gen || 'NO EVALUADO'}</div>
         </div>
 
-        <div style="text-align:center; font-size:8px; margin-top:5px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
+        <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
     </div>`;
 
-    return coverHtml + page2Html + page3Html.replace(/target/g, 'preview');
+    return coverHtml + page2Html + `<div id="target-placeholder"></div>`.replace(/<div id="target-placeholder"><\/div>/, page3Html.replace(/target/g, 'preview'));
 }
 
 window.verPDFTorneoGuardado = function(id) {
@@ -1580,18 +1582,18 @@ window.verPDFTorneoGuardado = function(id) {
                 const mEl = document.getElementById('modal-pdf-preview');
                 
                 if(pEl) pEl.innerHTML = html; 
-                if(prEl) prEl.innerHTML = html.replace(/preview/g, 'print'); 
+                // Al imprimir en PDF, se reusa la imagen generada en la vista previa
+                if(prEl) prEl.innerHTML = html.replace(/preview/g, 'print').replace(/display:block; width:100%; height:100%;/g, 'display:none;'); 
                 if(mEl) mEl.style.display = 'flex'; 
-                else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
+                else alert("Falta el contenedor del PDF en el HTML.");
 
                 setTimeout(() => {
                     const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
                     if(canvasMatch && canvasMatch[1]) {
                         const rndId = canvasMatch[1];
-                        window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, data.datos.val);
-                        window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(rndId, data.datos.val);
                     }
-                }, 150);
+                }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }
