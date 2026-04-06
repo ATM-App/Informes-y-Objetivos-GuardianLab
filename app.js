@@ -486,9 +486,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-info-bar">
+                <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -499,12 +499,8 @@ function generarPDFObjetivos(reporte, docId) {
         
         document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait');
         const pEl = document.getElementById('preview-content');
-        const prEl = document.getElementById('printable-area');
-        const mEl = document.getElementById('modal-pdf-preview');
         if(pEl) pEl.innerHTML = html;
-        if(prEl) prEl.innerHTML = html;
-        if(mEl) mEl.style.display = 'flex';
-        else alert("Falta el contenedor del PDF en el HTML.");
+        document.getElementById('modal-pdf-preview').style.display = 'flex';
     });
 }
 function cargarHistorialObjetivos() { 
@@ -717,14 +713,8 @@ window.generarPDFInforme = function() {
             document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); 
             
             const pEl = document.getElementById('preview-content');
-            const prEl = document.getElementById('printable-area');
-            const mEl = document.getElementById('modal-pdf-preview');
-            
             if(pEl) pEl.innerHTML = html; 
-            if(prEl) prEl.innerHTML = html; 
-            if(mEl) mEl.style.display = 'flex'; 
-            else alert("Falta el contenedor del PDF en el HTML.");
-            
+            document.getElementById('modal-pdf-preview').style.display = 'flex';
             cancelarEdicionInforme();
         }); 
     });
@@ -764,9 +754,9 @@ function construirHTMLInformeVertical(p, d, docId) {
         ${qrHtml}
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
-            <div class="cover-subtitle">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
+            <div class="cover-title">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
             <div class="cover-name-premium">${p.nombre}</div>
-            <div class="cover-info-bar">
+            <div class="cover-details">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.titulo || '-'}</span>
             </div>
         </div>
@@ -853,12 +843,8 @@ window.verPDFInformeGuardado = function(id) {
                 document.body.classList.add('print-portrait'); 
                 
                 const pEl = document.getElementById('preview-content');
-                const prEl = document.getElementById('printable-area');
-                const mEl = document.getElementById('modal-pdf-preview');
                 if(pEl) pEl.innerHTML = html; 
-                if(prEl) prEl.innerHTML = html; 
-                if(mEl) mEl.style.display = 'flex'; 
-                else alert("Falta el contenedor del PDF en el HTML.");
+                document.getElementById('modal-pdf-preview').style.display = 'flex';
             }).catch(err => console.error("Error al obtener portero:", err)); 
         } 
     }).catch(err => console.error("Error al obtener informe:", err)); 
@@ -885,10 +871,15 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// RADAR ORIGINAL SIN CONVERSIÓN A IMAGEN
-window.generarGraficoRadar = function(canvasId, val) {
-    const canvas = document.getElementById(canvasId);
+// RADAR ORIGINAL NATIVO Y SEGURO
+window.generarGraficoRadar = function(val) {
+    const canvas = document.getElementById('radar-preview');
     if(!canvas) return;
+    
+    // Destruimos la instancia anterior si existe para evitar superposiciones (bugs)
+    if (window.radarChartInstance) {
+        window.radarChartInstance.destroy();
+    }
     
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
@@ -899,7 +890,7 @@ window.generarGraficoRadar = function(canvasId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    new Chart(canvas, {
+    window.radarChartInstance = new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -1318,25 +1309,18 @@ window.generarPDFTorneo = function() {
         db.collection("porteros").doc(pid).get().then(doc => {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
-            const rndId = Date.now();
-            const html = construirHTMLTorneo(pData, datos, docId, rndId);
+            const html = construirHTMLTorneo(pData, datos, docId);
             
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
             
             const pEl = document.getElementById('preview-content');
-            const prEl = document.getElementById('printable-area');
-            const mEl = document.getElementById('modal-pdf-preview');
-            
             if(pEl) pEl.innerHTML = html; 
-            if(prEl) prEl.innerHTML = html; 
-            if(mEl) mEl.style.display = 'flex'; 
-            else alert("Falta el contenedor del PDF en el HTML.");
+            document.getElementById('modal-pdf-preview').style.display = 'flex';
             
-            // Generar el radar original directo al canvas
+            // Generar el radar
             setTimeout(() => {
-                window.generarGraficoRadar(`radar-preview-${rndId}`, datos.val);
-                window.generarGraficoRadar(`radar-print-${rndId}`, datos.val);
+                window.generarGraficoRadar(datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1344,7 +1328,7 @@ window.generarPDFTorneo = function() {
     });
 }
 
-function construirHTMLTorneo(p, d, docId, rndId) {
+function construirHTMLTorneo(p, d, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1403,16 +1387,38 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         qrHtml = `<img src="${qrUrl}" class="cover-qr">`;
     }
 
+    const catSolo = p.categoria || '';
+    const equipoSolo = p.equipo ? p.equipo.replace(catSolo, '').trim() : '';
+
     const coverHtml = `
     <div class="pdf-slide pdf-cover">
         <img src="ESCUDO ATM.png" class="cover-bg-logo">
         ${qrHtml}
         <div class="cover-content">
-            <img src="${foto}" class="cover-photo">
+            <div class="pdf-cromo-cover">
+                <div class="pdf-cromo-top">
+                    <img src="${foto}" class="pdf-cromo-img">
+                    <img src="ESCUDO ATM.png" class="pdf-cromo-logo">
+                </div>
+                <div class="pdf-cromo-bottom">
+                    <div class="pdf-cromo-line1">
+                        <div class="pdf-cromo-text-cat">${catSolo} Atlético de Madrid ${equipoSolo}</div>
+                        <div class="pdf-cromo-text-por">
+                            <div class="pdf-cromo-por">POR</div>
+                            <div class="pdf-cromo-esp">España</div>
+                        </div>
+                    </div>
+                    <div class="pdf-cromo-line2">
+                        <div class="pdf-cromo-name">${p.nombre.split(' ')[0]}</div>
+                        <div class="pdf-cromo-num">1</div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="cover-subtitle">INFORME DE TORNEO</div>
             <div class="cover-name-premium">${p.nombre}</div>
             <div class="cover-info-bar">
-                <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.torneo || '-'}</span>
+                <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span style="color:#F1C40F;">🏆 ${d.torneo || '-'} 🏆</span>
             </div>
             ${logoHtml}
         </div>
@@ -1489,7 +1495,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <canvas id="radar-target-${rndId}" style="display:block; width:100%; height:100%;"></canvas>
+                    <canvas id="radar-preview" style="display:block; width:100%; height:100%;"></canvas>
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1549,7 +1555,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
     </div>`;
 
-    return coverHtml + page2Html + page3Html.replace(/target/g, 'preview');
+    return coverHtml + page2Html + page3Html;
 }
 
 window.verPDFTorneoGuardado = function(id) {
@@ -1559,27 +1565,17 @@ window.verPDFTorneoGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
-                const rndIdPreview = Date.now() + 'prev';
-                const rndIdPrint = Date.now() + 'print';
-
-                const htmlPreview = construirHTMLTorneo(pData, data.datos, doc.id, rndIdPreview);
-                const htmlPrint = construirHTMLTorneo(pData, data.datos, doc.id, rndIdPrint);
+                const html = construirHTMLTorneo(pData, data.datos, doc.id);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
                 
                 const pEl = document.getElementById('preview-content');
-                const prEl = document.getElementById('printable-area');
-                const mEl = document.getElementById('modal-pdf-preview');
-                
-                if(pEl) pEl.innerHTML = htmlPreview; 
-                if(prEl) prEl.innerHTML = htmlPrint; 
-                if(mEl) mEl.style.display = 'flex'; 
-                else alert("Falta el contenedor del PDF en el HTML.");
+                if(pEl) pEl.innerHTML = html; 
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    window.generarGraficoRadar(`radar-preview-${rndIdPreview}`, data.datos.val);
-                    window.generarGraficoRadar(`radar-preview-${rndIdPrint}`, data.datos.val); // The print ID also uses 'radar-preview' structure inside the function
+                    window.generarGraficoRadar(data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1587,4 +1583,36 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-window.imprimirPDFNativo = function() { window.print(); }
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA DEFINITIVA
+window.imprimirPDFNativo = function() { 
+    window.haptic('light');
+    const pEl = document.getElementById('preview-content');
+    const prEl = document.getElementById('printable-area');
+    
+    // Clonamos el HTML exacto de la vista previa al área de impresión
+    prEl.innerHTML = pEl.innerHTML; 
+    
+    // TRUCO PARA TABLETS: Buscamos el radar Canvas en la preview y lo convertimos a IMG en el print
+    const originalCanvas = pEl.querySelector('#radar-preview');
+    const printCanvas = prEl.querySelector('#radar-preview');
+    
+    if (originalCanvas && printCanvas) {
+        try {
+            const img = document.createElement('img');
+            img.src = originalCanvas.toDataURL('image/png', 1.0);
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain';
+            printCanvas.parentNode.replaceChild(img, printCanvas);
+        } catch (e) {
+            console.error("Error al convertir radar a imagen para imprimir:", e);
+        }
+    }
+    
+    // Imprimimos asegurando que el DOM se haya actualizado
+    setTimeout(() => {
+        window.print();
+        // Limpiamos el área después de imprimir para no consumir RAM
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000);
+    }, 300);
+}
