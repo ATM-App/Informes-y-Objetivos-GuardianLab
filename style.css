@@ -200,7 +200,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF IMPRESIÓN (PORTADA EDITORIAL - BLINDADA PARA TABLET/MÓVIL)
+   ESTILOS PDF IMPRESIÓN (ORIGINAL FUNCIONAL, LIMPIO Y SEGURO)
    ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
@@ -210,69 +210,56 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     @page { size: A4 portrait; margin: 0; }
 }
 
-/* PORTADA EDITORIAL BLINDADA */
-.pdf-cover-premium { 
-    display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
-    position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; 
-    background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; 
-    page-break-after: always !important; box-sizing: border-box; overflow: hidden !important; 
-    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
-}
-.cover-bg-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120%; opacity: 0.03; z-index: 1; }
+/* PORTADA ORIGINAL BLINDADA */
+.pdf-cover { display: block !important; position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+.cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; }
 
-/* FOTO CENTRADA - BLINDADA CONTRA BUGS DE BORDES REDONDEADOS EN IMPRESIÓN */
-.cover-photo-container { 
-    width: 220px; height: 220px; border-radius: 50%; border: 6px solid #CB3524; background: #fff; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 5; margin-bottom: 30px; 
-    overflow: hidden; -webkit-mask-image: -webkit-radial-gradient(white, black); /* Truco Safari */
-}
-.cover-photo-premium { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
 
-.cover-content-premium { position: relative; z-index: 10; width: 100%; padding: 0 40px; text-align: center; }
+/* FOTO CIRCULAR ORIGINAL RESTAURADA Y PROTEGIDA */
+.cover-photo { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #CB3524; object-fit: cover; margin: 0 auto 30px auto; display: block; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; overflow: hidden; }
 
-/* TIPOGRAFÍA EDITORIAL */
-.cover-subtitle { font-family: 'Times New Roman', serif; font-size: 18px; color: #E2C275 !important; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 10px; }
-.cover-name-premium { font-size: 46px; font-weight: 900; text-transform: uppercase; color: #FFFFFF !important; line-height: 1.1; margin-bottom: 25px; text-shadow: 0px 4px 6px rgba(0,0,0,0.8); letter-spacing: 2px; }
-.cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB !important; letter-spacing: 2px; }
-.cover-info-bar span { margin: 0 10px; }
+/* TIPOGRAFÍA ORIGINAL (Letras que no se rompen) */
+.cover-title { font-size: 26px; font-weight: 800; letter-spacing: 3px; margin-bottom: 15px; color: #00E676 !important; text-transform: uppercase; }
+.cover-name { font-size: 42px; font-weight: 800; text-transform: uppercase; margin-bottom: 25px; color: white !important; line-height: 1.1; }
+.cover-details { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #E5E7EB !important; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); border-radius: 10px; width: 90%; margin: 0 auto; display: block; text-align: center; }
+.cover-details span { display: inline-block; margin: 0 10px; }
 
-/* ELEMENTOS EXTRA (QR y LOGO TORNEO) */
+/* EXTRAS SEGUROS (QR y LOGO TORNEO OPCIONAL) */
 .cover-qr { position: absolute; top: 30px; right: 30px; width: 80px; height: 80px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
-.cover-logo-center { width: 120px; height: 120px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); margin: 30px auto 0 auto; display: block; z-index: 3;}
-.cover-logo-bottom { position: absolute; bottom: 30px; right: 30px; width: 60px; height: auto; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.6)); z-index: 3; }
+.cover-logo-torneo { width: 100px; height: 100px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); margin: 30px auto 0 auto; display: block; z-index: 3;}
 .cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
-/* PÁGINAS DEL PDF INTERNAS: AJUSTADAS AL MILÍMETRO PARA EVITAR SALTO DE HOJA */
-.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 20px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid;}
-.pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 8px; }
-.pdf-top-title { font-size: 18px; font-weight: 800; color: #1C2C5B; }
-.pdf-top-subtitle { font-size: 13px; color: #1C2C5B; font-weight: bold; margin-top: 4px; }
-.pdf-section-header { background: #1C2C5B; color: white; padding: 4px 10px; font-size: 10px; font-weight: bold; margin-bottom: 5px; border-radius: 3px; text-transform: uppercase; text-align: center; }
-.pdf-row { display: flex; width: 100%; gap: 12px; margin-bottom: 6px; }
+/* PÁGINAS DEL PDF INTERNAS (ORIGINAL FUNCIONAL) */
+.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid;}
+.pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 10px; }
+.pdf-top-title { font-size: 20px; font-weight: 800; color: #1C2C5B; }
+.pdf-top-subtitle { font-size: 14px; color: #1C2C5B; font-weight: bold; margin-top: 4px; }
+.pdf-section-header { background: #1C2C5B; color: white; padding: 5px 10px; font-size: 11px; font-weight: bold; margin-bottom: 6px; border-radius: 3px; text-transform: uppercase; text-align: center; }
+.pdf-row { display: flex; width: 100%; gap: 15px; margin-bottom: 8px; }
 .pdf-half-col { width: 50%; display: flex; flex-direction: column; }
-.pdf-player-card { border: 2px solid #1C2C5B; display: flex; padding: 8px; align-items: center; background: #f9f9f9; height: 100%; position: relative; }
-.pdf-player-photo { width: 55px; height: 75px; object-fit: cover; border: 1px solid #ccc; margin-right: 12px; }
+.pdf-player-card { border: 2px solid #1C2C5B; display: flex; padding: 10px; align-items: center; background: #f9f9f9; height: 100%; position: relative; }
+.pdf-player-photo { width: 60px; height: 80px; object-fit: cover; border: 1px solid #ccc; margin-right: 15px; }
 .pdf-player-info { flex: 1; display:flex; flex-direction:column; justify-content:center; }
-.pdf-player-name { font-size: 14px; font-weight: 800; color: #CB3524; margin-bottom: 4px; text-transform: uppercase; }
-.pdf-info-row { font-size: 9px; margin-bottom: 3px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; }
-.pdf-mini-field { width: 100%; height: 30px; background: #2c8a46; border: 1px solid #fff; margin-top: 4px; position: relative; overflow: hidden; }
+.pdf-player-name { font-size: 16px; font-weight: 800; color: #CB3524; margin-bottom: 6px; text-transform: uppercase; }
+.pdf-info-row { font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; }
+.pdf-mini-field { width: 100%; height: 35px; background: #2c8a46; border: 1px solid #fff; margin-top: 5px; position: relative; overflow: hidden; }
 .field-line { position: absolute; background: rgba(255,255,255,0.7); }
 .field-center { width: 2px; height: 100%; left: 50%; }
-.field-circle { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.7); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.field-area { width: 18px; height: 60%; border: 2px solid rgba(255,255,255,0.7); border-left: none; top: 20%; left: 0; }
-.field-pos-1 { position: absolute; top: 50%; left: 10%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: #CB3524; border: 1px solid white; border-radius: 50%; color: white; font-weight: bold; font-size: 7px; display: flex; justify-content: center; align-items: center; z-index: 10; }
-.pdf-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
-.pdf-stat-cell { background: #f0f0f0; padding: 4px; text-align: center; border: 1px solid #ddd; }
-.pdf-stat-label { font-size: 6.5px; color: #555; display: block; text-transform: uppercase; margin-bottom: 2px; }
-.pdf-stat-num { font-size: 11px; font-weight: bold; color: #1C2C5B; }
-
-.pdf-rating-box { border: 1px solid #ccc; padding: 5px; border-radius: 4px; margin-bottom: 5px; flex: 1; }
-.pdf-box-title { color: #1C2C5B; font-size: 8.5px; font-weight: bold; border-bottom: 1px solid #CB3524; padding-bottom: 2px; margin-bottom: 3px; text-transform: uppercase; text-align: center; }
-.pdf-rating-row { display: flex; justify-content: space-between; align-items: center; font-size: 8.5px; margin-bottom: 2px; border-bottom: 1px dotted #eee; }
-.pdf-rating-val { font-weight: bold; color: #CB3524; font-size: 9px; }
-.pdf-text-obs { font-size: 8px; line-height: 1.2; background: #fff; padding: 4px; border: 1px dashed #ccc; min-height: 35px; margin-top: 2px; }
-.pdf-academic-box { display: flex; gap: 4px; font-size: 9px; justify-content: space-between; border: 1px solid #ccc; padding: 6px; margin-bottom: 6px; }
-.pdf-aca-item { border-right: 1px solid #eee; padding-right: 4px; flex:1; text-align:center; }
+.field-circle { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.7); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.field-area { width: 20px; height: 60%; border: 2px solid rgba(255,255,255,0.7); border-left: none; top: 20%; left: 0; }
+.field-pos-1 { position: absolute; top: 50%; left: 10%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: #CB3524; border: 1px solid white; border-radius: 50%; color: white; font-weight: bold; font-size: 8px; display: flex; justify-content: center; align-items: center; z-index: 10; }
+.pdf-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.pdf-stat-cell { background: #f0f0f0; padding: 5px; text-align: center; border: 1px solid #ddd; }
+.pdf-stat-label { font-size: 7px; color: #555; display: block; text-transform: uppercase; margin-bottom: 2px; }
+.pdf-stat-num { font-size: 12px; font-weight: bold; color: #1C2C5B; }
+.pdf-rating-box { border: 1px solid #ccc; padding: 6px; border-radius: 4px; margin-bottom: 6px; flex: 1; }
+.pdf-box-title { color: #1C2C5B; font-size: 9px; font-weight: bold; border-bottom: 1px solid #CB3524; padding-bottom: 3px; margin-bottom: 4px; text-transform: uppercase; text-align: center; }
+.pdf-rating-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; margin-bottom: 2px; border-bottom: 1px dotted #eee; }
+.pdf-rating-val { font-weight: bold; color: #CB3524; font-size: 10px; }
+.pdf-text-obs { font-size: 9px; line-height: 1.2; background: #fff; padding: 5px; border: 1px dashed #ccc; min-height: 40px; margin-top: 3px; }
+.pdf-academic-box { display: flex; gap: 5px; font-size: 10px; justify-content: space-between; border: 1px solid #ccc; padding: 8px; margin-bottom: 8px; }
+.pdf-aca-item { border-right: 1px solid #eee; padding-right: 5px; flex:1; text-align:center; }
 
 .val-baja { background-color: var(--val-baja) !important; color: white !important; }
 .val-media { background-color: var(--val-media) !important; color: white !important; }
@@ -282,9 +269,9 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .pdf-obs-box { border: 1px solid #ddd; padding: 10px; margin-top: 20px; background: #f9f9f9; }
 .pdf-obs-header { color: #CB3524; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 
-.pdf-table-torneo { width: 100%; border-collapse: collapse; margin-top: 6px; margin-bottom: 6px; font-size: 8.5px; }
-.pdf-table-torneo th { background: #1C2C5B; color: white; padding: 4px; text-align: left; }
-.pdf-table-torneo td { border-bottom: 1px solid #eee; padding: 4px; color: #333; text-align: left; }
+.pdf-table-torneo { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 8px; font-size: 9px; }
+.pdf-table-torneo th { background: #1C2C5B; color: white; padding: 5px; text-align: left; }
+.pdf-table-torneo td { border-bottom: 1px solid #eee; padding: 5px; color: #333; text-align: left; }
 
 .fase-grupos { background-color: #ffffff; }
 .fase-16 { background-color: rgba(52, 152, 219, 0.08) !important; }
@@ -299,9 +286,9 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .fase-semi td { border-left: 3px solid #f1c40f; }
 .fase-final td { border-left: 3px solid #27ae60; }
 
-.pdf-resumen-box { display: flex; justify-content: space-around; background: #f0f0f0; padding: 6px; margin-top: 6px; border-radius: 5px; }
+.pdf-resumen-box { display: flex; justify-content: space-around; background: #f0f0f0; padding: 8px; margin-top: 8px; border-radius: 5px; }
 .pdf-resumen-item { text-align: center; }
-.pdf-resumen-val { display: block; font-weight: bold; font-size: 12px; color: #CB3524; }
+.pdf-resumen-val { display: block; font-weight: bold; font-size: 13px; color: #CB3524; }
 
-/* Sin fondo ni corchetes en los países */
+/* Banderas limpias sin corchetes y sin fondo azul */
 .badge-pais { font-weight: bold; color: #1C2C5B; margin-left: 4px; display: inline-block; background: transparent !important; }

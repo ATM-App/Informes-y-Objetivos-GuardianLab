@@ -885,8 +885,11 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// CREADOR DE GRÁFICO INTELIGENTE (SIN CANVAS EN EL DOM DE IMPRESIÓN)
-window.generarGraficoRadar = function(rndId, val) {
+// RADAR ORIGINAL SIN CONVERSIÓN A IMAGEN
+window.generarGraficoRadar = function(canvasId, val) {
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -896,15 +899,7 @@ window.generarGraficoRadar = function(rndId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    // Creamos un canvas virtual fuera de pantalla para que no cuelgue la impresión
-    const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 600;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '-9999px';
-    document.body.appendChild(canvas);
-
-    const chart = new Chart(canvas, {
+    new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -914,16 +909,17 @@ window.generarGraficoRadar = function(rndId, val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 3,
+                borderWidth: 2,
             }]
         },
         options: {
             animation: false,
-            responsive: false, 
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 16, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -931,22 +927,6 @@ window.generarGraficoRadar = function(rndId, val) {
             plugins: { legend: { display: false } }
         }
     });
-
-    // Guardamos la imagen y destruimos el canvas fantasma
-    setTimeout(() => {
-        try {
-            const imgB64 = chart.toBase64Image('image/png', 1.0);
-            
-            const imgPreview = document.getElementById(`radar-img-preview-${rndId}`);
-            const imgPrint = document.getElementById(`radar-img-print-${rndId}`);
-            
-            if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
-            if(imgPrint) { imgPrint.src = imgB64; imgPrint.style.display = 'block'; }
-            
-            chart.destroy();
-            canvas.remove();
-        } catch(e) { console.error("Error al generar radar:", e); }
-    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1339,21 +1319,25 @@ window.generarPDFTorneo = function() {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
             const rndId = Date.now();
-            const htmlPreview = construirHTMLTorneo(pData, datos, docId, rndId + '-prev');
-            const htmlPrint = construirHTMLTorneo(pData, datos, docId, rndId + '-print');
+            const html = construirHTMLTorneo(pData, datos, docId, rndId);
+            
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
             
             const pEl = document.getElementById('preview-content');
             const prEl = document.getElementById('printable-area');
             const mEl = document.getElementById('modal-pdf-preview');
             
-            if(pEl) pEl.innerHTML = htmlPreview; 
-            if(prEl) prEl.innerHTML = htmlPrint; 
+            if(pEl) pEl.innerHTML = html; 
+            if(prEl) prEl.innerHTML = html; 
             if(mEl) mEl.style.display = 'flex'; 
             else alert("Falta el contenedor del PDF en el HTML.");
             
-            // Generar el radar para ambas vistas (invisible en DOM, inyectado como IMG)
-            window.generarGraficoRadar(rndId + '-prev', datos.val);
-            window.generarGraficoRadar(rndId + '-print', datos.val);
+            // Generar el radar original directo al canvas
+            setTimeout(() => {
+                window.generarGraficoRadar(`radar-preview-${rndId}`, datos.val);
+                window.generarGraficoRadar(`radar-print-${rndId}`, datos.val);
+            }, 100);
 
             cancelarEdicionTorneo(); 
         });
@@ -1391,7 +1375,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
             else if (j.includes('semi')) resClass = 'fase-semi';
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
-            let paisTxt = m.pais ? ` (${m.pais.toUpperCase()})` : '';
+            let paisTxt = m.pais ? ` <span class="badge-pais">${m.pais.toUpperCase()}</span>` : '';
             let resTxt = '';
             if (m.resultado) resTxt = m.resultado; 
             else if (m.golesAtm !== undefined && m.golesAtm !== "" && golesRivVal !== "") resTxt = `${m.golesAtm} - ${golesRivVal}`;
@@ -1505,7 +1489,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img id="radar-img-target-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <canvas id="radar-target-${rndId}" style="display:block; width:100%; height:100%;"></canvas>
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1565,7 +1549,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
     </div>`;
 
-    return coverHtml + page2Html + page3Html;
+    return coverHtml + page2Html + page3Html.replace(/target/g, 'preview');
 }
 
 window.verPDFTorneoGuardado = function(id) {
@@ -1575,9 +1559,11 @@ window.verPDFTorneoGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
-                const rndId = Date.now();
-                const htmlPreview = construirHTMLTorneo(pData, data.datos, doc.id, rndId + '-prev');
-                const htmlPrint = construirHTMLTorneo(pData, data.datos, doc.id, rndId + '-print');
+                const rndIdPreview = Date.now() + 'prev';
+                const rndIdPrint = Date.now() + 'print';
+
+                const htmlPreview = construirHTMLTorneo(pData, data.datos, doc.id, rndIdPreview);
+                const htmlPrint = construirHTMLTorneo(pData, data.datos, doc.id, rndIdPrint);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
@@ -1591,9 +1577,10 @@ window.verPDFTorneoGuardado = function(id) {
                 if(mEl) mEl.style.display = 'flex'; 
                 else alert("Falta el contenedor del PDF en el HTML.");
 
-                // Disparador del Gráfico Seguro
-                window.generarGraficoRadar(rndId + '-prev', data.datos.val);
-                window.generarGraficoRadar(rndId + '-print', data.datos.val);
+                setTimeout(() => {
+                    window.generarGraficoRadar(`radar-preview-${rndIdPreview}`, data.datos.val);
+                    window.generarGraficoRadar(`radar-preview-${rndIdPrint}`, data.datos.val); // The print ID also uses 'radar-preview' structure inside the function
+                }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }
