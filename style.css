@@ -201,7 +201,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF IMPRESIÓN (PORTADA EDITORIAL PREMIUM BLINDADA)
+   ESTILOS PDF IMPRESIÓN (BLINDADOS)
    ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
@@ -209,21 +209,21 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; }
     html, body { margin: 0; padding: 0; height: 100%; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     @page { size: A4 portrait; margin: 0; }
-    .pdf-slide { page-break-after: always; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
+    .pdf-slide { page-break-after: always; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; position: relative;}
 }
 
-/* PORTADA EDITORIAL PREMIUM - ESTRUCTURA MEJORADA PARA EVITAR FALLOS DE PDF */
-.pdf-cover-premium { position: relative; width: 210mm !important; height: 297mm !important; background: #0A0F1D !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+/* PORTADA EDITORIAL PREMIUM - NUEVO DISEÑO CIRCULAR CENTRADO */
+.pdf-cover-premium { position: relative; width: 210mm !important; height: 297mm !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 .cover-bg-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120%; opacity: 0.03; z-index: 1; }
-.cover-photo-container { position: absolute; top: 0; left: 0; width: 100%; height: 55%; z-index: 2; }
-.cover-photo-premium { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.cover-photo-fade { position: absolute; bottom: -2px; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent 0%, #0A0F1D 100%); }
 
-/* EL CONTENIDO DE TEXTO SE POSICIONA FUERA DEL FLUJO DE LA IMAGEN PARA NO PISARSE */
-.cover-content-premium { position: relative; z-index: 10; margin-top: 140mm; width: 100%; padding: 0 40px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.cover-photo-container { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; border-radius: 50%; border: 6px solid #CB3524; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 5; overflow: hidden;}
+.cover-photo-premium { width: 100%; height: 100%; object-fit: cover; }
+
+/* CONTENIDO DE TEXTO AJUSTADO DEBAJO DE LA FOTO */
+.cover-content-premium { position: relative; z-index: 10; margin-top: 240px; width: 100%; padding: 0 40px; text-align: center; display: flex; flex-direction: column; align-items: center; }
 .cover-subtitle { font-family: 'Times New Roman', serif; font-size: 18px; color: #E2C275; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 10px; }
-.cover-name-premium { font-size: 46px; font-weight: 900; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; margin-bottom: 25px; text-shadow: 0px 4px 6px rgba(0,0,0,0.8), 0px 1px 1px rgba(255,255,255,0.3); letter-spacing: 2px; }
-.cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 2px; margin-bottom: 30px; }
+.cover-name-premium { font-size: 46px; font-weight: 900; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; margin-bottom: 25px; text-shadow: 0px 4px 6px rgba(0,0,0,0.8); letter-spacing: 2px; }
+.cover-info-bar { display: inline-block; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 2px; margin-bottom: 30px; }
 .cover-info-bar span { margin: 0 10px; }
 
 /* NUEVO LOGO CENTRAL Y CÓDIGO QR */
@@ -267,7 +267,6 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .val-alta { background-color: var(--val-alta) !important; color: black !important; }
 .val-excepcional { background-color: var(--val-excepcional) !important; color: white !important; }
 
-.pdf-objectives-container { width: 210mm; min-height: 297mm; padding: 30px; background: white; color: black; font-family: Arial, sans-serif; margin: 0 auto; }
 .pdf-obs-box { border: 1px solid #ddd; padding: 10px; margin-top: 20px; background: #f9f9f9; }
 .pdf-obs-header { color: #CB3524; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 5px; }
 
