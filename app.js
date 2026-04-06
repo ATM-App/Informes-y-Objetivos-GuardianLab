@@ -40,28 +40,6 @@ window.haptic = function(type) {
     } catch(e) {}
 }
 
-// CÁLCULO ADN ATLETI (GLOBAL)
-function calcularADN(d, tipo, reporteObj = null) {
-    let totalScore = 0; let maxScore = 0;
-    const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? null : n; };
-    
-    if (tipo === 'semestral' && d) {
-        const arr4 = [...Object.values(d.cg||{}), ...Object.values(d.cpp||{})];
-        const arr5 = [...Object.values(d.vfj||{}), ...Object.values(d.vac||{})];
-        arr4.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 4; } });
-        arr5.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 5; } });
-    } else if (tipo === 'torneo' && d) {
-        const arr5 = Object.values(d.val||{});
-        arr5.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 5; } });
-    } else if (tipo === 'objetivos' && reporteObj) {
-        const arr5 = reporteObj.acciones || [];
-        arr5.forEach(v => { const n = parseVal(v.puntaje); if(n!==null) { totalScore += n; maxScore += 5; } });
-    }
-    
-    if (maxScore === 0) return 0;
-    return Math.round((totalScore / maxScore) * 100);
-}
-
 // --- CONFIGURACIÓN FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyA4yVCHsCCK7y4G6Sx_vut1FmCyrKOZGcY",
@@ -88,7 +66,6 @@ let informeEnEdicionId = null;
 let objetivoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
-let autoSaveTimeout = null;
 
 let ACCIONES_EVALUACION = {
     "DEFENSIVAS": ["Blocaje Frontales Medio y Raso", "Blocaje lateral raso", "Blocaje lateral media altura", "Desvío raso", "Desvío a Media Altura", "Reducción de espacios y Posición Cruz", "Apertura", "Reincorporaciones", "Blocaje Aéreo", "Despeje de Puños"],
@@ -231,7 +208,6 @@ window.compartirFichaWeb = function(tipo, id) {
     }
 }
 
-// CROMO EA FC
 window.generarCromo = function(porteroId) {
     window.haptic('success');
     if(!porteroId) return alert("Selecciona un portero primero.");
@@ -314,7 +290,6 @@ window.cambiarSeccion = function(sec) {
     }
 }
 
-// --- PORTEROS ---
 window.previsualizarFoto = function() {
     const file = document.getElementById('fotoPorteroInput').files[0];
     if(file){ const r = new FileReader(); r.onload = (e) => document.getElementById('fotoPreview').src = e.target.result; r.readAsDataURL(file); }
@@ -431,7 +406,6 @@ window.cargarDatosEdicion = function(id) { db.collection("porteros").doc(id).get
 window.cancelarEdicion = function() { porteroEnEdicionId = null; document.getElementById('nombrePortero').value = ''; document.getElementById('anioPortero').value = ''; document.getElementById('catPortero').value = ''; document.getElementById('equipoPortero').innerHTML = ''; document.getElementById('nacionalidadPortero').value = ''; document.getElementById('anosClub').value = ''; document.getElementById('fotoPreview').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="; document.getElementById('btn-save').innerText = "Añadir / Actualizar"; document.getElementById('btn-cancel').style.display = "none"; }
 window.borrarPortero = function(id) { if(confirm("¿Borrar?")) { window.haptic('medium'); db.collection("porteros").doc(id).delete(); } }
 
-// --- OBJETIVOS ---
 window.resetearEvaluacionTemporal = function() { 
     evaluacionesTemporales = []; competenciaSeleccionada = null; 
     window.selectCompetencia(null); window.renderizarListaTemporal(); 
@@ -494,7 +468,7 @@ window.guardarReporteObjetivosCompleto = function() {
 function generarPDFObjetivos(reporte, docId) {
     db.collection("porteros").doc(reporte.porteroId).get().then(doc => {
         const p = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' }; 
-        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         let filas = ''; let sum = 0; reporte.acciones.forEach(item => { sum += parseInt(item.puntaje); let bg='#ccc', fg='white', label=''; if(item.competencia===1){bg='#E74C3C';label='INCOMP. INCONSCIENTE';} if(item.competencia===2){bg='#E67E22';label='INCOMP. CONSCIENTE';} if(item.competencia===3){bg='#F1C40F';label='COMP. CONSCIENTE';fg='black';} if(item.competencia===4){bg='#27AE60';label='COMP. INCONSCIENTE';} filas += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${item.accion}</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center;"><span style="background:${bg}; color:${fg}; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${label}</span></td><td style="padding:8px; border-bottom:1px solid #eee; text-align:center; font-weight:bold;">${item.puntaje}</td></tr>`; });
         const media = (sum / reporte.acciones.length).toFixed(1);
         const obsHtml = reporte.observacion ? `<div class="pdf-obs-box"><div class="pdf-obs-header">OBSERVACIÓN FINAL</div><div style="font-size:12px; white-space: pre-wrap;">${reporte.observacion}</div></div>` : '';
@@ -506,21 +480,18 @@ function generarPDFObjetivos(reporte, docId) {
         }
 
         const coverHtml = `
-        <div class="pdf-slide pdf-cover-premium">
-            <img src="ESCUDO ATM.png" class="cover-bg-watermark">
-            <div class="cover-photo-container">
-                <img src="${foto}" class="cover-photo-premium">
-                <div class="cover-photo-fade"></div>
-            </div>
+        <div class="pdf-slide pdf-cover">
+            <img src="ESCUDO ATM.png" class="cover-bg-logo">
             ${qrHtml}
-            <div class="cover-content-premium">
+            <div class="cover-content">
+                <img src="${foto}" class="cover-photo">
                 <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
                 <div class="cover-info-bar">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
-            <img src="ESCUDO ATM.png" class="cover-logo-bottom">
+            <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
         </div>`;
 
         const html = coverHtml + `<div class="pdf-slide"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
@@ -552,10 +523,6 @@ function cargarHistorialObjetivos() {
     }); 
 }
 window.verPDFObjetivosGuardado = function(rep, docId) { generarPDFObjetivos(rep, docId); }
-
-// ==========================================
-// --- INFORMES SEMESTRALES ---
-// ==========================================
 
 window.actualizarProgresoGeneral = function(formId) {
     const form = document.getElementById(formId);
@@ -764,7 +731,7 @@ window.generarPDFInforme = function() {
 
 function construirHTMLInformeVertical(p, d, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
-    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
     const rowStat = (lbl, val) => `<div class="pdf-stat-cell"><span class="pdf-stat-label">${lbl}</span><span class="pdf-stat-num">${val||'-'}</span></div>`;
     
@@ -791,21 +758,18 @@ function construirHTMLInformeVertical(p, d, docId) {
     }
 
     const coverHtml = `
-    <div class="pdf-slide pdf-cover-premium">
-        <img src="ESCUDO ATM.png" class="cover-bg-watermark">
-        <div class="cover-photo-container">
-            <img src="${foto}" class="cover-photo-premium">
-            <div class="cover-photo-fade"></div>
-        </div>
+    <div class="pdf-slide pdf-cover">
+        <img src="ESCUDO ATM.png" class="cover-bg-logo">
         ${qrHtml}
-        <div class="cover-content-premium">
+        <div class="cover-content">
+            <img src="${foto}" class="cover-photo">
             <div class="cover-subtitle">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
             <div class="cover-name-premium">${p.nombre}</div>
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.titulo || '-'}</span>
             </div>
         </div>
-        <img src="ESCUDO ATM.png" class="cover-logo-bottom">
+        <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
     return coverHtml + `
@@ -950,7 +914,7 @@ window.generarGraficoRadar = function(canvasId, val) {
             animation: false,
             responsive: true,
             maintainAspectRatio: false,
-            devicePixelRatio: 2, // Mejora brutal de calidad en PDF
+            devicePixelRatio: 2, 
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
@@ -1052,7 +1016,7 @@ window.guardarBorradorTorneo = function() {
             inicial: document.getElementById('tor-med-inicial').value, incidencias: document.getElementById('tor-med-incidencias').value
         },
         val: {
-            personalidad: document.getElementById('tor-val-personalidad').value, mando: document.getElementById('tor-val-mando').value, concentracion: document.getElementById('tor-val-conc').value, error: document.getElementById('tor-val-error').value, confianza: document.getElementById('tor-val-confianza').value, mentalidad: document.getElementById('tor-val-mentalidad').value, actitudGol: document.getElementById('tor-val-actitud-gol').value, primerUltimo: document.getElementById('tor-val-primer-ultimo').value, ritmo: document.getElementById('tor-val-ritmo').value, mejoraBajon: document.getElementById('tor-val-mejora-bajon').value, entorno: document.getElementById('tor-val-entorno').value, unoVuno: document.getElementById('tor-val-1v1').value, organizacion: document.getElementById('tor-val-organizacion').value, comunicacion: document.getElementById('tor-val-comunicacion').value
+            personalidad: document.getElementById('tor-val-personalidad').value, mando: document.getElementById('tor-val-mando').value, concentracion: document.getElementById('tor-val-conc').value, error: document.getElementById('tor-val-error').value, confianza: document.getElementById('tor-val-confianza').value, mentalidad: document.getElementById('tor-val-mentalidad').value, actitudGol: document.getElementById('tor-val-actitud-gol').value, primerUltimo: document.getElementById('tor-val-primer-ultimo').value, ritmo: document.getElementById('tor-val-ritmo').value, mejoraBajon: document.getElementById('tor-val-mejora-bajon').value, entorno: document.getElementById('tor-val-entorno').value, unoVuno: document.getElementById('tor-val-1v1').value, organizacion: document.getElementById('tor-val-org').value, comunicacion: document.getElementById('tor-val-com').value
         },
         obs: {
             penaltis: document.getElementById('tor-obs-penaltis').value, decisivas: document.getElementById('tor-obs-decisivas').value, pos: document.getElementById('tor-obs-pos').value, neg: document.getElementById('tor-obs-neg').value, trans: document.getElementById('tor-obs-trans').value
@@ -1334,7 +1298,7 @@ window.generarPDFTorneo = function() {
             inicial: document.getElementById('tor-med-inicial').value, incidencias: document.getElementById('tor-med-incidencias').value
         },
         val: {
-            personalidad: document.getElementById('tor-val-personalidad').value, mando: document.getElementById('tor-val-mando').value, concentracion: document.getElementById('tor-val-conc').value, error: document.getElementById('tor-val-error').value, confianza: document.getElementById('tor-val-confianza').value, mentalidad: document.getElementById('tor-val-mentalidad').value, actitudGol: document.getElementById('tor-val-actitud-gol').value, primerUltimo: document.getElementById('tor-val-primer-ultimo').value, ritmo: document.getElementById('tor-val-ritmo').value, mejoraBajon: document.getElementById('tor-val-mejora-bajon').value, entorno: document.getElementById('tor-val-entorno').value, unoVuno: document.getElementById('tor-val-1v1').value, organizacion: document.getElementById('tor-val-organizacion').value, comunicacion: document.getElementById('tor-val-comunicacion').value
+            personalidad: document.getElementById('tor-val-personalidad').value, mando: document.getElementById('tor-val-mando').value, concentracion: document.getElementById('tor-val-conc').value, error: document.getElementById('tor-val-error').value, confianza: document.getElementById('tor-val-confianza').value, mentalidad: document.getElementById('tor-val-mentalidad').value, actitudGol: document.getElementById('tor-val-actitud-gol').value, primerUltimo: document.getElementById('tor-val-primer-ultimo').value, ritmo: document.getElementById('tor-val-ritmo').value, mejoraBajon: document.getElementById('tor-val-mejora-bajon').value, entorno: document.getElementById('tor-val-entorno').value, unoVuno: document.getElementById('tor-val-1v1').value, organizacion: document.getElementById('tor-val-org').value, comunicacion: document.getElementById('tor-val-com').value
         },
         obs: {
             penaltis: document.getElementById('tor-obs-penaltis').value, decisivas: document.getElementById('tor-obs-decisivas').value, pos: document.getElementById('tor-obs-pos').value, neg: document.getElementById('tor-obs-neg').value, trans: document.getElementById('tor-obs-trans').value
@@ -1431,7 +1395,7 @@ function construirHTMLTorneo(p, d, docId) {
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
     const rnd = Date.now();
-    const logoHtml = d.torneoLogo ? `<img src="${d.torneoLogo}" class="cover-logo-center">` : '';
+    const logoHtml = d.torneoLogo ? `<img src="${d.torneoLogo}" class="cover-logo-torneo">` : '';
 
     let qrHtml = "";
     if (docId) {
@@ -1440,13 +1404,11 @@ function construirHTMLTorneo(p, d, docId) {
     }
 
     const coverHtml = `
-    <div class="pdf-slide pdf-cover-premium">
-        <img src="ESCUDO ATM.png" class="cover-bg-watermark">
-        <div class="cover-photo-container">
-            <img src="${foto}" class="cover-photo-premium">
-        </div>
+    <div class="pdf-slide pdf-cover">
+        <img src="ESCUDO ATM.png" class="cover-bg-logo">
         ${qrHtml}
-        <div class="cover-content-premium">
+        <div class="cover-content">
+            <img src="${foto}" class="cover-photo">
             <div class="cover-subtitle">INFORME DE TORNEO</div>
             <div class="cover-name-premium">${p.nombre}</div>
             <div class="cover-info-bar">
@@ -1454,7 +1416,7 @@ function construirHTMLTorneo(p, d, docId) {
             </div>
             ${logoHtml}
         </div>
-        <img src="ESCUDO ATM.png" class="cover-logo-bottom">
+        <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
     const page2Html = `
