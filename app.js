@@ -232,7 +232,7 @@ window.generarCromo = function(porteroId) {
             }
             
             const ovr = Math.round((v_ref + v_blc + v_saq + v_pos + v_lid + v_fis) / 6);
-            const defFoto = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+            const defFoto = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
             
             const cromoHtml = `
             <div class="cromo-container" id="cromo-capture">
@@ -310,7 +310,7 @@ function cargarPorteros() {
         if(lista.length === 0) { c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay datos aún.</div>'; }
         else { c.innerHTML = ''; }
         
-        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         lista.forEach(p => { 
             c.innerHTML += `
             <div class="portero-card" onclick="window.abrirFichaPortero('${p.id}')">
@@ -346,7 +346,7 @@ window.abrirFichaPortero = function(id) {
     window.porteroActualFichaId = id;
     db.collection("porteros").doc(id).get().then(doc => {
         const p = doc.data();
-        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
         document.getElementById('ficha-foto').src = p.foto || def;
         document.getElementById('ficha-nombre').innerText = p.nombre;
         document.getElementById('ficha-equipo').innerText = `${p.equipo} | ${p.categoria}`;
@@ -404,7 +404,7 @@ window.procesarPortero = function() {
     if(file) { const r = new FileReader(); r.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const max = 300; let w = img.width; let h = img.height; if(w>h){ if(w>max){ h*=max/w; w=max; } } else { if(h>max){ w*=max/h; h=max; } } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); guardar(canvas.toDataURL('image/jpeg', 0.5)); }; }; r.readAsDataURL(file); } else { guardar(null); }
 }
 window.cargarDatosEdicion = function(id) { db.collection("porteros").doc(id).get().then(doc => { const p = doc.data(); document.getElementById('nombrePortero').value = p.nombre; document.getElementById('anioPortero').value = p.anio; document.getElementById('catPortero').value = p.categoria; window.actualizarEquipos(); document.getElementById('equipoPortero').value = p.equipo; document.getElementById('fotoPreview').src = p.foto || ""; document.getElementById('nacionalidadPortero').value = p.nacionalidad || ""; document.getElementById('piePortero').value = p.pie || "DIESTRO"; document.getElementById('anosClub').value = p.anosClub || ""; porteroEnEdicionId = id; document.getElementById('btn-save').innerText = "Guardar Cambios"; document.getElementById('btn-cancel').style.display = "inline-block"; window.scrollTo({top:0, behavior:'smooth'}); }); }
-window.cancelarEdicion = function() { porteroEnEdicionId = null; document.getElementById('nombrePortero').value = ''; document.getElementById('anioPortero').value = ''; document.getElementById('catPortero').value = ''; document.getElementById('equipoPortero').innerHTML = ''; document.getElementById('nacionalidadPortero').value = ''; document.getElementById('anosClub').value = ''; document.getElementById('fotoPreview').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="; document.getElementById('btn-save').innerText = "Añadir / Actualizar"; document.getElementById('btn-cancel').style.display = "none"; }
+window.cancelarEdicion = function() { porteroEnEdicionId = null; document.getElementById('nombrePortero').value = ''; document.getElementById('anioPortero').value = ''; document.getElementById('catPortero').value = ''; document.getElementById('equipoPortero').innerHTML = ''; document.getElementById('nacionalidadPortero').value = ''; document.getElementById('anosClub').value = ''; document.getElementById('fotoPreview').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="; document.getElementById('btn-save').innerText = "Añadir / Actualizar"; document.getElementById('btn-cancel').style.display = "none"; }
 window.borrarPortero = function(id) { if(confirm("¿Borrar?")) { window.haptic('medium'); db.collection("porteros").doc(id).delete(); } }
 
 window.resetearEvaluacionTemporal = function() { 
@@ -486,9 +486,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-details">
+                <div class="cover-info-bar">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -844,7 +844,7 @@ window.verPDFInformeGuardado = function(id) {
                 
                 const pEl = document.getElementById('preview-content');
                 if(pEl) pEl.innerHTML = html; 
-                document.getElementById('modal-pdf-preview').style.display = 'flex';
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             }).catch(err => console.error("Error al obtener portero:", err)); 
         } 
     }).catch(err => console.error("Error al obtener informe:", err)); 
@@ -871,16 +871,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// RADAR ORIGINAL NATIVO Y SEGURO
-window.generarGraficoRadar = function(val) {
-    const canvas = document.getElementById('radar-preview');
-    if(!canvas) return;
-    
-    // Destruimos la instancia anterior si existe para evitar superposiciones (bugs)
-    if (window.radarChartInstance) {
-        window.radarChartInstance.destroy();
-    }
-    
+// RADAR ANTI-CUELGUE TABLET
+window.generarGraficoRadar = function(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -890,7 +882,13 @@ window.generarGraficoRadar = function(val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    window.radarChartInstance = new Chart(canvas, {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600; canvas.height = 600;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '-9999px';
+    document.body.appendChild(canvas);
+
+    const chart = new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -900,17 +898,16 @@ window.generarGraficoRadar = function(val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 2,
+                borderWidth: 3,
             }]
         },
         options: {
             animation: false,
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: false, 
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 16, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -918,6 +915,16 @@ window.generarGraficoRadar = function(val) {
             plugins: { legend: { display: false } }
         }
     });
+
+    setTimeout(() => {
+        try {
+            const imgB64 = chart.toBase64Image('image/png', 1.0);
+            const imgPreview = document.getElementById(`radar-img-${rndId}`);
+            if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
+            chart.destroy();
+            canvas.remove();
+        } catch(e) { console.error("Error al generar radar:", e); }
+    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1309,18 +1316,18 @@ window.generarPDFTorneo = function() {
         db.collection("porteros").doc(pid).get().then(doc => {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
-            const html = construirHTMLTorneo(pData, datos, docId);
+            const rndId = Date.now();
+            const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
             
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
-            document.getElementById('modal-pdf-preview').style.display = 'flex';
+            document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
-            // Generar el radar
             setTimeout(() => {
-                window.generarGraficoRadar(datos.val);
+                window.generarGraficoRadar(rndId, datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1328,7 +1335,7 @@ window.generarPDFTorneo = function() {
     });
 }
 
-function construirHTMLTorneo(p, d, docId) {
+function construirHTMLTorneo(p, d, docId, rndId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1420,8 +1427,8 @@ function construirHTMLTorneo(p, d, docId) {
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span style="color:#F1C40F;">🏆 ${d.torneo || '-'} 🏆</span>
             </div>
-            ${logoHtml}
         </div>
+        ${logoHtml}
         <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
@@ -1495,7 +1502,7 @@ function construirHTMLTorneo(p, d, docId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <canvas id="radar-preview" style="display:block; width:100%; height:100%;"></canvas>
+                    <img id="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1565,7 +1572,8 @@ window.verPDFTorneoGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
-                const html = construirHTMLTorneo(pData, data.datos, doc.id);
+                const rndId = Date.now();
+                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
@@ -1575,7 +1583,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    window.generarGraficoRadar(data.datos.val);
+                    window.generarGraficoRadar(rndId, data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1583,36 +1591,16 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA DEFINITIVA
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
     const pEl = document.getElementById('preview-content');
     const prEl = document.getElementById('printable-area');
     
-    // Clonamos el HTML exacto de la vista previa al área de impresión
+    // Clonamos el HTML de la vista previa al área de impresión oculta
     prEl.innerHTML = pEl.innerHTML; 
     
-    // TRUCO PARA TABLETS: Buscamos el radar Canvas en la preview y lo convertimos a IMG en el print
-    const originalCanvas = pEl.querySelector('#radar-preview');
-    const printCanvas = prEl.querySelector('#radar-preview');
-    
-    if (originalCanvas && printCanvas) {
-        try {
-            const img = document.createElement('img');
-            img.src = originalCanvas.toDataURL('image/png', 1.0);
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            printCanvas.parentNode.replaceChild(img, printCanvas);
-        } catch (e) {
-            console.error("Error al convertir radar a imagen para imprimir:", e);
-        }
-    }
-    
-    // Imprimimos asegurando que el DOM se haya actualizado
     setTimeout(() => {
         window.print();
-        // Limpiamos el área después de imprimir para no consumir RAM
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000);
-    }, 300);
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
+    }, 200);
 }
