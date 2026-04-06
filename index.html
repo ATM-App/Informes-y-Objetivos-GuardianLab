@@ -13,6 +13,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -249,8 +250,18 @@
                 </div>
 
                 <select id="tor-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;" onchange="window.actualizarProgresoGeneral('form-informe-torneo')"><option value="">Seleccionar Portero...</option></select>
+                
+                <div class="row align-items-center">
+                    <input type="text" id="tor-nombre" placeholder="Nombre del Torneo (ej: Iscar Cup)" oninput="window.actualizarProgresoGeneral('form-informe-torneo')" style="flex:2">
+                    <div style="flex:1; display:flex; align-items:center; gap:5px; justify-content:center;">
+                        <label for="tor-logo-input" class="btn-small-red" style="margin:0; padding:12px; cursor:pointer; font-size:0.7rem; display:flex; align-items:center; gap:5px;">📁 <span class="hide-mobile">Logo Opcional</span></label>
+                        <input type="file" id="tor-logo-input" accept="image/*" style="display:none;" onchange="window.procesarLogoTorneo(this)">
+                        <input type="hidden" id="tor-logo-b64" value="">
+                        <img id="tor-logo-preview" style="height:38px; width:38px; object-fit:contain; display:none; background:white; border-radius:5px; border:1px solid var(--border-glass);">
+                    </div>
+                </div>
+
                 <div class="row">
-                    <input type="text" id="tor-nombre" placeholder="Nombre del Torneo (ej: Iscar Cup)" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
                     <input type="text" id="tor-ubicacion" placeholder="Ciudad / País" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
                 </div>
                 <div class="row">
@@ -267,7 +278,37 @@
                     </div>
                 <button onclick="window.agregarFilaPartido()" class="btn-main" style="background:rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.3); color: var(--text-main); margin-bottom:20px; box-shadow:none;">➕ Añadir Partido</button>
 
-                <h3 class="section-divider" style="color:var(--atm-red)">3. Análisis del Portero (1-5)</h3>
+                <h3 class="section-divider" style="color:var(--atm-red)">3. Contexto del Torneo y Estado Físico</h3>
+                
+                <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Evaluación del Evento (1-5)</h4>
+                <div class="row">
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec);">Nivel de Rivales</label>
+                        <select id="tor-ctx-nivel" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                    </div>
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec);">Logística y Hotel</label>
+                        <select id="tor-ctx-logistica" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec);">Tiempos de Recuperación</label>
+                        <select id="tor-ctx-carga" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                    </div>
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec);">Campos y Arbitrajes</label>
+                        <select id="tor-ctx-instalaciones" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                    </div>
+                </div>
+
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Contexto Médico del Portero</h4>
+                <div class="row">
+                    <input type="text" id="tor-med-inicial" placeholder="Estado Físico Inicial (ej: Al 100%, Sobrecarga...)" style="flex:1" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
+                    <input type="text" id="tor-med-incidencias" placeholder="Incidencias durante torneo (ej: Golpe, lesión...)" style="flex:1" oninput="window.actualizarProgresoGeneral('form-informe-torneo')">
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">4. Análisis del Portero (1-5)</h3>
                 
                 <h4 style="font-size:0.8rem; margin-top:10px; color:var(--text-main);">Psicología y Liderazgo</h4>
                 <div class="grid-ratings">
@@ -280,7 +321,7 @@
                     <div class="rating-item"><label>Actitud tras Gol Encajado</label><select id="tor-val-actitud-gol" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
                 </div>
 
-                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Evolución y Entorno</h4>
+                <h4 style="font-size:0.8rem; margin-top:15px; color:var(--text-main);">Evolución y Adaptación</h4>
                 <div class="grid-ratings">
                     <div class="rating-item"><label>Primer partido vs Último</label><select id="tor-val-primer-ultimo" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
                     <div class="rating-item"><label>Adaptación Ritmo Competitivo</label><select id="tor-val-ritmo" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
@@ -295,14 +336,14 @@
                     <div class="rating-item"><label>Comunicación</label><select id="tor-val-com" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
                 </div>
 
-                <h3 class="section-divider" style="color:var(--atm-red)">4. Observaciones Finales</h3>
+                <h3 class="section-divider" style="color:var(--atm-red)">5. Observaciones Finales</h3>
                 <textarea id="tor-obs-penaltis" class="pdf-input-read" placeholder="Rendimiento en Penaltis (Si los hubo)..." style="height:60px; margin-bottom:10px;" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></textarea>
                 <textarea id="tor-obs-decisivas" class="pdf-input-read" placeholder="Acciones decisivas del torneo..." style="height:60px; margin-bottom:10px;" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></textarea>
                 <textarea id="tor-obs-pos" class="pdf-input-read" placeholder="Puntos Positivos Globales..." style="height:60px; margin-bottom:10px;" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></textarea>
                 <textarea id="tor-obs-neg" class="pdf-input-read" placeholder="Áreas de Mejora / Errores Clave..." style="height:60px; margin-bottom:10px;" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></textarea>
                 <textarea id="tor-obs-trans" class="pdf-input-read" placeholder="Trascendencia en el Torneo..." style="height:60px;" oninput="window.actualizarProgresoGeneral('form-informe-torneo')"></textarea>
 
-                <h3 class="section-divider" style="color:var(--atm-red)">5. Valoración General del Torneo</h3>
+                <h3 class="section-divider" style="color:var(--atm-red)">6. Valoración General del Torneo</h3>
                 <select id="tor-val-general" onchange="window.actualizarProgresoGeneral('form-informe-torneo')">
                     <option value="BAJA">BAJA</option>
                     <option value="MEDIA">MEDIA</option>
@@ -321,6 +362,15 @@
             </div>
         </section>
     </main>
+
+    <div id="web-view-container" style="display:none; min-height:100vh; background:var(--bg-body); position:absolute; top:0; left:0; width:100%; z-index:9999; padding-bottom:50px;"></div>
+
+    <div id="modal-cromo" class="modal" style="background: rgba(10,15,29,0.95); z-index: 4000; backdrop-filter: blur(10px);">
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+            <div id="cromo-render-area"></div>
+            <button onclick="window.haptic('light'); window.cerrarModal('modal-cromo')" class="btn-main" style="width:260px; margin-top:30px; background:#fff; color:#000;">Cerrar Cromo</button>
+        </div>
+    </div>
 
     <div id="modal-pdf-preview" class="modal" style="background: rgba(10,15,29,0.98); z-index: 3000; backdrop-filter: blur(10px);">
         <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;">
@@ -366,6 +416,8 @@
                     <div class="row" style="margin-bottom:15px;">
                         <div style="flex:1"><label style="font-size:0.7rem; color:var(--text-sec);">Años en el Club:</label><div id="f-anos" style="font-weight:bold; font-size:1.1rem;">-</div></div>
                     </div>
+                    
+                    <button class="btn-main" onclick="window.generarCromo(window.porteroActualFichaId)" style="background: linear-gradient(135deg, #F1C40F, #E67E22); color:#000; margin-top:10px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4);">🃏 GENERAR CROMO ORO</button>
                     <button class="btn-main" onclick="window.cerrarModal('modal-ficha-portero'); window.cambiarSeccion('porteros'); window.cargarDatosEdicion(window.porteroActualFichaId);" style="margin-top:10px;">✏️ Editar Perfil</button>
                 </div>
             </div>
