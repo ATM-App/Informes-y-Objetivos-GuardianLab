@@ -66,13 +66,11 @@ h2 { font-size: 1.25rem; font-weight: 700; }
 .card-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 3px; }
 .card-subtitle { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; }
 
-/* FEEDBACK COLORES INPUTS */
 select.rating-select { text-align-last: center; font-weight: 800; font-size: 1.1rem; }
 select.rating-red { background-color: rgba(231, 76, 60, 0.15) !important; border-color: rgba(231, 76, 60, 0.5) !important; color: #E74C3C !important; }
 select.rating-yellow { background-color: rgba(241, 196, 15, 0.15) !important; border-color: rgba(241, 196, 15, 0.5) !important; color: #F1C40F !important; }
 select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; border-color: rgba(39, 174, 96, 0.5) !important; color: #27AE60 !important; }
 
-/* BARRA DE PROGRESO FLOTANTE */
 .floating-progress { position: fixed; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(16, 24, 43, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--neon-green); border-radius: 30px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; z-index: 1500; box-shadow: 0 10px 25px rgba(0,230,118,0.2); opacity: 0; visibility: hidden; transition: all 0.3s; }
 .floating-progress.visible { opacity: 1; visibility: visible; }
 .fp-text { font-size: 0.6rem; font-weight: 800; color: var(--neon-green); margin-bottom: 10px; writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: 2px;}
@@ -80,11 +78,9 @@ select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; bord
 .fp-bar-fill { width: 100%; background: var(--neon-green); border-radius: 3px; transition: height 0.4s ease; box-shadow: 0 0 10px var(--neon-green);}
 .fp-pct { font-size: 0.75rem; font-weight: 800; color: white; margin-top: 10px; }
 
-/* BORRADORES (DRAFT BADGE) */
 .draft-badge { background: #F1C40F; color: #000; padding: 3px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; vertical-align: middle;}
 .card-draft { border: 1px dashed #F1C40F !important; opacity: 0.9;}
 
-/* SKELETON LOADERS */
 .skeleton-card { background: rgba(255,255,255,0.02); border-radius: var(--radius-m); padding: 15px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid var(--border-glass); }
 .skeleton-avatar { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); margin-right: 15px; animation: shimmer 1.5s infinite linear; }
 .skeleton-text { flex: 1; }
@@ -92,7 +88,6 @@ select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; bord
 .skeleton-line.short { width: 60%; }
 @keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-/* FICHA DEL JUGADOR (MODAL PESTAÑAS) */
 .ficha-header { display: flex; flex-direction: column; align-items: center; padding: 40px 20px 20px; background: linear-gradient(180deg, var(--atm-blue) 0%, transparent 100%); position: relative; }
 .ficha-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; display:flex; justify-content:center; align-items:center; transition:0.2s;}
 .ficha-close:active { transform: scale(0.9); background: var(--atm-red); }
@@ -106,6 +101,19 @@ select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; bord
 .ficha-content-tab { display: none; padding: 0 20px; animation: fadeIn 0.4s ease;}
 .ficha-content-tab.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.cromo-container { width: 280px; height: 420px; background: linear-gradient(135deg, #C59348 0%, #E2C275 30%, #F5E39C 50%, #E2C275 70%, #C59348 100%); border-radius: 15px; padding: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.5); position: relative; color: #1a1a1a; font-family: 'Montserrat', sans-serif; border: 2px solid #fff; overflow: hidden; }
+.cromo-bg-pattern { position:absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255,255,255,0.3) 2px, transparent 2px); background-size: 15px 15px; opacity:0.5; border-radius:15px; z-index:1; }
+.cromo-content { position: relative; z-index: 2; height:100%; display:flex; flex-direction:column; }
+.cromo-top { display: flex; justify-content: flex-start; align-items: flex-start; }
+.cromo-rating { font-size: 2.8rem; font-weight: 900; line-height: 1; text-shadow: 1px 1px 0 #fff; }
+.cromo-pos { font-size: 1rem; font-weight: 800; border-bottom: 2px solid #1a1a1a; margin-bottom: 5px; padding-bottom: 2px; }
+.cromo-club { width: 35px; height: 35px; object-fit: contain; margin-top: 5px; filter: drop-shadow(1px 1px 0 #fff); }
+.cromo-photo { width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 4px solid #1a1a1a; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); box-shadow: 0 5px 15px rgba(0,0,0,0.4); background:#fff; z-index: 3;}
+.cromo-name { text-align: center; font-size: 1.4rem; font-weight: 900; margin-top: auto; text-transform: uppercase; border-bottom: 2px solid rgba(0,0,0,0.3); padding-bottom: 5px; letter-spacing: 1px; }
+.cromo-stats { display: grid; grid-template-columns: 1fr 1fr; row-gap: 8px; column-gap: 20px; margin-top: 15px; }
+.cromo-stat-item { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.05rem; }
+.cromo-stat-val { font-size: 1.15rem; font-weight: 900; width: 30px;}
 
 .row { display: flex; gap: 12px; }
 .full-width { width: 100%; }
@@ -131,7 +139,6 @@ input[type="file"] { display: none; }
 
 .section-divider { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass); color: var(--text-sec); font-weight: 700; }
 
-/* NAVEGACIÓN iOS */
 .floating-nav-container { position: fixed; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
 .floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; width: 95%; max-width: 480px; height: 65px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
@@ -186,7 +193,13 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF IMPRESIÓN (ORIGINAL BLINDADO Y EXACTO)
+   ESTILOS PDF: FORMATO A4 PARA LA VISTA PREVIA (NO GIGANTE)
+   ======================================================== */
+.pdf-cover { display: block; position: relative; width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%); color: white; page-break-after: always; box-sizing: border-box; overflow: hidden; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+/* ========================================================
+   ESTILOS PDF: FORMATO 100% PARA IMPRIMIR SIN BORDES
    ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
@@ -194,12 +207,21 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
     html, body { width: 100%; height: 100%; margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     @page { size: A4 portrait; margin: 0; }
+    
+    /* FUERZA EL 100% AL IMPRIMIR PARA QUE NO HAYA BORDES BLANCOS */
+    .pdf-cover, .pdf-slide { 
+        width: 100% !important; 
+        height: 100vh !important; 
+        min-height: 100vh !important; 
+        max-height: 100vh !important; 
+        margin: 0 !important; 
+        box-shadow: none !important;
+        border: none !important;
+    }
 }
 
-/* PORTADA ORIGINAL BLINDADA */
-.pdf-cover { display: block !important; position: relative; width: 100% !important; height: 100vh !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 0; margin: 0; }
+/* CONTENIDO DE LA PORTADA ORIGINAL BLINDADA */
 .cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; pointer-events: none; }
-
 .cover-content { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
 
 /* CROMO EA FC PARA LA PORTADA (DISEÑO ORIGINAL PERFECTO) */
@@ -228,8 +250,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .cover-logo-torneo { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 3;}
 .cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
-/* PÁGINAS DEL PDF INTERNAS (AL 100% PARA NO CREAR BORDES BLANCOS) */
-.pdf-slide { width: 100%; height: 100vh; max-height: 100vh; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid; margin: 0;}
+/* PÁGINAS DEL PDF INTERNAS */
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 8px; }
 .pdf-top-title { font-size: 18px; font-weight: 800; color: #1C2C5B; }
 .pdf-top-subtitle { font-size: 13px; color: #1C2C5B; font-weight: bold; margin-top: 4px; }

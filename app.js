@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -118,6 +119,57 @@ window.renderWebView = function(tipo, id) {
         db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
             const p = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             const d = data.datos;
+            
+            let statsHtml = '';
+            let partidosHtml = '';
+            
+            if (tipo === 'torneo' && d.partidos && d.partidos.length > 0) {
+                let tMin = 0, tGol = 0;
+                let filasPartidos = '';
+                
+                d.partidos.forEach(m => {
+                    tMin += parseInt(m.minutos || 0); 
+                    const golesRivVal = m.golesRival !== undefined ? m.golesRival : (m.goles || '');
+                    const gcReal = m.golesEncajados !== undefined ? m.golesEncajados : (golesRivVal || 0);
+                    tGol += parseInt(gcReal || 0);
+                    
+                    let resTxt = '';
+                    if (m.resultado) resTxt = m.resultado; 
+                    else if (m.golesAtm !== undefined && m.golesAtm !== "" && golesRivVal !== "") resTxt = `${m.golesAtm} - ${golesRivVal}`;
+                    else resTxt = '-';
+                    
+                    if (m.penAtm !== undefined && m.penAtm !== "" && m.penRival !== undefined && m.penRival !== "") {
+                        resTxt += ` (P: ${m.penAtm}-${m.penRival})`;
+                    }
+                    
+                    filasPartidos += `
+                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85rem; align-items:center;">
+                        <div style="flex:1; text-align:left; color:#aaa; font-size:0.7rem;">${m.jornada || m.fase || ''}</div>
+                        <div style="flex:1.5; text-align:left; font-weight:bold; color:white;">${m.rival || '-'}${m.pais ? ` <span style="color:#aaa; font-size:0.6rem;">(${m.pais})</span>` : ''}</div>
+                        <div style="flex:1; text-align:center; color:#00E676; font-weight:800;">${resTxt}</div>
+                        <div style="flex:0.8; text-align:right; color:#E74C3C; font-weight:bold;">${gcReal} GC</div>
+                    </div>`;
+                });
+                
+                const mediaGoles = d.partidos.length > 0 ? (tGol / d.partidos.length).toFixed(1) : 0;
+                
+                statsHtml = `
+                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
+                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:15px; text-transform:uppercase;">Resumen Estadístico</h3>
+                    <div style="display:flex; justify-content:space-around;">
+                        <div><div style="font-size:1.6rem; font-weight:800; color:white;">${d.partidos.length}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">PJ</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:white;">${tMin}'</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">MIN</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:#E74C3C;">${tGol}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">G.C.</div></div>
+                        <div><div style="font-size:1.6rem; font-weight:800; color:#F1C40F;">${mediaGoles}</div><div style="font-size:0.7rem; color:#aaa; font-weight:700;">MEDIA</div></div>
+                    </div>
+                </div>`;
+                
+                partidosHtml = `
+                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
+                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:10px; text-transform:uppercase;">Detalle de Partidos</h3>
+                    ${filasPartidos}
+                </div>`;
+            }
             
             let html = `
             <div style="background:var(--bg-body); min-height:100vh; color:var(--text-main); font-family:'Montserrat', sans-serif; padding-bottom:50px;">
@@ -136,13 +188,15 @@ window.renderWebView = function(tipo, id) {
                 </div>
                 
                 <div style="padding:20px; max-width:600px; margin:0 auto;">
+                    ${statsHtml}
+                    ${partidosHtml}
                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
-                        <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:15px;">Perfil de Rendimiento</h3>
+                        <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:15px; text-transform:uppercase;">Perfil de Rendimiento</h3>
                         <div style="position:relative; height:250px; width:100%;"><canvas id="web-radar-chart"></canvas></div>
                     </div>
                     
                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
-                        <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:10px;">Valoración General</h3>
+                        <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:10px; text-transform:uppercase;">Valoración General</h3>
                         <div style="font-size:1.5rem; font-weight:800; color:${(d.val_gen || d.perfil?.val_gen)==='EXCEPCIONAL'?'#27AE60':((d.val_gen || d.perfil?.val_gen)==='ALTA'?'#F1C40F':'#E74C3C')}">${d.val_gen || d.perfil?.val_gen || 'NO EVALUADO'}</div>
                     </div>
                 </div>
@@ -486,9 +540,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-info-bar">
+                <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -871,8 +925,15 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// RADAR ANTI-CUELGUE TABLET
-window.generarGraficoRadar = function(rndId, val) {
+// RADAR ORIGINAL NATIVO Y SEGURO (SIN DOBLE RENDER)
+window.generarGraficoRadar = function(val) {
+    const canvas = document.getElementById('radar-preview');
+    if(!canvas) return;
+    
+    if (window.radarChartInstance) {
+        window.radarChartInstance.destroy();
+    }
+    
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -882,13 +943,7 @@ window.generarGraficoRadar = function(rndId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 600; canvas.height = 600;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '-9999px';
-    document.body.appendChild(canvas);
-
-    const chart = new Chart(canvas, {
+    window.radarChartInstance = new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -898,16 +953,17 @@ window.generarGraficoRadar = function(rndId, val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 3,
+                borderWidth: 2,
             }]
         },
         options: {
             animation: false,
-            responsive: false, 
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 16, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -915,16 +971,6 @@ window.generarGraficoRadar = function(rndId, val) {
             plugins: { legend: { display: false } }
         }
     });
-
-    setTimeout(() => {
-        try {
-            const imgB64 = chart.toBase64Image('image/png', 1.0);
-            const imgPreview = document.getElementById(`radar-img-${rndId}`);
-            if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
-            chart.destroy();
-            canvas.remove();
-        } catch(e) { console.error("Error al generar radar:", e); }
-    }, 150);
 }
 
 function cargarHistorialTorneos() {
@@ -1316,8 +1362,7 @@ window.generarPDFTorneo = function() {
         db.collection("porteros").doc(pid).get().then(doc => {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
-            const rndId = Date.now();
-            const html = construirHTMLTorneo(pData, datos, docId, rndId);
+            const html = construirHTMLTorneo(pData, datos, docId);
             
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
@@ -1327,7 +1372,7 @@ window.generarPDFTorneo = function() {
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
             setTimeout(() => {
-                window.generarGraficoRadar(rndId, datos.val);
+                window.generarGraficoRadar(datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1335,7 +1380,7 @@ window.generarPDFTorneo = function() {
     });
 }
 
-function construirHTMLTorneo(p, d, docId, rndId) {
+function construirHTMLTorneo(p, d, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     const rowRat = (label, val) => `<div class="pdf-rating-row"><span>${label}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1427,8 +1472,8 @@ function construirHTMLTorneo(p, d, docId, rndId) {
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span style="color:#F1C40F;">🏆 ${d.torneo || '-'} 🏆</span>
             </div>
+            ${logoHtml}
         </div>
-        ${logoHtml}
         <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
@@ -1502,7 +1547,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img id="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <canvas id="radar-preview" style="display:block; width:100%; height:100%;"></canvas>
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1572,8 +1617,7 @@ window.verPDFTorneoGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
-                const rndId = Date.now();
-                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
+                const html = construirHTMLTorneo(pData, data.datos, doc.id);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
@@ -1583,7 +1627,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    window.generarGraficoRadar(rndId, data.datos.val);
+                    window.generarGraficoRadar(data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1591,6 +1635,7 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA DEFINITIVA
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
     const pEl = document.getElementById('preview-content');
@@ -1599,8 +1644,27 @@ window.imprimirPDFNativo = function() {
     // Clonamos el HTML de la vista previa al área de impresión oculta
     prEl.innerHTML = pEl.innerHTML; 
     
+    // TRUCO PARA TABLETS: Buscamos el radar Canvas en la preview y lo convertimos a IMG en el print
+    const originalCanvas = pEl.querySelector('#radar-preview');
+    const printCanvas = prEl.querySelector('#radar-preview');
+    
+    if (originalCanvas && printCanvas) {
+        try {
+            const img = document.createElement('img');
+            img.src = originalCanvas.toDataURL('image/png', 1.0);
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain';
+            printCanvas.parentNode.replaceChild(img, printCanvas);
+        } catch (e) {
+            console.error("Error al convertir radar a imagen para imprimir:", e);
+        }
+    }
+    
+    // Imprimimos asegurando que el DOM se haya actualizado
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
-    }, 200);
+        // Limpiamos el área después de imprimir para no consumir RAM
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000);
+    }, 300);
 }
