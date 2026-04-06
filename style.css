@@ -66,11 +66,13 @@ h2 { font-size: 1.25rem; font-weight: 700; }
 .card-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 3px; }
 .card-subtitle { font-size: 0.8rem; color: var(--text-sec); font-weight: 500; }
 
+/* FEEDBACK COLORES INPUTS */
 select.rating-select { text-align-last: center; font-weight: 800; font-size: 1.1rem; }
 select.rating-red { background-color: rgba(231, 76, 60, 0.15) !important; border-color: rgba(231, 76, 60, 0.5) !important; color: #E74C3C !important; }
 select.rating-yellow { background-color: rgba(241, 196, 15, 0.15) !important; border-color: rgba(241, 196, 15, 0.5) !important; color: #F1C40F !important; }
 select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; border-color: rgba(39, 174, 96, 0.5) !important; color: #27AE60 !important; }
 
+/* BARRA DE PROGRESO FLOTANTE */
 .floating-progress { position: fixed; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(16, 24, 43, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--neon-green); border-radius: 30px; padding: 20px 10px; display: flex; flex-direction: column; align-items: center; z-index: 1500; box-shadow: 0 10px 25px rgba(0,230,118,0.2); opacity: 0; visibility: hidden; transition: all 0.3s; }
 .floating-progress.visible { opacity: 1; visibility: visible; }
 .fp-text { font-size: 0.6rem; font-weight: 800; color: var(--neon-green); margin-bottom: 10px; writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: 2px;}
@@ -78,9 +80,11 @@ select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; bord
 .fp-bar-fill { width: 100%; background: var(--neon-green); border-radius: 3px; transition: height 0.4s ease; box-shadow: 0 0 10px var(--neon-green);}
 .fp-pct { font-size: 0.75rem; font-weight: 800; color: white; margin-top: 10px; }
 
+/* BORRADORES (DRAFT BADGE) */
 .draft-badge { background: #F1C40F; color: #000; padding: 3px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; margin-left: 8px; display: inline-block; vertical-align: middle;}
 .card-draft { border: 1px dashed #F1C40F !important; opacity: 0.9;}
 
+/* SKELETON LOADERS */
 .skeleton-card { background: rgba(255,255,255,0.02); border-radius: var(--radius-m); padding: 15px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid var(--border-glass); }
 .skeleton-avatar { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.1); margin-right: 15px; animation: shimmer 1.5s infinite linear; }
 .skeleton-text { flex: 1; }
@@ -88,6 +92,7 @@ select.rating-green { background-color: rgba(39, 174, 96, 0.15) !important; bord
 .skeleton-line.short { width: 60%; }
 @keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
+/* FICHA DEL JUGADOR (MODAL PESTAÑAS) */
 .ficha-header { display: flex; flex-direction: column; align-items: center; padding: 40px 20px 20px; background: linear-gradient(180deg, var(--atm-blue) 0%, transparent 100%); position: relative; }
 .ficha-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; display:flex; justify-content:center; align-items:center; transition:0.2s;}
 .ficha-close:active { transform: scale(0.9); background: var(--atm-red); }
@@ -140,6 +145,7 @@ input[type="file"] { display: none; }
 
 .section-divider { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass); color: var(--text-sec); font-weight: 700; }
 
+/* NAVEGACIÓN iOS */
 .floating-nav-container { position: fixed; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
 .floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; width: 95%; max-width: 480px; height: 65px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
@@ -195,7 +201,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF IMPRESIÓN (PORTADA EDITORIAL PREMIUM)
+   ESTILOS PDF IMPRESIÓN (PORTADA EDITORIAL PREMIUM BLINDADA)
    ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
@@ -206,20 +212,24 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     .pdf-slide { page-break-after: always; page-break-inside: avoid; height: 100%; max-height: 297mm; overflow: hidden; }
 }
 
-/* PORTADA EDITORIAL PREMIUM (EL "DOSSIER") */
-.pdf-cover-premium { position: relative; width: 210mm !important; height: 297mm !important; background: linear-gradient(180deg, #0A0F1D 0%, #1C2C5B 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+/* PORTADA EDITORIAL PREMIUM - ESTRUCTURA MEJORADA PARA EVITAR FALLOS DE PDF */
+.pdf-cover-premium { position: relative; width: 210mm !important; height: 297mm !important; background: #0A0F1D !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 .cover-bg-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120%; opacity: 0.03; z-index: 1; }
 .cover-photo-container { position: absolute; top: 0; left: 0; width: 100%; height: 55%; z-index: 2; }
 .cover-photo-premium { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.cover-photo-fade { position: absolute; bottom: -1px; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent 0%, #0A0F1D 100%); }
-.cover-content-premium { position: absolute; top: 52%; left: 0; width: 100%; padding: 0 40px; text-align: center; z-index: 3; display: flex; flex-direction: column; align-items: center; }
+.cover-photo-fade { position: absolute; bottom: -2px; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, transparent 0%, #0A0F1D 100%); }
+
+/* EL CONTENIDO DE TEXTO SE POSICIONA FUERA DEL FLUJO DE LA IMAGEN PARA NO PISARSE */
+.cover-content-premium { position: relative; z-index: 10; margin-top: 140mm; width: 100%; padding: 0 40px; text-align: center; display: flex; flex-direction: column; align-items: center; }
 .cover-subtitle { font-family: 'Times New Roman', serif; font-size: 18px; color: #E2C275; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 10px; }
 .cover-name-premium { font-size: 46px; font-weight: 900; text-transform: uppercase; color: #FFFFFF; line-height: 1.1; margin-bottom: 25px; text-shadow: 0px 4px 6px rgba(0,0,0,0.8), 0px 1px 1px rgba(255,255,255,0.3); letter-spacing: 2px; }
-.cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 2px; margin-bottom: 40px; }
+.cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB; letter-spacing: 2px; margin-bottom: 30px; }
 .cover-info-bar span { margin: 0 10px; }
-.cover-adn-container { display: flex; justify-content: center; align-items: center; margin-top: 10px; }
+
+/* NUEVO LOGO CENTRAL Y CÓDIGO QR */
+.cover-logo-center { width: 120px; height: 120px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 3; margin-top: 10px; }
 .cover-logo-bottom { position: absolute; bottom: 30px; right: 30px; width: 60px; height: auto; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.6)); z-index: 3; }
-.cover-qr { width: 90px; height: 90px; background: white; padding: 5px; border-radius: 8px; }
+.cover-qr { position: absolute; top: 30px; right: 30px; width: 80px; height: 80px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
 
 /* PAGINAS DEL PDF INTERNAS */
 .pdf-slide { width: 210mm; height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; }

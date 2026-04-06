@@ -40,28 +40,6 @@ window.haptic = function(type) {
     } catch(e) {}
 }
 
-// CÁLCULO ADN ATLETI (GLOBAL)
-function calcularADN(d, tipo, reporteObj = null) {
-    let totalScore = 0; let maxScore = 0;
-    const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? null : n; };
-    
-    if (tipo === 'semestral' && d) {
-        const arr4 = [...Object.values(d.cg||{}), ...Object.values(d.cpp||{})];
-        const arr5 = [...Object.values(d.vfj||{}), ...Object.values(d.vac||{})];
-        arr4.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 4; } });
-        arr5.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 5; } });
-    } else if (tipo === 'torneo' && d) {
-        const arr5 = Object.values(d.val||{});
-        arr5.forEach(v => { const n = parseVal(v); if(n!==null) { totalScore += n; maxScore += 5; } });
-    } else if (tipo === 'objetivos' && reporteObj) {
-        const arr5 = reporteObj.acciones || [];
-        arr5.forEach(v => { const n = parseVal(v.puntaje); if(n!==null) { totalScore += n; maxScore += 5; } });
-    }
-    
-    if (maxScore === 0) return 0;
-    return Math.round((totalScore / maxScore) * 100);
-}
-
 // --- CONFIGURACIÓN FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyA4yVCHsCCK7y4G6Sx_vut1FmCyrKOZGcY",
@@ -356,6 +334,65 @@ function cargarPorteros() {
     });
 }
 
+window.porteroActualFichaId = null;
+window.cambiarTabFicha = function(tab) {
+    window.haptic('light');
+    document.querySelectorAll('.ficha-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ficha-content-tab').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('ficha-content-' + tab).classList.add('active');
+}
+
+window.abrirFichaPortero = function(id) {
+    window.haptic('medium');
+    window.porteroActualFichaId = id;
+    db.collection("porteros").doc(id).get().then(doc => {
+        const p = doc.data();
+        const def = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+        document.getElementById('ficha-foto').src = p.foto || def;
+        document.getElementById('ficha-nombre').innerText = p.nombre;
+        document.getElementById('ficha-equipo').innerText = `${p.equipo} | ${p.categoria}`;
+        
+        document.getElementById('f-anio').innerText = p.anio || '-';
+        document.getElementById('f-cat').innerText = p.categoria || '-';
+        document.getElementById('f-nac').innerText = p.nacionalidad || '-';
+        document.getElementById('f-pie').innerText = p.pie || '-';
+        document.getElementById('f-anos').innerText = p.anosClub || '-';
+
+        db.collection("reportes_objetivos").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-obj'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin objetivos.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.fecha}</strong><br><span style="font-size:0.8rem;color:#aaa">${rep.acciones.length} Acciones</span></div><button class="btn-icon-action" onclick='verPDFObjetivosGuardado(${JSON.stringify(rep).replace(/'/g, "&#39;")})'>📄</button></div>`;
+            });
+        });
+
+        db.collection("informes_semestrales").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-inf'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin informes.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                let draftBadge = rep.isDraft ? '<span class="draft-badge">⏳ BORRADOR</span>' : '';
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.datos.titulo}</strong> ${draftBadge}<br><span style="font-size:0.8rem;color:#aaa">${rep.fecha.substring(0,10)}</span></div><button class="btn-icon-action" onclick="verPDFInformeGuardado('${d.id}')">📄</button></div>`;
+            });
+        });
+
+        db.collection("informes_torneo").where("porteroId", "==", id).get().then(snap => {
+            const c = document.getElementById('f-lista-tor'); c.innerHTML = '';
+            if(snap.empty) c.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Sin torneos.</div>';
+            snap.forEach(d => {
+                const rep = d.data();
+                let draftBadge = rep.isDraft ? '<span class="draft-badge">⏳ BORRADOR</span>' : '';
+                c.innerHTML += `<div class="eval-card"><div><strong>${rep.datos.torneo}</strong> ${draftBadge}<br><span style="font-size:0.8rem;color:#aaa">${rep.fecha.substring(0,10)}</span></div><button class="btn-icon-action" onclick="verPDFTorneoGuardado('${d.id}')">📄</button></div>`;
+            });
+        });
+
+        document.getElementById('modal-ficha-portero').style.display = 'block';
+        document.querySelectorAll('.ficha-tab-btn')[0].click(); 
+    });
+}
+
 window.procesarPortero = function() {
     const n = document.getElementById('nombrePortero').value; const a = document.getElementById('anioPortero').value; const c = document.getElementById('catPortero').value; const eq = document.getElementById('equipoPortero').value; const nac = document.getElementById('nacionalidadPortero').value; const pie = document.getElementById('piePortero').value; const anos = document.getElementById('anosClub').value; const file = document.getElementById('fotoPorteroInput').files[0];
     if(!n || !c || !eq) return alert("Faltan datos");
@@ -443,16 +480,9 @@ function generarPDFObjetivos(reporte, docId) {
         let qrHtml = "";
         if (docId) {
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=2&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?view=objetivos&id=' + docId)}`;
-            qrHtml = `
-            <div style="position:absolute; top:30px; right:30px; z-index:10; background:white; padding:5px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-                <img src="${qrUrl}" style="width:80px; height:80px; display:block;">
-            </div>`;
+            qrHtml = `<img src="${qrUrl}" class="cover-qr">`;
         }
 
-        const adnPct = calcularADN(null, 'objetivos', reporte);
-        let adnColor = '#E74C3C'; if (adnPct > 70) adnColor = '#F1C40F'; if (adnPct > 85) adnColor = '#00E676';
-
-        // PORTADA EDITORIAL PREMIUM
         const coverHtml = `
         <div class="pdf-slide pdf-cover-premium">
             <img src="ESCUDO ATM.png" class="cover-bg-watermark">
@@ -466,18 +496,6 @@ function generarPDFObjetivos(reporte, docId) {
                 <div class="cover-name-premium">${p.nombre}</div>
                 <div class="cover-info-bar">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
-                </div>
-                <div class="cover-adn-container">
-                    <div style="position:relative; width:140px; height:140px; display:flex; justify-content:center; align-items:center;">
-                        <svg width="140" height="140" viewBox="0 0 140 140" style="position:absolute; top:0; left:0; transform: rotate(-90deg); filter:drop-shadow(0 0 10px ${adnColor});">
-                            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle>
-                            <circle cx="70" cy="70" r="60" fill="none" stroke="${adnColor}" stroke-width="10" stroke-dasharray="377" stroke-dashoffset="${377 - (377 * adnPct / 100)}" stroke-linecap="round"></circle>
-                        </svg>
-                        <div style="text-align:center; z-index:2; display:flex; flex-direction:column; align-items:center; background:#0A0F1D; width:100px; height:100px; border-radius:50%; justify-content:center; box-shadow:inset 0 0 15px rgba(0,0,0,0.8);">
-                            <span style="font-size:28px; font-weight:900; color:${adnColor}; line-height:1; text-shadow:0 0 10px rgba(0,0,0,0.5);">${adnPct}%</span>
-                            <span style="font-size:9px; font-weight:700; color:#aaa; letter-spacing:1px; margin-top:2px;">ADN ATLETI</span>
-                        </div>
-                    </div>
                 </div>
             </div>
             <img src="ESCUDO ATM.png" class="cover-logo-bottom">
@@ -514,7 +532,7 @@ function cargarHistorialObjetivos() {
 window.verPDFObjetivosGuardado = function(rep, docId) { generarPDFObjetivos(rep, docId); }
 
 // ==========================================
-// --- INFORMES SEMESTRALES (Y BORRADORES) ---
+// --- INFORMES SEMESTRALES ---
 // ==========================================
 
 window.actualizarProgresoGeneral = function(formId) {
@@ -747,14 +765,8 @@ function construirHTMLInformeVertical(p, d, docId) {
     let qrHtml = "";
     if (docId) {
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=2&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?view=semestral&id=' + docId)}`;
-        qrHtml = `
-        <div style="position:absolute; top:30px; right:30px; z-index:10; background:white; padding:5px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-            <img src="${qrUrl}" style="width:80px; height:80px; display:block;">
-        </div>`;
+        qrHtml = `<img src="${qrUrl}" class="cover-qr">`;
     }
-
-    const adnPct = calcularADN(d, 'semestral');
-    let adnColor = '#E74C3C'; if (adnPct > 70) adnColor = '#F1C40F'; if (adnPct > 85) adnColor = '#00E676';
 
     const coverHtml = `
     <div class="pdf-slide pdf-cover-premium">
@@ -769,18 +781,6 @@ function construirHTMLInformeVertical(p, d, docId) {
             <div class="cover-name-premium">${p.nombre}</div>
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.titulo || '-'}</span>
-            </div>
-            <div class="cover-adn-container">
-                <div style="position:relative; width:140px; height:140px; display:flex; justify-content:center; align-items:center;">
-                    <svg width="140" height="140" viewBox="0 0 140 140" style="position:absolute; top:0; left:0; transform: rotate(-90deg); filter:drop-shadow(0 0 10px ${adnColor});">
-                        <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle>
-                        <circle cx="70" cy="70" r="60" fill="none" stroke="${adnColor}" stroke-width="10" stroke-dasharray="377" stroke-dashoffset="${377 - (377 * adnPct / 100)}" stroke-linecap="round"></circle>
-                    </svg>
-                    <div style="text-align:center; z-index:2; display:flex; flex-direction:column; align-items:center; background:#0A0F1D; width:100px; height:100px; border-radius:50%; justify-content:center; box-shadow:inset 0 0 15px rgba(0,0,0,0.8);">
-                        <span style="font-size:28px; font-weight:900; color:${adnColor}; line-height:1; text-shadow:0 0 10px rgba(0,0,0,0.5);">${adnPct}%</span>
-                        <span style="font-size:9px; font-weight:700; color:#aaa; letter-spacing:1px; margin-top:2px;">ADN ATLETI</span>
-                    </div>
-                </div>
             </div>
         </div>
         <img src="ESCUDO ATM.png" class="cover-logo-bottom">
@@ -898,7 +898,7 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-window.generarGraficoRadar = function(canvasId, imgId, val) {
+window.generarGraficoRadar = function(canvasId, val) {
     const canvas = document.getElementById(canvasId);
     if(!canvas) return;
     
@@ -911,7 +911,7 @@ window.generarGraficoRadar = function(canvasId, imgId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    const chart = new Chart(canvas, {
+    new Chart(canvas, {
         type: 'radar',
         data: {
             labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
@@ -928,6 +928,7 @@ window.generarGraficoRadar = function(canvasId, imgId, val) {
             animation: false,
             responsive: true,
             maintainAspectRatio: false,
+            devicePixelRatio: 2, // Mejora brutal de calidad en PDF
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
@@ -939,15 +940,6 @@ window.generarGraficoRadar = function(canvasId, imgId, val) {
             plugins: { legend: { display: false } }
         }
     });
-
-    setTimeout(() => {
-        const img = document.getElementById(imgId);
-        if(img && chart) {
-            img.src = chart.toBase64Image();
-            img.style.display = 'block';
-            canvas.style.display = 'none';
-        }
-    }, 50);
 }
 
 function cargarHistorialTorneos() {
@@ -1355,10 +1347,10 @@ window.generarPDFTorneo = function() {
                 const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
                 if(canvasMatch && canvasMatch[1]) {
                     const rndId = canvasMatch[1];
-                    window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, datos.val);
-                    window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, datos.val);
+                    window.generarGraficoRadar(`radar-preview-${rndId}`, datos.val);
+                    window.generarGraficoRadar(`radar-print-${rndId}`, datos.val);
                 }
-            }, 50);
+            }, 100);
 
             cancelarEdicionTorneo(); 
         });
@@ -1396,7 +1388,7 @@ function construirHTMLTorneo(p, d, docId) {
             else if (j.includes('semi')) resClass = 'fase-semi';
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
-            let paisTxt = m.pais ? ` <span class="badge-pais">[${m.pais.toUpperCase()}]</span>` : '';
+            let paisTxt = m.pais ? ` <span class="badge-pais">${m.pais.toUpperCase()}</span>` : '';
             let resTxt = '';
             if (m.resultado) resTxt = m.resultado; 
             else if (m.golesAtm !== undefined && m.golesAtm !== "" && golesRivVal !== "") resTxt = `${m.golesAtm} - ${golesRivVal}`;
@@ -1417,19 +1409,13 @@ function construirHTMLTorneo(p, d, docId) {
     if(d.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
     const rnd = Date.now();
-    const logoHtml = d.torneoLogo ? `<img src="${d.torneoLogo}" style="width:100px; height:100px; object-fit:contain; background:white; border-radius:15px; padding:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index:3; position:absolute; bottom:40px; left:40px;">` : '';
+    const logoHtml = d.torneoLogo ? `<img src="${d.torneoLogo}" class="cover-logo-center">` : '';
 
     let qrHtml = "";
     if (docId) {
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=2&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?view=torneo&id=' + docId)}`;
-        qrHtml = `
-        <div style="position:absolute; top:30px; right:30px; z-index:10; background:white; padding:5px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-            <img src="${qrUrl}" style="width:80px; height:80px; display:block;">
-        </div>`;
+        qrHtml = `<img src="${qrUrl}" class="cover-qr">`;
     }
-
-    const adnPct = calcularADN(d, 'torneo');
-    let adnColor = '#E74C3C'; if (adnPct > 70) adnColor = '#F1C40F'; if (adnPct > 85) adnColor = '#00E676';
 
     const coverHtml = `
     <div class="pdf-slide pdf-cover-premium">
@@ -1437,7 +1423,6 @@ function construirHTMLTorneo(p, d, docId) {
         <div class="cover-photo-container">
             <img src="${foto}" class="cover-photo-premium">
             <div class="cover-photo-fade"></div>
-            ${logoHtml}
         </div>
         ${qrHtml}
         <div class="cover-content-premium">
@@ -1446,18 +1431,7 @@ function construirHTMLTorneo(p, d, docId) {
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.torneo || '-'}</span>
             </div>
-            <div class="cover-adn-container">
-                <div style="position:relative; width:140px; height:140px; display:flex; justify-content:center; align-items:center;">
-                    <svg width="140" height="140" viewBox="0 0 140 140" style="position:absolute; top:0; left:0; transform: rotate(-90deg); filter:drop-shadow(0 0 10px ${adnColor});">
-                        <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"></circle>
-                        <circle cx="70" cy="70" r="60" fill="none" stroke="${adnColor}" stroke-width="10" stroke-dasharray="377" stroke-dashoffset="${377 - (377 * adnPct / 100)}" stroke-linecap="round"></circle>
-                    </svg>
-                    <div style="text-align:center; z-index:2; display:flex; flex-direction:column; align-items:center; background:#0A0F1D; width:100px; height:100px; border-radius:50%; justify-content:center; box-shadow:inset 0 0 15px rgba(0,0,0,0.8);">
-                        <span style="font-size:28px; font-weight:900; color:${adnColor}; line-height:1; text-shadow:0 0 10px rgba(0,0,0,0.5);">${adnPct}%</span>
-                        <span style="font-size:9px; font-weight:700; color:#aaa; letter-spacing:1px; margin-top:2px;">ADN ATLETI</span>
-                    </div>
-                </div>
-            </div>
+            ${logoHtml}
         </div>
         <img src="ESCUDO ATM.png" class="cover-logo-bottom">
     </div>`;
@@ -1533,7 +1507,6 @@ function construirHTMLTorneo(p, d, docId) {
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:10px;">
                 <div style="width:100%; height:180px; position:relative;">
                     <canvas id="radar-target-${rnd}" style="display:block; width:100%; height:100%;"></canvas>
-                    <img id="radar-img-target-${rnd}" style="width:100%; height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1619,10 +1592,10 @@ window.verPDFTorneoGuardado = function(id) {
                     const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
                     if(canvasMatch && canvasMatch[1]) {
                         const rndId = canvasMatch[1];
-                        window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, data.datos.val);
-                        window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(`radar-preview-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(`radar-print-${rndId}`, data.datos.val);
                     }
-                }, 50);
+                }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }
