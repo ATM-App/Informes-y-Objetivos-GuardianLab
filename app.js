@@ -540,7 +540,7 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
                 <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
@@ -925,7 +925,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-function generarGraficoRadarInvisible(rndId, val) {
+// CREADOR DE GRÁFICO INTELIGENTE (LA MAGIA ANTI-CUELGUES PARA TABLET Y CON FONDO BLANCO)
+window.generarGraficoRadarInvisible = function(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -936,8 +937,10 @@ function generarGraficoRadarInvisible(rndId, val) {
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 800; canvas.height = 800;
-    canvas.style.position = 'absolute'; canvas.style.top = '-9999px';
+    canvas.width = 800;
+    canvas.height = 800;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '-9999px';
     document.body.appendChild(canvas);
 
     const chart = new Chart(canvas, {
@@ -968,15 +971,19 @@ function generarGraficoRadarInvisible(rndId, val) {
         }
     });
 
+    // En formato PNG soporta transparencia y no se ve el fondo negro
     setTimeout(() => {
         try {
-            const imgB64 = chart.toBase64Image('image/jpeg', 1.0);
-            const imgTarget = document.getElementById(`radar-img-${rndId}`);
-            if(imgTarget) { 
-                imgTarget.src = imgB64; 
-                imgTarget.style.display = 'block'; 
-            }
-            chart.destroy(); canvas.remove();
+            const imgB64 = chart.toBase64Image('image/png', 1.0);
+            
+            const imgs = document.querySelectorAll('.radar-img-' + rndId);
+            imgs.forEach(img => {
+                img.src = imgB64;
+                img.style.display = 'block';
+            });
+            
+            chart.destroy();
+            canvas.remove();
         } catch(e) { console.error("Error al generar radar:", e); }
     }, 150);
 }
@@ -1557,7 +1564,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img id="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1638,7 +1645,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    generarGraficoRadarInvisible(rndId, data.datos.val);
+                    window.generarGraficoRadarInvisible(rndId, data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1652,7 +1659,7 @@ window.imprimirPDFNativo = function() {
     const pEl = document.getElementById('preview-content');
     const prEl = document.getElementById('printable-area');
     
-    // Clonamos el HTML de la vista previa al área de impresión
+    // Clonamos el HTML de la vista previa al área de impresión oculta
     prEl.innerHTML = pEl.innerHTML; 
     
     setTimeout(() => {
