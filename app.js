@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES CORREGIDOS
+// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES DINÁMICOS
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -113,7 +113,7 @@ window.renderWebView = function(tipo, id) {
     let collection = tipo === 'torneo' ? 'informes_torneo' : 'informes_semestrales';
     
     db.collection(collection).doc(id).get().then(doc => {
-        if(!doc.exists) { document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Informe no encontrado.</div>'; return; }
+        if(!doc.exists) { document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-main); font-family:Montserrat, sans-serif;">Informe no encontrado.</div>'; return; }
         
         const data = doc.data();
         db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
@@ -143,9 +143,9 @@ window.renderWebView = function(tipo, id) {
                     }
                     
                     filasPartidos += `
-                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.85rem; align-items:center;">
-                        <div style="flex:1; text-align:left; color:var(--text-sec); font-size:0.7rem;">${m.jornada || m.fase || ''}</div>
-                        <div style="flex:1.5; text-align:left; font-weight:bold; color:var(--text-main);">${m.rival || '-'}${m.pais ? ` <span style="color:var(--text-sec); font-size:0.6rem;">(${m.pais})</span>` : ''}</div>
+                    <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.85rem; align-items:center;">
+                        <div style="flex:1; text-align:left; color:var(--text-sec); font-size:0.75rem;">${m.jornada || m.fase || ''}</div>
+                        <div style="flex:1.5; text-align:left; font-weight:bold; color:var(--text-main);">${m.rival || '-'}${m.pais ? ` <span style="color:var(--text-sec); font-size:0.65rem;">(${m.pais})</span>` : ''}</div>
                         <div style="flex:1; text-align:center; color:var(--neon-green); font-weight:800;">${resTxt}</div>
                         <div style="flex:0.8; text-align:right; color:var(--atm-red); font-weight:bold;">${gcReal} GC</div>
                     </div>`;
@@ -154,19 +154,19 @@ window.renderWebView = function(tipo, id) {
                 const mediaGoles = d.partidos.length > 0 ? (tGol / d.partidos.length).toFixed(1) : 0;
                 
                 statsHtml = `
-                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
-                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:15px; text-transform:uppercase;">Resumen Estadístico</h3>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
+                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1.1rem; margin-bottom:15px; text-transform:uppercase;">Resumen Estadístico</h3>
                     <div style="display:flex; justify-content:space-around;">
-                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--text-main);">${d.partidos.length}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">PJ</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--text-main);">${tMin}'</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">MIN</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:var(--atm-red);">${tGol}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">G.C.</div></div>
-                        <div><div style="font-size:1.6rem; font-weight:800; color:#F1C40F;">${mediaGoles}</div><div style="font-size:0.7rem; color:var(--text-sec); font-weight:700;">MEDIA</div></div>
+                        <div><div style="font-size:1.8rem; font-weight:800; color:var(--text-main);">${d.partidos.length}</div><div style="font-size:0.75rem; color:var(--text-sec); font-weight:700;">PJ</div></div>
+                        <div><div style="font-size:1.8rem; font-weight:800; color:var(--text-main);">${tMin}'</div><div style="font-size:0.75rem; color:var(--text-sec); font-weight:700;">MIN</div></div>
+                        <div><div style="font-size:1.8rem; font-weight:800; color:var(--atm-red);">${tGol}</div><div style="font-size:0.75rem; color:var(--text-sec); font-weight:700;">G.C.</div></div>
+                        <div><div style="font-size:1.8rem; font-weight:800; color:#F1C40F;">${mediaGoles}</div><div style="font-size:0.75rem; color:var(--text-sec); font-weight:700;">MEDIA</div></div>
                     </div>
                 </div>`;
                 
                 partidosHtml = `
-                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
-                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1rem; margin-bottom:10px; text-transform:uppercase;">Detalle de Partidos</h3>
+                <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center;">
+                    <h3 style="margin-top:0; color:var(--atm-red); font-size:1.1rem; margin-bottom:10px; text-transform:uppercase;">Detalle de Partidos</h3>
                     ${filasPartidos}
                 </div>`;
             }
@@ -181,8 +181,8 @@ window.renderWebView = function(tipo, id) {
                         <h1 style="margin:0; font-size:1.8rem; font-weight:800; color:white; text-transform:uppercase;">${p.nombre}</h1>
                         <p style="margin:5px 0 15px; color:#00E676; font-weight:700; font-size:1rem;">${tipo === 'torneo' ? d.torneo : d.titulo}</p>
                         <div style="display:flex; justify-content:center; gap:10px; font-size:0.8rem; color:#aaa;">
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.categoria}</span>
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.equipo}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.categoria}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.equipo}</span>
                         </div>
                     </div>
                 </div>
@@ -540,9 +540,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-info-bar">
+                <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -808,9 +808,9 @@ function construirHTMLInformeVertical(p, d, docId) {
         ${qrHtml}
         <div class="cover-content">
             <img src="${foto}" class="cover-photo">
-            <div class="cover-subtitle">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
+            <div class="cover-title">${d.tipoInforme || 'INFORME SEMESTRAL'}</div>
             <div class="cover-name-premium">${p.nombre}</div>
-            <div class="cover-info-bar">
+            <div class="cover-details">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${d.titulo || '-'}</span>
             </div>
         </div>
@@ -925,8 +925,7 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// CREADOR DE GRÁFICO INTELIGENTE (LA MAGIA ANTI-CUELGUES PARA TABLET)
-window.generarGraficoRadar = function(rndId, val) {
+function generarGraficoRadarInvisible(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -936,12 +935,9 @@ window.generarGraficoRadar = function(rndId, val) {
     const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
-    // Creamos un canvas fantasma (no entra al PDF, solo sirve para sacar la foto)
     const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 800;
-    canvas.style.position = 'absolute';
-    canvas.style.top = '-9999px';
+    canvas.width = 800; canvas.height = 800;
+    canvas.style.position = 'absolute'; canvas.style.top = '-9999px';
     document.body.appendChild(canvas);
 
     const chart = new Chart(canvas, {
@@ -972,19 +968,15 @@ window.generarGraficoRadar = function(rndId, val) {
         }
     });
 
-    // Pasamos el Canvas a un simple JPG ultraligero y destruimos el Canvas
     setTimeout(() => {
         try {
             const imgB64 = chart.toBase64Image('image/jpeg', 1.0);
-            
-            const imgs = document.querySelectorAll('.radar-img-' + rndId);
-            imgs.forEach(img => {
-                img.src = imgB64;
-                img.style.display = 'block';
-            });
-            
-            chart.destroy();
-            canvas.remove();
+            const imgTarget = document.getElementById(`radar-img-${rndId}`);
+            if(imgTarget) { 
+                imgTarget.src = imgB64; 
+                imgTarget.style.display = 'block'; 
+            }
+            chart.destroy(); canvas.remove();
         } catch(e) { console.error("Error al generar radar:", e); }
     }, 150);
 }
@@ -1381,13 +1373,16 @@ window.generarPDFTorneo = function() {
             const rndId = Date.now();
             const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
-            // Generar el radar (crea imagen base64 y la inyecta)
+            // Generar el radar (crea imagen base64 de forma segura)
             setTimeout(() => {
-                window.generarGraficoRadar(rndId, datos.val);
+                generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1562,7 +1557,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <img id="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1643,7 +1638,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    window.generarGraficoRadar(rndId, data.datos.val);
+                    generarGraficoRadarInvisible(rndId, data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1651,15 +1646,17 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
     const pEl = document.getElementById('preview-content');
     const prEl = document.getElementById('printable-area');
     
+    // Clonamos el HTML de la vista previa al área de impresión
     prEl.innerHTML = pEl.innerHTML; 
     
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000); 
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
     }, 200);
 }
