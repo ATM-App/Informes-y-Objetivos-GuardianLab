@@ -1339,22 +1339,21 @@ window.generarPDFTorneo = function() {
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
             const rndId = Date.now();
-            const html = construirHTMLTorneo(pData, datos, docId, rndId);
-            
-            document.body.classList.remove('print-landscape'); 
-            document.body.classList.add('print-portrait');
+            const htmlPreview = construirHTMLTorneo(pData, datos, docId, rndId + '-prev');
+            const htmlPrint = construirHTMLTorneo(pData, datos, docId, rndId + '-print');
             
             const pEl = document.getElementById('preview-content');
             const prEl = document.getElementById('printable-area');
             const mEl = document.getElementById('modal-pdf-preview');
             
-            if(pEl) pEl.innerHTML = html.replace(/target/g, 'preview'); 
-            if(prEl) prEl.innerHTML = html.replace(/target/g, 'print'); 
+            if(pEl) pEl.innerHTML = htmlPreview; 
+            if(prEl) prEl.innerHTML = htmlPrint; 
             if(mEl) mEl.style.display = 'flex'; 
             else alert("Falta el contenedor del PDF en el HTML.");
             
-            // Disparador del Gráfico Seguro
-            window.generarGraficoRadar(rndId, datos.val);
+            // Generar el radar para ambas vistas (invisible en DOM, inyectado como IMG)
+            window.generarGraficoRadar(rndId + '-prev', datos.val);
+            window.generarGraficoRadar(rndId + '-print', datos.val);
 
             cancelarEdicionTorneo(); 
         });
@@ -1392,7 +1391,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
             else if (j.includes('semi')) resClass = 'fase-semi';
             else if (j.includes('final') || j.includes('puesto')) resClass = 'fase-final';
             
-            let paisTxt = m.pais ? ` <span class="badge-pais">${m.pais.toUpperCase()}</span>` : '';
+            let paisTxt = m.pais ? ` (${m.pais.toUpperCase()})` : '';
             let resTxt = '';
             if (m.resultado) resTxt = m.resultado; 
             else if (m.golesAtm !== undefined && m.golesAtm !== "" && golesRivVal !== "") resTxt = `${m.golesAtm} - ${golesRivVal}`;
@@ -1506,7 +1505,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img id="radar-img-target-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                    <img id="radar-img-target-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1577,7 +1576,8 @@ window.verPDFTorneoGuardado = function(id) {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 
                 const rndId = Date.now();
-                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
+                const htmlPreview = construirHTMLTorneo(pData, data.datos, doc.id, rndId + '-prev');
+                const htmlPrint = construirHTMLTorneo(pData, data.datos, doc.id, rndId + '-print');
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');
@@ -1586,13 +1586,14 @@ window.verPDFTorneoGuardado = function(id) {
                 const prEl = document.getElementById('printable-area');
                 const mEl = document.getElementById('modal-pdf-preview');
                 
-                if(pEl) pEl.innerHTML = html.replace(/target/g, 'preview'); 
-                if(prEl) prEl.innerHTML = html.replace(/target/g, 'print'); 
+                if(pEl) pEl.innerHTML = htmlPreview; 
+                if(prEl) prEl.innerHTML = htmlPrint; 
                 if(mEl) mEl.style.display = 'flex'; 
                 else alert("Falta el contenedor del PDF en el HTML.");
 
                 // Disparador del Gráfico Seguro
-                window.generarGraficoRadar(rndId, data.datos.val);
+                window.generarGraficoRadar(rndId + '-prev', data.datos.val);
+                window.generarGraficoRadar(rndId + '-print', data.datos.val);
 
             }).catch(err => console.error("Error al obtener portero:", err));
         }

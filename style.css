@@ -200,7 +200,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF IMPRESIÓN (ESTRUCTURA ORIGINAL BLINDADA + TIPOGRAFÍA PREMIUM)
+   ESTILOS PDF IMPRESIÓN (PORTADA EDITORIAL - BLINDADA PARA TABLET/MÓVIL)
    ======================================================== */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
@@ -210,17 +210,27 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
     @page { size: A4 portrait; margin: 0; }
 }
 
-/* PORTADA ORIGINAL BLINDADA */
-.pdf-cover { display: block !important; position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-.cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; }
+/* PORTADA EDITORIAL BLINDADA */
+.pdf-cover-premium { 
+    display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important;
+    position: relative; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; 
+    background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; 
+    page-break-after: always !important; box-sizing: border-box; overflow: hidden !important; 
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; 
+}
+.cover-bg-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120%; opacity: 0.03; z-index: 1; }
 
-/* CONTENIDO CENTRADO ORIGINAL */
-.cover-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
+/* FOTO CENTRADA - BLINDADA CONTRA BUGS DE BORDES REDONDEADOS EN IMPRESIÓN */
+.cover-photo-container { 
+    width: 220px; height: 220px; border-radius: 50%; border: 6px solid #CB3524; background: #fff; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 5; margin-bottom: 30px; 
+    overflow: hidden; -webkit-mask-image: -webkit-radial-gradient(white, black); /* Truco Safari */
+}
+.cover-photo-premium { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-/* FOTO CIRCULAR PERFECTA */
-.cover-photo { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #CB3524; object-fit: cover; margin: 0 auto 30px auto; display: block; box-shadow: 0 20px 50px rgba(0,0,0,0.6); background: #fff; overflow: hidden; }
+.cover-content-premium { position: relative; z-index: 10; width: 100%; padding: 0 40px; text-align: center; }
 
-/* TIPOGRAFÍA EDITORIAL (MANTENIDA) */
+/* TIPOGRAFÍA EDITORIAL */
 .cover-subtitle { font-family: 'Times New Roman', serif; font-size: 18px; color: #E2C275 !important; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 10px; }
 .cover-name-premium { font-size: 46px; font-weight: 900; text-transform: uppercase; color: #FFFFFF !important; line-height: 1.1; margin-bottom: 25px; text-shadow: 0px 4px 6px rgba(0,0,0,0.8); letter-spacing: 2px; }
 .cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB !important; letter-spacing: 2px; }
@@ -228,11 +238,12 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 
 /* ELEMENTOS EXTRA (QR y LOGO TORNEO) */
 .cover-qr { position: absolute; top: 30px; right: 30px; width: 80px; height: 80px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
-.cover-logo-torneo { width: 100px; height: 100px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); margin: 30px auto 0 auto; display: block; }
+.cover-logo-center { width: 120px; height: 120px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); margin: 30px auto 0 auto; display: block; z-index: 3;}
+.cover-logo-bottom { position: absolute; bottom: 30px; right: 30px; width: 60px; height: auto; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.6)); z-index: 3; }
 .cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
-/* PÁGINAS DEL PDF INTERNAS (ESTRUCTURA ORIGINAL) */
-.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid;}
+/* PÁGINAS DEL PDF INTERNAS: AJUSTADAS AL MILÍMETRO PARA EVITAR SALTO DE HOJA */
+.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 20px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid;}
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 8px; }
 .pdf-top-title { font-size: 18px; font-weight: 800; color: #1C2C5B; }
 .pdf-top-subtitle { font-size: 13px; color: #1C2C5B; font-weight: bold; margin-top: 4px; }
@@ -254,6 +265,7 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .pdf-stat-cell { background: #f0f0f0; padding: 4px; text-align: center; border: 1px solid #ddd; }
 .pdf-stat-label { font-size: 6.5px; color: #555; display: block; text-transform: uppercase; margin-bottom: 2px; }
 .pdf-stat-num { font-size: 11px; font-weight: bold; color: #1C2C5B; }
+
 .pdf-rating-box { border: 1px solid #ccc; padding: 5px; border-radius: 4px; margin-bottom: 5px; flex: 1; }
 .pdf-box-title { color: #1C2C5B; font-size: 8.5px; font-weight: bold; border-bottom: 1px solid #CB3524; padding-bottom: 2px; margin-bottom: 3px; text-transform: uppercase; text-align: center; }
 .pdf-rating-row { display: flex; justify-content: space-between; align-items: center; font-size: 8.5px; margin-bottom: 2px; border-bottom: 1px dotted #eee; }
@@ -291,5 +303,5 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .pdf-resumen-item { text-align: center; }
 .pdf-resumen-val { display: block; font-weight: bold; font-size: 12px; color: #CB3524; }
 
-/* Banderas de País limpias */
+/* Sin fondo ni corchetes en los países */
 .badge-pais { font-weight: bold; color: #1C2C5B; margin-left: 4px; display: inline-block; background: transparent !important; }
