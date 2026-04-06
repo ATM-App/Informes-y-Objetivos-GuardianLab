@@ -88,6 +88,7 @@ let informeEnEdicionId = null;
 let objetivoEnEdicionId = null; 
 let evaluacionesTemporales = [];
 let competenciaSeleccionada = null;
+let autoSaveTimeout = null;
 
 let ACCIONES_EVALUACION = {
     "DEFENSIVAS": ["Blocaje Frontales Medio y Raso", "Blocaje lateral raso", "Blocaje lateral media altura", "Desvío raso", "Desvío a Media Altura", "Reducción de espacios y Posición Cruz", "Apertura", "Reincorporaciones", "Blocaje Aéreo", "Despeje de Puños"],
@@ -743,7 +744,6 @@ function construirHTMLInformeVertical(p, d, docId) {
     if(perfil.val_gen === "ALTA") valClass = "val-alta"; 
     if(perfil.val_gen === "EXCEPCIONAL") valClass = "val-excepcional";
 
-    // GENERAR CÓDIGO QR SI HAY ID
     let qrHtml = "";
     if (docId) {
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=2&data=${encodeURIComponent(window.location.origin + window.location.pathname + '?view=semestral&id=' + docId)}`;
@@ -753,11 +753,9 @@ function construirHTMLInformeVertical(p, d, docId) {
         </div>`;
     }
 
-    // CALCULAR ADN ATLETI
     const adnPct = calcularADN(d, 'semestral');
     let adnColor = '#E74C3C'; if (adnPct > 70) adnColor = '#F1C40F'; if (adnPct > 85) adnColor = '#00E676';
 
-    // NUEVA PORTADA EDITORIAL PREMIUM
     const coverHtml = `
     <div class="pdf-slide pdf-cover-premium">
         <img src="ESCUDO ATM.png" class="cover-bg-watermark">
@@ -878,7 +876,6 @@ window.verPDFInformeGuardado = function(id) {
         } 
     }).catch(err => console.error("Error al obtener informe:", err)); 
 }
-window.imprimirPDFNativo = function() { window.print(); }
 
 // ==========================================
 // --- MÓDULO DE TORNEOS ---
@@ -887,7 +884,6 @@ window.imprimirPDFNativo = function() { window.print(); }
 const optGoles = '<option value="">-</option>' + Array.from({length: 21}, (_, i) => `<option value="${i}">${i}</option>`).join('');
 const optFases = `<option value="Grupos J1">Grupos J1</option><option value="Grupos J2">Grupos J2</option><option value="Grupos J3">Grupos J3</option><option value="Grupos J4">Grupos J4</option><option value="Grupos J5">Grupos J5</option><option value="Grupos J6">Grupos J6</option><option value="Grupos J7">Grupos J7</option><option value="Grupos J8">Grupos J8</option><option value="1/16 Final">1/16 Final</option><option value="1/8 Final">1/8 Final</option><option value="1/4 Final">1/4 Final</option><option value="Semifinal">Semifinal</option><option value="Final">Final</option><option value="3º/4º Puesto">3º/4º Puesto</option>`;
 
-// Función para subir y procesar LOGO DE TORNEO
 window.procesarLogoTorneo = function(input) {
     if(input.files && input.files[0]) {
         const r = new FileReader();
@@ -900,6 +896,58 @@ window.procesarLogoTorneo = function(input) {
         };
         r.readAsDataURL(input.files[0]);
     }
+}
+
+window.generarGraficoRadar = function(canvasId, imgId, val) {
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    
+    const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
+    
+    const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
+    const avgMentalidad = ((parseVal(val.error) + parseVal(val.actitudGol) + parseVal(val.mentalidad)) / 3).toFixed(1);
+    const avgConcentracion = ((parseVal(val.concentracion) + parseVal(val.confianza)) / 2).toFixed(1);
+    const avgTactica = ((parseVal(val.unoVuno) + parseVal(val.organizacion)) / 2).toFixed(1);
+    const avgEvolucion = ((parseVal(val.primerUltimo) + parseVal(val.mejoraBajon)) / 2).toFixed(1);
+    const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
+
+    const chart = new Chart(canvas, {
+        type: 'radar',
+        data: {
+            labels: ['Liderazgo', 'Mentalidad', 'Concentración', 'Táctica', 'Evolución', 'Adaptación'],
+            datasets: [{
+                data: [avgLiderazgo, avgMentalidad, avgConcentracion, avgTactica, avgEvolucion, avgAdaptacion],
+                backgroundColor: 'rgba(203, 53, 36, 0.4)',
+                borderColor: 'rgba(203, 53, 36, 1)',
+                pointBackgroundColor: '#1C2C5B',
+                pointBorderColor: '#fff',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0, max: 5, ticks: { display: false },
+                    pointLabels: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    grid: { color: 'rgba(0,0,0,0.1)' },
+                    angleLines: { color: 'rgba(0,0,0,0.1)' }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    setTimeout(() => {
+        const img = document.getElementById(imgId);
+        if(img && chart) {
+            img.src = chart.toBase64Image();
+            img.style.display = 'block';
+            canvas.style.display = 'none';
+        }
+    }, 50);
 }
 
 function cargarHistorialTorneos() {
@@ -1303,6 +1351,15 @@ window.generarPDFTorneo = function() {
             if(mEl) mEl.style.display = 'flex'; 
             else alert("Falta el contenedor del PDF en el HTML.");
             
+            setTimeout(() => {
+                const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
+                if(canvasMatch && canvasMatch[1]) {
+                    const rndId = canvasMatch[1];
+                    window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, datos.val);
+                    window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, datos.val);
+                }
+            }, 50);
+
             cancelarEdicionTorneo(); 
         });
     });
@@ -1556,12 +1613,20 @@ window.verPDFTorneoGuardado = function(id) {
                 if(pEl) pEl.innerHTML = html; 
                 if(prEl) prEl.innerHTML = html.replace(/preview/g, 'print'); 
                 if(mEl) mEl.style.display = 'flex'; 
-                else alert("Falta el contenedor del PDF en el HTML.");
+                else alert("Falta el contenedor del PDF en el HTML. Asegúrate de haber copiado el archivo index.html completo.");
 
-                // Generar los Canvas estáticos
-                /*setTimeout(() => {
-                    // Quitamos la generación del radar viejo para el torneo porque no lo habiamos incrustado en el diseño editorial
-                    // Si querías que el torneo también lo llevara en su portada, lo puedes añadir, pero por ahora lo dejamos como estaba pedido.
-                }, 50);*/
+                setTimeout(() => {
+                    const canvasMatch = html.match(/id="radar-preview-(\d+)"/);
+                    if(canvasMatch && canvasMatch[1]) {
+                        const rndId = canvasMatch[1];
+                        window.generarGraficoRadar(`radar-preview-${rndId}`, `radar-img-preview-${rndId}`, data.datos.val);
+                        window.generarGraficoRadar(`radar-print-${rndId}`, `radar-img-print-${rndId}`, data.datos.val);
+                    }
+                }, 50);
 
             }).catch(err => console.error("Error al obtener portero:", err));
+        }
+    }).catch(err => console.error("Error al obtener informe:", err));
+}
+
+window.imprimirPDFNativo = function() { window.print(); }
