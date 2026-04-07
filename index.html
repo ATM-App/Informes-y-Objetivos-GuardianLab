@@ -374,10 +374,14 @@
 
     <div id="modal-pdf-preview" class="modal" style="background: rgba(10,15,29,0.98); z-index: 3000; backdrop-filter: blur(10px);">
         <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div style="width:100%; display:flex; justify-content:center; align-items:center; padding:15px; background:rgba(0,0,0,0.5); border-bottom:1px solid rgba(255,255,255,0.1);">
-                <h3 style="color:white; margin:0 20px 0 0;">Vista Previa</h3>
-                <button onclick="window.haptic('light'); window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 25px; background:white; color:black; font-weight:bold; margin-right:10px; box-shadow:none;">🖨️ IMPRIMIR / PDF</button>
-                <button onclick="window.haptic('light'); window.cerrarModal('modal-pdf-preview')" class="btn-small-red">Cerrar</button>
+            <div style="width:100%; display:flex; justify-content:center; align-items:center; padding:15px; background:rgba(0,0,0,0.5); border-bottom:1px solid rgba(255,255,255,0.1); gap: 10px; flex-wrap: wrap;">
+                <h3 style="color:white; margin:0 auto 0 0;">Vista Previa</h3>
+                <button onclick="window.haptic('light'); window.compartirPDFWhatsAppActual(event)" class="btn-main" style="width:auto; padding:10px 15px; background:#25D366; color:white; font-weight:bold; margin:0; box-shadow:none; border-radius:10px; border:none; display:flex; align-items:center; gap:5px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 0C5.383 0 0 5.383 0 12.031c0 2.124.553 4.195 1.604 6.012L.416 23.584l5.656-1.488a12.015 12.015 0 0 0 5.959 1.57h.005c6.645 0 12.029-5.383 12.029-12.031S18.676 0 12.031 0zm.005 21.666c-1.8 0-3.564-.484-5.114-1.4l-.367-.217-3.8.997 1.018-3.705-.238-.378a10.024 10.024 0 0 1-1.536-5.328c0-5.545 4.512-10.057 10.057-10.057 2.686 0 5.207 1.047 7.104 2.946a10.016 10.016 0 0 1 2.947 7.106c0 5.545-4.513 10.056-10.057 10.056zm5.518-7.536c-.303-.152-1.792-.885-2.07-.987-.277-.101-.48-.152-.682.152-.202.303-.782.987-.959 1.189-.177.202-.354.227-.657.076-1.282-.64-2.502-1.423-3.416-2.585-.238-.303.238-.278.823-1.464.101-.202.05-.378-.025-.53-.076-.152-.682-1.641-.934-2.247-.247-.591-.497-.511-.682-.52h-.581c-.202 0-.53.076-.808.378-.278.303-1.06 1.036-1.06 2.526 0 1.49 1.086 2.93 1.237 3.132.152.202 2.137 3.258 5.176 4.568 1.956.844 2.76.91 3.245.859.544-.056 1.792-.732 2.045-1.44.253-.707.253-1.313.177-1.44-.076-.126-.278-.202-.581-.353z"/></svg>
+                    WHATSAPP
+                </button>
+                <button onclick="window.haptic('light'); window.imprimirPDFNativo()" class="btn-main" style="width:auto; padding:10px 15px; background:white; color:black; font-weight:bold; margin:0; box-shadow:none; border-radius:10px; border:none; display:flex; align-items:center; gap:5px;">🖨️ PDF</button>
+                <button onclick="window.haptic('light'); window.cerrarModal('modal-pdf-preview')" class="btn-small-red" style="padding:10px 15px; border-radius:10px; margin:0;">✕</button>
             </div>
             <div style="flex:1; overflow-y:auto; width:100%; display:flex; justify-content:center; padding:20px;">
                 <div id="preview-content" style="box-shadow: 0 0 40px rgba(0,0,0,0.8);"></div>

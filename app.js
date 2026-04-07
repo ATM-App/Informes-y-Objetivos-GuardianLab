@@ -181,8 +181,8 @@ window.renderWebView = function(tipo, id) {
                         <h1 style="margin:0; font-size:1.8rem; font-weight:800; color:white; text-transform:uppercase;">${p.nombre}</h1>
                         <p style="margin:5px 0 15px; color:#00E676; font-weight:700; font-size:1rem;">${tipo === 'torneo' ? d.torneo : d.titulo}</p>
                         <div style="display:flex; justify-content:center; gap:10px; font-size:0.8rem; color:#aaa;">
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.categoria}</span>
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.equipo}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.categoria}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.equipo}</span>
                         </div>
                     </div>
                 </div>
@@ -540,9 +540,9 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-info-bar">
+                <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -1387,7 +1387,7 @@ window.generarPDFTorneo = function() {
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
-            // Generar el radar (crea imagen base64 y la inyecta)
+            // Generar el radar (crea imagen base64 de forma segura)
             setTimeout(() => {
                 window.generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
@@ -1489,8 +1489,8 @@ function construirHTMLTorneo(p, d, docId, rndId) {
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span style="color:#F1C40F;">🏆 ${d.torneo || '-'} 🏆</span>
             </div>
-            ${logoHtml}
         </div>
+        ${logoHtml}
         <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
@@ -1666,4 +1666,53 @@ window.imprimirPDFNativo = function() {
         window.print();
         setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
     }, 200);
+}
+
+// NUEVO: COMPARTIR PDF DIRECTO POR WHATSAPP DESDE LA VISTA PREVIA
+window.compartirPDFWhatsAppActual = function(e) {
+    window.haptic('medium');
+    const btn = e ? e.currentTarget : null;
+    let originalHtml = "";
+    if(btn) {
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = "⏳ GENERANDO...";
+        btn.disabled = true;
+    }
+
+    const element = document.getElementById('preview-content');
+    
+    // Configuramos html2pdf para capturar exactamente la hoja A4 (210x297mm)
+    const opt = {
+        margin: 0,
+        filename: 'Informe_Tecnico_ATM.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).outputPdf('blob').then(function(blob) {
+        const file = new File([blob], 'Informe_Tecnico_ATM.pdf', { type: 'application/pdf' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: 'Informe Técnico ATM',
+                text: '⚽ Adjunto la Ficha Técnica oficial generada desde GuardianLab ATM:'
+            }).catch(err => console.log('Error al compartir por WhatsApp:', err));
+        } else {
+            alert("Tu dispositivo o navegador no permite adjuntar archivos PDF directamente a WhatsApp por esta vía. Por favor, pulsa '🖨️ PDF' (Imprimir), guárdalo y envíalo manualmente.");
+        }
+        
+        if(btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }).catch(err => {
+        console.error(err);
+        alert("Error al generar el PDF para WhatsApp.");
+        if(btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    });
 }
