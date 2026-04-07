@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargarHistorialObjetivos();
                 cargarHistorialInformes();
                 cargarHistorialTorneos(); 
+                cargarHistorialFlash(); // Nuevo historial
             }
         }
     });
@@ -327,7 +328,7 @@ window.alternarTema = function() {
 window.cambiarSeccion = function(sec) {
     window.haptic('light');
     document.getElementById('modal-pdf-preview').style.display = 'none';
-    const secciones = ['porteros', 'sesiones', 'informes', 'torneos'];
+    const secciones = ['porteros', 'sesiones', 'informes', 'torneos', 'flash'];
     secciones.forEach(id => {
         const secElement = document.getElementById('section-' + id);
         if (secElement) secElement.style.display = 'none';
@@ -383,6 +384,7 @@ function cargarPorteros() {
         if(document.getElementById('obj-portero')) document.getElementById('obj-portero').innerHTML = opts;
         if(document.getElementById('inf-portero')) document.getElementById('inf-portero').innerHTML = opts;
         if(document.getElementById('tor-portero')) document.getElementById('tor-portero').innerHTML = opts; 
+        if(document.getElementById('flash-portero')) document.getElementById('flash-portero').innerHTML = opts; 
     });
 }
 
@@ -1690,6 +1692,166 @@ window.imprimirPDFNativo = function() {
             hiddenStates.forEach(state => {
                 state.el.style.display = state.display;
             });
-        }, 3000); // Tiempo prudencial para que el diálogo nativo ya haya capturado la pantalla
+        }, 3000); 
     }, 500);
+}
+
+
+// ==========================================
+// --- MÓDULO FLASH (VALORACIÓN RÁPIDA) ---
+// ==========================================
+
+window.selectEstadoFlash = function(estado) {
+    window.haptic('light');
+    document.querySelectorAll('.btn-semaforo').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('flash-estado').value = estado;
+    
+    if(estado === 'BAJA') document.querySelector('.s-rojo').classList.add('active');
+    if(estado === 'DUDA') document.querySelector('.s-naranja').classList.add('active');
+    if(estado === 'CONTINÚA') document.querySelector('.s-verde').classList.add('active');
+}
+
+window.generarPDFFlash = function() {
+    const pid = document.getElementById('flash-portero').value;
+    const obs = document.getElementById('flash-obs').value;
+    const estado = document.getElementById('flash-estado').value;
+
+    if(!pid || !obs || !estado) return alert("Por favor, selecciona un portero, escribe una valoración y selecciona el estado en el semáforo.");
+
+    const btn = document.getElementById('btn-save-flash');
+    btn.innerText = "Guardando..."; btn.disabled = true;
+
+    const payload = {
+        porteroId: pid,
+        fecha: new Date().toISOString().split('T')[0],
+        observacion: obs,
+        estado: estado,
+        timestamp: Date.now()
+    };
+
+    db.collection('informes_flash').add(payload).then(docRef => {
+        window.haptic('success');
+        
+        db.collection("porteros").doc(pid).get().then(pDoc => {
+            const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+            
+            const html = construirHTMLFlash(pData, obs, estado, docRef.id);
+            
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            
+            const pEl = document.getElementById('preview-content');
+            if(pEl) pEl.innerHTML = html; 
+            document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+
+            // Limpiar formulario tras guardar
+            document.getElementById('flash-portero').value = '';
+            document.getElementById('flash-obs').value = '';
+            document.getElementById('flash-estado').value = '';
+            document.querySelectorAll('.btn-semaforo').forEach(b => b.classList.remove('active'));
+            
+            btn.innerText = "💾 GENERAR INFORME FLASH"; btn.disabled = false;
+        });
+    }).catch(err => {
+        console.error(err);
+        alert("Error al guardar.");
+        btn.innerText = "💾 GENERAR INFORME FLASH"; btn.disabled = false;
+    });
+}
+
+function construirHTMLFlash(p, obs, estado, docId) {
+    p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
+    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    
+    let colorClase = "";
+    let colorHex = "";
+    if(estado === 'BAJA') { colorClase = "pdf-semaforo-BAJA"; colorHex = "#E74C3C"; }
+    if(estado === 'DUDA') { colorClase = "pdf-semaforo-DUDA"; colorHex = "#E67E22"; }
+    if(estado === 'CONTINÚA') { colorClase = "pdf-semaforo-CONTINÚA"; colorHex = "#27AE60"; }
+
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    return `
+    <div class="pdf-slide" style="justify-content: flex-start;">
+        <div class="pdf-top-header" style="border-bottom: 3px solid ${colorHex}; padding-bottom: 10px; margin-bottom: 20px;">
+            <div>
+                <div class="pdf-top-title">VALORACIÓN RÁPIDA (SCOUTING)</div>
+                <div class="pdf-top-subtitle">${dateStr}</div>
+            </div>
+            <img src="ESCUDO ATM.png" style="height:50px;">
+        </div>
+
+        <div class="pdf-player-card" style="margin-bottom: 25px; padding: 15px; background: #f9f9f9; border-color: #ddd;">
+            <img src="${foto}" class="pdf-player-photo" style="width: 80px; height: 100px;">
+            <div class="pdf-player-info">
+                <div class="pdf-player-name" style="font-size: 18px; margin-bottom: 8px;">${p.nombre}</div>
+                <div class="pdf-info-row" style="font-size: 11px;"><span>EQUIPO: ${p.equipo}</span><span>AÑO: ${p.anio || '-'}</span></div>
+                <div class="pdf-info-row" style="font-size: 11px;"><span>CATEGORÍA: ${p.categoria}</span><span>PIE: ${p.pie || '-'}</span></div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">VALORACIÓN TÉCNICO-TÁCTICA (OFENSIVA / DEFENSIVA)</div>
+        <div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 15px; font-size: 12px; line-height: 1.6; min-height: 150px; white-space: pre-wrap; margin-bottom: 30px;">${obs}</div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">ESTADO DE SEGUIMIENTO (SEMÁFORO)</div>
+        
+        <div class="pdf-semaforo-circle ${colorClase}">
+            ${estado}
+        </div>
+
+        <div style="margin-top:auto; position:absolute; bottom:25px; width:100%; left:0; text-align:center; font-size:9px; color:#999; border-top: 1px solid #eee; padding-top:10px;">
+            Documento de uso interno • GuardianLab ATM • Departamento de Porteros
+        </div>
+    </div>`;
+}
+
+function cargarHistorialFlash() {
+    db.collection("informes_flash").orderBy("timestamp", "desc").limit(15).onSnapshot(snap => {
+        const cont = document.getElementById('lista-flash-guardados');
+        if(snap.empty) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay valoraciones rápidas aún.</div>'; return; }
+        cont.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                if(pDoc.exists) {
+                    const p = pDoc.data();
+                    let icon = '🟢';
+                    if(data.estado === 'BAJA') icon = '🔴';
+                    if(data.estado === 'DUDA') icon = '🟠';
+                    
+                    cont.innerHTML += `
+                    <div class="eval-card">
+                        <div>
+                            <div style="font-weight:bold;">${p.nombre}</div>
+                            <div style="font-size:0.8rem; color:var(--text-sec);">${icon} Estado: ${data.estado}</div>
+                            <div style="font-size:0.7rem; color:var(--atm-red);">${data.fecha}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-icon-action" onclick="window.verPDFFlashGuardado('${doc.id}')" title="Ver PDF">📄</button>
+                            <button class="btn-trash" onclick="db.collection('informes_flash').doc('${doc.id}').delete()" title="Borrar">🗑️</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    });
+}
+
+window.verPDFFlashGuardado = function(id) {
+    db.collection("informes_flash").doc(id).get().then(doc => {
+        if(doc.exists) {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+                const html = construirHTMLFlash(pData, data.observacion, data.estado, doc.id);
+                
+                document.body.classList.remove('print-landscape');
+                document.body.classList.add('print-portrait');
+                
+                const pEl = document.getElementById('preview-content');
+                if(pEl) pEl.innerHTML = html; 
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+            });
+        }
+    });
 }

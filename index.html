@@ -30,6 +30,7 @@
                 <p>Objetivos e Informes Técnicos</p>
             </div>
         </div>
+        <button onclick="window.alternarTema()" class="btn-theme-header" title="Cambiar Tema">🌓</button>
     </header>
 
     <div id="floating-progress" class="floating-progress">
@@ -108,6 +109,33 @@
             </div>
             <h3 class="section-divider">Historial Objetivos</h3>
             <div id="lista-seguimientos" class="list-vertical">
+                <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            </div>
+        </section>
+
+        <section id="section-flash" class="fade-in" style="display:none;">
+            <div class="section-header"><h2>Valoración Rápida (Flash)</h2></div>
+            
+            <div class="modern-card" id="form-informe-flash">
+                <h3 class="section-divider" style="color:var(--atm-red); margin-top:0;">1. Selección de Portero</h3>
+                <select id="flash-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
+                
+                <h3 class="section-divider" style="color:var(--atm-red)">2. Valoración Ofensiva y Defensiva</h3>
+                <textarea id="flash-obs" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento ofensivo y defensivo actual (3-4 líneas)..." style="height:120px;"></textarea>
+                
+                <h3 class="section-divider" style="color:var(--atm-red)">3. Estado / Semáforo de Seguimiento</h3>
+                <div class="semaforo-container">
+                    <button class="btn-semaforo s-rojo" onclick="window.selectEstadoFlash('BAJA')"><span style="font-size:1.5rem; margin-bottom:5px;">🔴</span> BAJA</button>
+                    <button class="btn-semaforo s-naranja" onclick="window.selectEstadoFlash('DUDA')"><span style="font-size:1.5rem; margin-bottom:5px;">🟠</span> DUDA</button>
+                    <button class="btn-semaforo s-verde" onclick="window.selectEstadoFlash('CONTINÚA')"><span style="font-size:1.5rem; margin-bottom:5px;">🟢</span> CONTINÚA</button>
+                </div>
+                <input type="hidden" id="flash-estado" value="">
+
+                <button id="btn-save-flash" onclick="window.generarPDFFlash()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GENERAR INFORME FLASH</button>
+            </div>
+            
+            <h3 class="section-divider">Historial de Valoraciones Rápidas</h3>
+            <div id="lista-flash-guardados" class="list-vertical">
                 <div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-text"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
             </div>
         </section>
@@ -455,11 +483,11 @@
                 </span>
                 <span class="nav-text">TORNEOS</span>
             </button>
-            <button onclick="window.alternarTema()" class="nav-item">
+            <button onclick="window.cambiarSeccion('flash')" id="btn-flash" class="nav-item">
                 <span class="nav-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm1-11h-2v3H8v2h3v3h2v-3h3v-2h-3V8z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
                 </span>
-                <span class="nav-text">TEMA</span>
+                <span class="nav-text">FLASH</span>
             </button>
         </div>
     </nav>

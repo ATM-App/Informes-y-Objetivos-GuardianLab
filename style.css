@@ -285,3 +285,22 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 
 /* Banderas limpias sin fondo azul y sin corchetes */
 .badge-pais { font-weight: bold; color: #1C2C5B; margin-left: 4px; display: inline-block; background: transparent !important; border:none !important; padding: 0 !important; }
+/* ========================================================
+   NUEVO MÓDULO: VALORACIÓN FLASH
+   ======================================================== */
+.btn-theme-header { background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass); border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+.btn-theme-header:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+body.light-mode .btn-theme-header { color: #000; background: rgba(0,0,0,0.05); }
+
+.semaforo-container { display: flex; gap: 10px; margin-bottom: 15px; }
+.btn-semaforo { flex: 1; padding: 15px 5px; border: none; border-radius: 12px; font-weight: 800; font-size: 0.8rem; cursor: pointer; opacity: 0.4; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.btn-semaforo.active { opacity: 1; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid white; }
+.s-rojo { background-color: #E74C3C; color: white; }
+.s-naranja { background-color: #E67E22; color: white; }
+.s-verde { background-color: #27AE60; color: white; }
+
+/* Estilos del PDF Flash */
+.pdf-semaforo-circle { width: 140px; height: 140px; border-radius: 50%; margin: 30px auto; display: flex; justify-content: center; align-items: center; color: white; font-weight: 900; font-size: 22px; border: 5px solid rgba(0,0,0,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 1px;}
+.pdf-semaforo-BAJA { background-color: #E74C3C; }
+.pdf-semaforo-DUDA { background-color: #E67E22; }
+.pdf-semaforo-CONTINÚA { background-color: #27AE60; }
