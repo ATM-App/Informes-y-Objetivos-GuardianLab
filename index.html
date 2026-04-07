@@ -46,7 +46,7 @@
             <div class="modern-card form-card" style="text-align:center;">
                 <div class="profile-upload-container">
                     <label for="fotoPorteroInput">
-                        <div class="image-wrapper"><img id="fotoPreview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="></div>
+                        <div class="image-wrapper"><img id="fotoPreview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4="></div>
                         <div class="upload-icon">📷</div>
                     </label>
                     <input type="file" id="fotoPorteroInput" accept="image/*" onchange="window.previsualizarFoto()">
@@ -120,14 +120,19 @@
                 <h3 class="section-divider" style="color:var(--atm-red); margin-top:0;">1. Selección de Portero</h3>
                 <select id="flash-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
                 
-                <h3 class="section-divider" style="color:var(--atm-red)">2. Valoración Ofensiva y Defensiva</h3>
-                <textarea id="flash-obs" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento ofensivo y defensivo actual (3-4 líneas)..." style="height:120px;"></textarea>
+                <h3 class="section-divider" style="color:var(--atm-red)">2. Valoraciones Técnico-Tácticas</h3>
+                
+                <label style="font-size:0.8rem; color:var(--text-sec); margin-bottom:5px; display:block; font-weight:bold;">Valoración Ofensiva:</label>
+                <textarea id="flash-obs-of" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento ofensivo (3-4 líneas)..." style="height:90px; margin-bottom:15px;"></textarea>
+
+                <label style="font-size:0.8rem; color:var(--text-sec); margin-bottom:5px; display:block; font-weight:bold;">Valoración Defensiva:</label>
+                <textarea id="flash-obs-def" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento defensivo (3-4 líneas)..." style="height:90px;"></textarea>
                 
                 <h3 class="section-divider" style="color:var(--atm-red)">3. Estado / Semáforo de Seguimiento</h3>
                 <div class="semaforo-container">
                     <button class="btn-semaforo s-rojo" onclick="window.selectEstadoFlash('BAJA')"><span style="font-size:1.5rem; margin-bottom:5px;">🔴</span> BAJA</button>
                     <button class="btn-semaforo s-naranja" onclick="window.selectEstadoFlash('DUDA')"><span style="font-size:1.5rem; margin-bottom:5px;">🟠</span> DUDA</button>
-                    <button class="btn-semaforo s-verde" onclick="window.selectEstadoFlash('CONTINÚA')"><span style="font-size:1.5rem; margin-bottom:5px;">🟢</span> CONTINÚA</button>
+                    <button class="btn-semaforo s-verde" onclick="window.selectEstadoFlash('SEGUIMIENTO')"><span style="font-size:1.5rem; margin-bottom:5px;">🟢</span> SEGUIMIENTO</button>
                 </div>
                 <input type="hidden" id="flash-estado" value="">
 
