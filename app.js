@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR (COLORES CORREGIDOS Y PERFECTOS)
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -920,7 +921,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-function generarGraficoRadarInvisible(rndId, val) {
+// RADAR ANTI-CUELGUE TABLET (EN PNG TRANSPARENTE)
+window.generarGraficoRadarInvisible = function(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -931,8 +933,10 @@ function generarGraficoRadarInvisible(rndId, val) {
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 800; canvas.height = 800;
-    canvas.style.position = 'absolute'; canvas.style.top = '-9999px';
+    canvas.width = 800;
+    canvas.height = 800;
+    canvas.style.position = 'absolute';
+    canvas.style.top = '-9999px';
     document.body.appendChild(canvas);
 
     const chart = new Chart(canvas, {
@@ -963,15 +967,19 @@ function generarGraficoRadarInvisible(rndId, val) {
         }
     });
 
+    // Se guarda como PNG para mantener fondo transparente en el PDF
     setTimeout(() => {
         try {
             const imgB64 = chart.toBase64Image('image/png', 1.0);
-            const imgTarget = document.getElementById(`radar-img-${rndId}`);
-            if(imgTarget) { 
-                imgTarget.src = imgB64; 
-                imgTarget.style.display = 'block'; 
-            }
-            chart.destroy(); canvas.remove();
+            
+            const imgs = document.querySelectorAll('.radar-img-' + rndId);
+            imgs.forEach(img => {
+                img.src = imgB64;
+                img.style.display = 'block';
+            });
+            
+            chart.destroy();
+            canvas.remove();
         } catch(e) { console.error("Error al generar radar:", e); }
     }, 150);
 }
@@ -1373,7 +1381,7 @@ window.generarPDFTorneo = function() {
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
             setTimeout(() => {
-                generarGraficoRadarInvisible(rndId, datos.val);
+                window.generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
 
             cancelarEdicionTorneo(); 
@@ -1626,7 +1634,7 @@ window.verPDFTorneoGuardado = function(id) {
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
 
                 setTimeout(() => {
-                    generarGraficoRadarInvisible(rndId, data.datos.val);
+                    window.generarGraficoRadarInvisible(rndId, data.datos.val);
                 }, 100);
 
             }).catch(err => console.error("Error al obtener portero:", err));
@@ -1634,10 +1642,66 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA (NATIVA POR CSS)
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA (NATIVA AL 100%, SIN CLONAR)
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
-    setTimeout(() => {
-        window.print();
-    }, 100);
+    // Como el CSS ya oculta todo el body y solo muestra el Modal en formato A4, 
+    // simplemente llamamos a print(). Sin clonar nada, sin pantallazos blancos.
+    window.print();
+}
+
+// COMPARTIR WHATSAPP A MÁXIMA CALIDAD Y SIN BORDES BLANCOS
+window.compartirPDFWhatsAppActual = function(e) {
+    window.haptic('medium');
+    const btn = e ? e.currentTarget : null;
+    let originalHtml = "";
+    if(btn) {
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = "⏳ GENERANDO...";
+        btn.disabled = true;
+    }
+
+    const element = document.getElementById('preview-content');
+    
+    // Eliminamos márgenes en pantalla de forma temporal para que el PDF se corte perfecto en A4
+    const slides = element.querySelectorAll('.pdf-cover, .pdf-slide');
+    slides.forEach(s => { s.style.margin = '0'; s.style.boxShadow = 'none'; });
+    
+    const opt = {
+        margin: 0,
+        filename: 'Informe_Tecnico_ATM.pdf',
+        image: { type: 'jpeg', quality: 1.0 }, // Máxima calidad
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // Escala ultra HD para WhatsApp
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).outputPdf('blob').then(function(blob) {
+        // Restaurar márgenes en pantalla para que se siga viendo bien
+        slides.forEach(s => { s.style.margin = ''; s.style.boxShadow = ''; });
+        
+        const file = new File([blob], 'Informe_Tecnico_ATM.pdf', { type: 'application/pdf' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: 'Informe Técnico ATM',
+                text: '⚽ Adjunto la Ficha Técnica oficial generada desde GuardianLab ATM:'
+            }).catch(err => console.log('Error al compartir por WhatsApp:', err));
+        } else {
+            alert("Tu dispositivo o navegador no permite adjuntar archivos PDF directamente a WhatsApp por esta vía. Por favor, pulsa '🖨️ PDF' (Imprimir), guárdalo y envíalo manualmente.");
+        }
+        
+        if(btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }).catch(err => {
+        console.error(err);
+        slides.forEach(s => { s.style.margin = ''; s.style.boxShadow = ''; });
+        alert("Error al generar el PDF para WhatsApp.");
+        if(btn) {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    });
 }
