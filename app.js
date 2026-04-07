@@ -1804,15 +1804,19 @@ function construirHTMLFlash(p, f, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     
-    let colorClase = "";
     let colorHex = "";
-    if(f.estado === 'NO CONTINÚA') { colorClase = "pdf-semaforo-BAJA"; colorHex = "#E74C3C"; }
-    if(f.estado === 'SEGUIMIENTO') { colorClase = "pdf-semaforo-DUDA"; colorHex = "#E67E22"; }
-    if(f.estado === 'CONTINÚA') { colorClase = "pdf-semaforo-CONTINÚA"; colorHex = "#27AE60"; }
+    if(f.estado === 'NO CONTINÚA') { colorHex = "#E74C3C"; }
+    if(f.estado === 'SEGUIMIENTO') { colorHex = "#E67E22"; }
+    if(f.estado === 'CONTINÚA') { colorHex = "#27AE60"; }
 
     let propuestaHtml = '';
     if(f.estado === 'CONTINÚA' && f.propuesta) {
-        propuestaHtml = `<div style="text-align:center; font-size:14px; color: ${colorHex}; font-weight:900; margin-top:10px;">PROPUESTA: ${f.propuesta}</div>`;
+        propuestaHtml = `
+        <div style="display: flex; justify-content: center; margin-top: 15px;">
+            <div style="background-color: #1C2C5B !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color: white !important; padding: 8px 25px; border-radius: 25px; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; border: 2px solid ${colorHex};">
+                PROPUESTA: <span style="color: ${colorHex} !important;">${f.propuesta}</span>
+            </div>
+        </div>`;
     }
 
     const rowRat = (lbl, val) => `<div class="pdf-rating-row"><span>${lbl}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
@@ -1868,7 +1872,7 @@ function construirHTMLFlash(p, f, docId) {
         <div class="pdf-section-header" style="background: #1C2C5B; font-size: 10px; padding: 5px;">ESTADO DE SEGUIMIENTO Y JUSTIFICACIÓN</div>
         
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
-            <div class="pdf-semaforo-circle ${colorClase}" style="margin:10px 0; width:100px; height:100px; font-size:12px; flex-shrink:0; text-align:center;">
+            <div style="background-color: ${colorHex} !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color: white !important; margin:10px 0; width:110px; height:110px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: 900; flex-shrink: 0; text-align: center; border: 4px solid rgba(0,0,0,0.1); box-shadow: inset 0 0 10px rgba(0,0,0,0.2);">
                 ${f.estado}
             </div>
             <div style="flex:1; background:#fff; border:1px solid #ccc; padding:10px; font-size:10px; min-height:80px; border-radius:5px;">
