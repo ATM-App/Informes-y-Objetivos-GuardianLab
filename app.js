@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR (COLORES CORREGIDOS Y PERFECTOS)
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -540,7 +539,7 @@ function generarPDFObjetivos(reporte, docId) {
             ${qrHtml}
             <div class="cover-content">
                 <img src="${foto}" class="cover-photo">
-                <div class="cover-title">SEGUIMIENTO DE OBJETIVOS</div>
+                <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
                 <div class="cover-details">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
@@ -1554,8 +1553,8 @@ function construirHTMLTorneo(p, d, docId, rndId) {
 
         <div class="pdf-section-header">PERFIL TÉCNICO, TÁCTICO Y PSICOLÓGICO</div>
         <div class="pdf-row" style="margin-bottom: 5px;">
-            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
-                <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
+            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px; height:160px; box-sizing:border-box;">
+                <div style="width:100%; height:100%; position:relative; display:flex; justify-content:center; align-items:center;">
                     <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
@@ -1642,66 +1641,10 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA (NATIVA AL 100%, SIN CLONAR)
+// IMPRESIÓN DIRECTA NATIVA (CERO CÓDIGO EXTRA, SOLO CSS)
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
-    // Como el CSS ya oculta todo el body y solo muestra el Modal en formato A4, 
-    // simplemente llamamos a print(). Sin clonar nada, sin pantallazos blancos.
-    window.print();
-}
-
-// COMPARTIR WHATSAPP A MÁXIMA CALIDAD Y SIN BORDES BLANCOS
-window.compartirPDFWhatsAppActual = function(e) {
-    window.haptic('medium');
-    const btn = e ? e.currentTarget : null;
-    let originalHtml = "";
-    if(btn) {
-        originalHtml = btn.innerHTML;
-        btn.innerHTML = "⏳ GENERANDO...";
-        btn.disabled = true;
-    }
-
-    const element = document.getElementById('preview-content');
-    
-    // Eliminamos márgenes en pantalla de forma temporal para que el PDF se corte perfecto en A4
-    const slides = element.querySelectorAll('.pdf-cover, .pdf-slide');
-    slides.forEach(s => { s.style.margin = '0'; s.style.boxShadow = 'none'; });
-    
-    const opt = {
-        margin: 0,
-        filename: 'Informe_Tecnico_ATM.pdf',
-        image: { type: 'jpeg', quality: 1.0 }, // Máxima calidad
-        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // Escala ultra HD para WhatsApp
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).outputPdf('blob').then(function(blob) {
-        // Restaurar márgenes en pantalla para que se siga viendo bien
-        slides.forEach(s => { s.style.margin = ''; s.style.boxShadow = ''; });
-        
-        const file = new File([blob], 'Informe_Tecnico_ATM.pdf', { type: 'application/pdf' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({
-                files: [file],
-                title: 'Informe Técnico ATM',
-                text: '⚽ Adjunto la Ficha Técnica oficial generada desde GuardianLab ATM:'
-            }).catch(err => console.log('Error al compartir por WhatsApp:', err));
-        } else {
-            alert("Tu dispositivo o navegador no permite adjuntar archivos PDF directamente a WhatsApp por esta vía. Por favor, pulsa '🖨️ PDF' (Imprimir), guárdalo y envíalo manualmente.");
-        }
-        
-        if(btn) {
-            btn.innerHTML = originalHtml;
-            btn.disabled = false;
-        }
-    }).catch(err => {
-        console.error(err);
-        slides.forEach(s => { s.style.margin = ''; s.style.boxShadow = ''; });
-        alert("Error al generar el PDF para WhatsApp.");
-        if(btn) {
-            btn.innerHTML = originalHtml;
-            btn.disabled = false;
-        }
-    });
+    setTimeout(() => {
+        window.print();
+    }, 200);
 }
