@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargarHistorialObjetivos();
                 cargarHistorialInformes();
                 cargarHistorialTorneos(); 
-                cargarHistorialFlash(); // Nuevo historial
+                cargarHistorialFlash(); // Carga historial Flash
             }
         }
     });
@@ -1591,3 +1591,273 @@ function construirHTMLTorneo(p, d, docId, rndId) {
                     ${rowRat("Actitud tras Gol", val.actitudGol)}
                 </div>
                 <div class="pdf-rating-box" style="margin:0;">
+                    <div class="pdf-box-title" style="background:#ddd; color:#333; border:none; margin-bottom:2px;">TÁCTICA</div>
+                    ${rowRat("Rend. 1vs1", val.unoVuno)}
+                    ${rowRat("Organización", val.organizacion)}
+                    ${rowRat("Comunicación", val.comunicacion)}
+                </div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header">OBSERVACIONES TÉCNICAS</div>
+        <div style="display:flex; gap:10px;">
+            <div class="pdf-rating-box" style="flex:1;">
+                <div class="pdf-box-title" style="background:#27AE60; color:white; border:none;">PUNTOS POSITIVOS</div>
+                <div class="pdf-text-obs">${obs.pos || '-'}</div>
+            </div>
+            <div class="pdf-rating-box" style="flex:1;">
+                <div class="pdf-box-title" style="background:#E74C3C; color:white; border:none;">ÁREAS DE MEJORA</div>
+                <div class="pdf-text-obs">${obs.neg || '-'}</div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header">SITUACIONES ESPECÍFICAS Y CONCLUSIÓN</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+            <div class="pdf-rating-box"><div class="pdf-box-title">Rendimiento en Penaltis</div><div class="pdf-text-obs">${obs.penaltis || '-'}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title">Acciones Decisivas</div><div class="pdf-text-obs">${obs.decisivas || '-'}</div></div>
+            <div class="pdf-rating-box"><div class="pdf-box-title" style="background:#1C2C5B; color:white;">Trascendencia Torneo</div><div class="pdf-text-obs">${obs.trans || '-'}</div></div>
+        </div>
+
+        <div style="margin-top:auto; padding-top:5px; text-align:center;">
+            <div style="font-size:11px; font-weight:bold; color:#1C2C5B; margin-bottom:4px; text-transform:uppercase;">VALORACIÓN GENERAL DEL TORNEO</div>
+            <div class="${valClass}" style="display:inline-block; padding:8px 30px; border-radius:20px; font-size:16px; font-weight:800; border: 2px solid rgba(0,0,0,0.1);">${d.val_gen || 'NO EVALUADO'}</div>
+        </div>
+
+        <div style="text-align:center; font-size:8px; margin-top:4px; color:#999;">Página 2 de 2 • GuardianLab ATM</div>
+    </div>`;
+
+    return coverHtml + page2Html + page3Html;
+}
+
+window.verPDFTorneoGuardado = function(id) {
+    db.collection("informes_torneo").doc(id).get().then(doc => {
+        if(doc.exists) {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+                
+                const rndId = Date.now();
+                const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
+                
+                document.body.classList.remove('print-landscape');
+                document.body.classList.add('print-portrait');
+                
+                const pEl = document.getElementById('preview-content');
+                if(pEl) pEl.innerHTML = html; 
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+
+                setTimeout(() => {
+                    window.generarGraficoRadarInvisible(rndId, data.datos.val);
+                }, 100);
+
+            }).catch(err => console.error("Error al obtener portero:", err));
+        }
+    }).catch(err => console.error("Error al obtener informe:", err));
+}
+
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA
+window.imprimirPDFNativo = function() { 
+    window.haptic('light');
+    const pEl = document.getElementById('preview-content');
+    const prEl = document.getElementById('printable-area');
+    
+    // 1. Clonar el contenido al contenedor de impresión
+    prEl.innerHTML = pEl.innerHTML; 
+    
+    // 2. Ocultar todo lo demás en la página temporalmente para evitar conflictos en tablets
+    const children = Array.from(document.body.children);
+    const hiddenStates = [];
+    
+    children.forEach(child => {
+        if (child.id !== 'printable-area' && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE') {
+            hiddenStates.push({ el: child, display: child.style.display });
+            child.style.display = 'none';
+        }
+    });
+
+    // 3. Forzar la visualización estricta del documento
+    prEl.style.display = 'block';
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#ffffff';
+
+    // 4. Dar tiempo al dispositivo para renderizar antes de llamar a la impresora
+    setTimeout(() => {
+        window.print();
+        
+        // 5. Restaurar la interfaz después de generar el PDF
+        setTimeout(() => { 
+            prEl.style.display = 'none';
+            prEl.innerHTML = ''; 
+            document.body.style.backgroundColor = originalBg;
+            hiddenStates.forEach(state => {
+                state.el.style.display = state.display;
+            });
+        }, 3000); // Tiempo prudencial para que el diálogo nativo ya haya capturado la pantalla
+    }, 500);
+}
+
+
+// ==========================================
+// --- MÓDULO FLASH (VALORACIÓN RÁPIDA) ---
+// ==========================================
+
+window.selectEstadoFlash = function(estado) {
+    window.haptic('light');
+    document.querySelectorAll('.btn-semaforo').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('flash-estado').value = estado;
+    
+    if(estado === 'BAJA') document.querySelector('.s-rojo').classList.add('active');
+    if(estado === 'DUDA') document.querySelector('.s-naranja').classList.add('active');
+    if(estado === 'SEGUIMIENTO') document.querySelector('.s-verde').classList.add('active');
+}
+
+window.generarPDFFlash = function() {
+    const pid = document.getElementById('flash-portero').value;
+    const obsOf = document.getElementById('flash-obs-of').value;
+    const obsDef = document.getElementById('flash-obs-def').value;
+    const estado = document.getElementById('flash-estado').value;
+
+    if(!pid || (!obsOf && !obsDef) || !estado) return alert("Por favor, selecciona un portero, escribe una valoración y selecciona el estado en el semáforo.");
+
+    const btn = document.getElementById('btn-save-flash');
+    btn.innerText = "Guardando..."; btn.disabled = true;
+
+    const payload = {
+        porteroId: pid,
+        fecha: new Date().toISOString().split('T')[0],
+        observacionOfensiva: obsOf,
+        observacionDefensiva: obsDef,
+        estado: estado,
+        timestamp: Date.now()
+    };
+
+    db.collection('informes_flash').add(payload).then(docRef => {
+        window.haptic('success');
+        
+        db.collection("porteros").doc(pid).get().then(pDoc => {
+            const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+            
+            const html = construirHTMLFlash(pData, obsOf, obsDef, estado, docRef.id);
+            
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            
+            const pEl = document.getElementById('preview-content');
+            if(pEl) pEl.innerHTML = html; 
+            document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+
+            // Limpiar formulario tras guardar
+            document.getElementById('flash-portero').value = '';
+            document.getElementById('flash-obs-of').value = '';
+            document.getElementById('flash-obs-def').value = '';
+            document.getElementById('flash-estado').value = '';
+            document.querySelectorAll('.btn-semaforo').forEach(b => b.classList.remove('active'));
+            
+            btn.innerText = "💾 GENERAR INFORME FLASH"; btn.disabled = false;
+        });
+    }).catch(err => {
+        console.error(err);
+        alert("Error al guardar.");
+        btn.innerText = "💾 GENERAR INFORME FLASH"; btn.disabled = false;
+    });
+}
+
+function construirHTMLFlash(p, obsOf, obsDef, estado, docId) {
+    p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
+    const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+    
+    let colorClase = "";
+    let colorHex = "";
+    if(estado === 'BAJA') { colorClase = "pdf-semaforo-BAJA"; colorHex = "#E74C3C"; }
+    if(estado === 'DUDA') { colorClase = "pdf-semaforo-DUDA"; colorHex = "#E67E22"; }
+    if(estado === 'SEGUIMIENTO') { colorClase = "pdf-semaforo-SEGUIMIENTO"; colorHex = "#27AE60"; }
+
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    return `
+    <div class="pdf-slide" style="justify-content: flex-start;">
+        <div class="pdf-top-header" style="border-bottom: 3px solid ${colorHex}; padding-bottom: 10px; margin-bottom: 20px;">
+            <div>
+                <div class="pdf-top-title">VALORACIÓN RÁPIDA</div>
+                <div class="pdf-top-subtitle">${dateStr}</div>
+            </div>
+            <img src="ESCUDO ATM.png" style="height:50px;">
+        </div>
+
+        <div class="pdf-player-card" style="margin-bottom: 25px; padding: 15px; background: #f9f9f9; border-color: #ddd;">
+            <img src="${foto}" class="pdf-player-photo" style="width: 80px; height: 100px;">
+            <div class="pdf-player-info">
+                <div class="pdf-player-name" style="font-size: 18px; margin-bottom: 8px;">${p.nombre}</div>
+                <div class="pdf-info-row" style="font-size: 11px;"><span>EQUIPO: ${p.equipo}</span><span>AÑO: ${p.anio || '-'}</span></div>
+                <div class="pdf-info-row" style="font-size: 11px;"><span>CATEGORÍA: ${p.categoria}</span><span>PIE: ${p.pie || '-'}</span></div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">VALORACIÓN OFENSIVA</div>
+        <div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 15px; font-size: 12px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; margin-bottom: 15px;">${obsOf || '-'}</div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">VALORACIÓN DEFENSIVA</div>
+        <div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 15px; font-size: 12px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; margin-bottom: 30px;">${obsDef || '-'}</div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">ESTADO DE SEGUIMIENTO (SEMÁFORO)</div>
+        
+        <div class="pdf-semaforo-circle ${colorClase}">
+            ${estado}
+        </div>
+
+        <div style="margin-top:auto; position:absolute; bottom:25px; width:100%; left:0; text-align:center; font-size:9px; color:#999; border-top: 1px solid #eee; padding-top:10px;">
+            Documento de uso interno • GuardianLab ATM • Departamento de Porteros
+        </div>
+    </div>`;
+}
+
+function cargarHistorialFlash() {
+    db.collection("informes_flash").orderBy("timestamp", "desc").limit(15).onSnapshot(snap => {
+        const cont = document.getElementById('lista-flash-guardados');
+        if(snap.empty) { cont.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">No hay valoraciones rápidas aún.</div>'; return; }
+        cont.innerHTML = '';
+        snap.forEach(doc => {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                if(pDoc.exists) {
+                    const p = pDoc.data();
+                    let icon = '🟢';
+                    if(data.estado === 'BAJA') icon = '🔴';
+                    if(data.estado === 'DUDA') icon = '🟠';
+                    
+                    cont.innerHTML += `
+                    <div class="eval-card">
+                        <div>
+                            <div style="font-weight:bold;">${p.nombre}</div>
+                            <div style="font-size:0.8rem; color:var(--text-sec);">${icon} Estado: ${data.estado}</div>
+                            <div style="font-size:0.7rem; color:var(--atm-red);">${data.fecha}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-icon-action" onclick="window.verPDFFlashGuardado('${doc.id}')" title="Ver PDF">📄</button>
+                            <button class="btn-trash" onclick="db.collection('informes_flash').doc('${doc.id}').delete()" title="Borrar">🗑️</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    });
+}
+
+window.verPDFFlashGuardado = function(id) {
+    db.collection("informes_flash").doc(id).get().then(doc => {
+        if(doc.exists) {
+            const data = doc.data();
+            db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
+                const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
+                const html = construirHTMLFlash(pData, data.observacionOfensiva, data.observacionDefensiva, data.estado, doc.id);
+                
+                document.body.classList.remove('print-landscape');
+                document.body.classList.add('print-portrait');
+                
+                const pEl = document.getElementById('preview-content');
+                if(pEl) pEl.innerHTML = html; 
+                document.getElementById('modal-pdf-preview').style.display = 'flex'; 
+            });
+        }
+    });
+}
