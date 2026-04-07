@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES DINÁMICOS
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -285,7 +286,7 @@ window.generarCromo = function(porteroId) {
             }
             
             const ovr = Math.round((v_ref + v_blc + v_saq + v_pos + v_lid + v_fis) / 6);
-            const defFoto = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
+            const defFoto = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA2IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
             
             const cromoHtml = `
             <div class="cromo-container" id="cromo-capture">
@@ -541,7 +542,7 @@ function generarPDFObjetivos(reporte, docId) {
                 <img src="${foto}" class="cover-photo">
                 <div class="cover-subtitle">SEGUIMIENTO DE OBJETIVOS</div>
                 <div class="cover-name-premium">${p.nombre}</div>
-                <div class="cover-details">
+                <div class="cover-info-bar">
                     <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span>${reporte.fecha}</span>
                 </div>
             </div>
@@ -550,6 +551,7 @@ function generarPDFObjetivos(reporte, docId) {
 
         const html = coverHtml + `<div class="pdf-slide"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
         
+        document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait');
         const pEl = document.getElementById('preview-content');
         if(pEl) pEl.innerHTML = html;
         document.getElementById('modal-pdf-preview').style.display = 'flex';
@@ -762,6 +764,7 @@ window.generarPDFInforme = function() {
         db.collection("porteros").doc(pid).get().then(doc => { 
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             const html = construirHTMLInformeVertical(pData, datos, docId); 
+            document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); 
             
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
@@ -890,6 +893,8 @@ window.verPDFInformeGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => { 
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 const html = construirHTMLInformeVertical(pData, data.datos, doc.id); 
+                document.body.classList.remove('print-landscape'); 
+                document.body.classList.add('print-portrait'); 
                 
                 const pEl = document.getElementById('preview-content');
                 if(pEl) pEl.innerHTML = html; 
@@ -1375,10 +1380,14 @@ window.generarPDFTorneo = function() {
             const rndId = Date.now();
             const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
+            // Generar el radar (crea imagen base64 y la inyecta)
             setTimeout(() => {
                 window.generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
@@ -1553,8 +1562,8 @@ function construirHTMLTorneo(p, d, docId, rndId) {
 
         <div class="pdf-section-header">PERFIL TÉCNICO, TÁCTICO Y PSICOLÓGICO</div>
         <div class="pdf-row" style="margin-bottom: 5px;">
-            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px; height:160px; box-sizing:border-box;">
-                <div style="width:100%; height:100%; position:relative; display:flex; justify-content:center; align-items:center;">
+            <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
+                <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
                     <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
@@ -1628,6 +1637,9 @@ window.verPDFTorneoGuardado = function(id) {
                 const rndId = Date.now();
                 const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
                 
+                document.body.classList.remove('print-landscape');
+                document.body.classList.add('print-portrait');
+                
                 const pEl = document.getElementById('preview-content');
                 if(pEl) pEl.innerHTML = html; 
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
@@ -1641,9 +1653,15 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// IMPRESIÓN DIRECTA NATIVA (CERO CÓDIGO EXTRA, SOLO CSS)
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
+    const pEl = document.getElementById('preview-content');
+    const prEl = document.getElementById('printable-area');
+    
+    // Clonamos el HTML de la vista previa al área de impresión oculta
+    prEl.innerHTML = pEl.innerHTML; 
+    
     setTimeout(() => {
         window.print();
     }, 200);
