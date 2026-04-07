@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargarHistorialObjetivos();
                 cargarHistorialInformes();
                 cargarHistorialTorneos(); 
-                cargarHistorialFlash(); // Carga historial Flash
+                cargarHistorialFlash(); 
             }
         }
     });
@@ -1692,7 +1692,7 @@ window.imprimirPDFNativo = function() {
             hiddenStates.forEach(state => {
                 state.el.style.display = state.display;
             });
-        }, 3000); // Tiempo prudencial para que el diálogo nativo ya haya capturado la pantalla
+        }, 3000); 
     }, 500);
 }
 
@@ -1706,9 +1706,18 @@ window.selectEstadoFlash = function(estado) {
     document.querySelectorAll('.btn-semaforo').forEach(btn => btn.classList.remove('active'));
     document.getElementById('flash-estado').value = estado;
     
-    if(estado === 'BAJA') document.querySelector('.s-rojo').classList.add('active');
-    if(estado === 'DUDA') document.querySelector('.s-naranja').classList.add('active');
-    if(estado === 'SEGUIMIENTO') document.querySelector('.s-verde').classList.add('active');
+    if(estado === 'NO CONTINÚA') document.querySelector('.s-rojo').classList.add('active');
+    if(estado === 'SEGUIMIENTO') document.querySelector('.s-naranja').classList.add('active');
+    if(estado === 'CONTINÚA') document.querySelector('.s-verde').classList.add('active');
+
+    // Mostrar propuesta solo si es CONTINÚA
+    const propuestaContainer = document.getElementById('flash-propuesta-container');
+    if(estado === 'CONTINÚA') {
+        propuestaContainer.style.display = 'flex';
+    } else {
+        propuestaContainer.style.display = 'none';
+        document.getElementById('flash-propuesta').value = '';
+    }
 }
 
 window.generarPDFFlash = function() {
@@ -1716,8 +1725,12 @@ window.generarPDFFlash = function() {
     const obsOf = document.getElementById('flash-obs-of').value;
     const obsDef = document.getElementById('flash-obs-def').value;
     const estado = document.getElementById('flash-estado').value;
+    const justificacion = document.getElementById('flash-justificacion').value;
 
-    if(!pid || (!obsOf && !obsDef) || !estado) return alert("Por favor, selecciona un portero, escribe una valoración y selecciona el estado en el semáforo.");
+    if(!pid || !estado) return alert("Por favor, selecciona un portero y el estado en el semáforo.");
+    if(estado === 'CONTINÚA' && !document.getElementById('flash-propuesta').value) {
+        return alert("Has marcado CONTINÚA. Por favor, selecciona una propuesta (Academia / Alto Rendimiento).");
+    }
 
     const btn = document.getElementById('btn-save-flash');
     btn.innerText = "Guardando..."; btn.disabled = true;
@@ -1725,9 +1738,23 @@ window.generarPDFFlash = function() {
     const payload = {
         porteroId: pid,
         fecha: new Date().toISOString().split('T')[0],
+        perfil: {
+            tipo: document.getElementById('flash-tipo-portero').value,
+            altura: document.getElementById('flash-altura').value,
+            nivel: document.getElementById('flash-nivel').value,
+            potencial: document.getElementById('flash-potencial').value
+        },
+        psico: {
+            personalidad: document.getElementById('flash-personalidad').value,
+            comunicacion: document.getElementById('flash-comunicacion').value,
+            concentracion: document.getElementById('flash-concentracion').value,
+            resiliencia: document.getElementById('flash-resiliencia').value
+        },
         observacionOfensiva: obsOf,
         observacionDefensiva: obsDef,
         estado: estado,
+        propuesta: document.getElementById('flash-propuesta').value,
+        justificacion: justificacion,
         timestamp: Date.now()
     };
 
@@ -1737,7 +1764,7 @@ window.generarPDFFlash = function() {
         db.collection("porteros").doc(pid).get().then(pDoc => {
             const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             
-            const html = construirHTMLFlash(pData, obsOf, obsDef, estado, docRef.id);
+            const html = construirHTMLFlash(pData, payload, docRef.id);
             
             document.body.classList.remove('print-landscape'); 
             document.body.classList.add('print-portrait');
@@ -1748,10 +1775,21 @@ window.generarPDFFlash = function() {
 
             // Limpiar formulario tras guardar
             document.getElementById('flash-portero').value = '';
+            document.getElementById('flash-tipo-portero').value = '';
+            document.getElementById('flash-altura').value = '';
+            document.getElementById('flash-nivel').value = '';
+            document.getElementById('flash-potencial').value = '';
+            document.getElementById('flash-personalidad').value = '';
+            document.getElementById('flash-comunicacion').value = '';
+            document.getElementById('flash-concentracion').value = '';
+            document.getElementById('flash-resiliencia').value = '';
             document.getElementById('flash-obs-of').value = '';
             document.getElementById('flash-obs-def').value = '';
             document.getElementById('flash-estado').value = '';
+            document.getElementById('flash-propuesta').value = '';
+            document.getElementById('flash-justificacion').value = '';
             document.querySelectorAll('.btn-semaforo').forEach(b => b.classList.remove('active'));
+            document.getElementById('flash-propuesta-container').style.display = 'none';
             
             btn.innerText = "💾 GENERAR INFORME FLASH"; btn.disabled = false;
         });
@@ -1762,50 +1800,85 @@ window.generarPDFFlash = function() {
     });
 }
 
-function construirHTMLFlash(p, obsOf, obsDef, estado, docId) {
+function construirHTMLFlash(p, f, docId) {
     p = p || { nombre: 'Desconocido', equipo: '-', categoria: '-', anio: '-', nacionalidad: '-', pie: '-', anosClub: '-' };
     const foto = p.foto || "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48cGF0aCBkPSJNMTIgOGEzIDMgMCAxIDAgMCA6IDMgMyAwIDAgMCAwLTZ6bS01IDlsMTAgMGE3IDcgMCAwIDEtMTAgMHoiLz48L3N2Zz4=";
     
     let colorClase = "";
     let colorHex = "";
-    if(estado === 'BAJA') { colorClase = "pdf-semaforo-BAJA"; colorHex = "#E74C3C"; }
-    if(estado === 'DUDA') { colorClase = "pdf-semaforo-DUDA"; colorHex = "#E67E22"; }
-    if(estado === 'SEGUIMIENTO') { colorClase = "pdf-semaforo-SEGUIMIENTO"; colorHex = "#27AE60"; }
+    if(f.estado === 'NO CONTINÚA') { colorClase = "pdf-semaforo-BAJA"; colorHex = "#E74C3C"; }
+    if(f.estado === 'SEGUIMIENTO') { colorClase = "pdf-semaforo-DUDA"; colorHex = "#E67E22"; }
+    if(f.estado === 'CONTINÚA') { colorClase = "pdf-semaforo-CONTINÚA"; colorHex = "#27AE60"; }
 
-    const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+    let propuestaHtml = '';
+    if(f.estado === 'CONTINÚA' && f.propuesta) {
+        propuestaHtml = `<div style="text-align:center; font-size:14px; color: ${colorHex}; font-weight:900; margin-top:10px;">PROPUESTA: ${f.propuesta}</div>`;
+    }
+
+    const rowRat = (lbl, val) => `<div class="pdf-rating-row"><span>${lbl}</span><span class="pdf-rating-val">${val||'-'}</span></div>`;
 
     return `
     <div class="pdf-slide" style="justify-content: flex-start;">
-        <div class="pdf-top-header" style="border-bottom: 3px solid ${colorHex}; padding-bottom: 10px; margin-bottom: 20px;">
+        <div class="pdf-top-header" style="border-bottom: 3px solid ${colorHex}; padding-bottom: 10px; margin-bottom: 15px;">
             <div>
-                <div class="pdf-top-title">VALORACIÓN RÁPIDA</div>
-                <div class="pdf-top-subtitle">${dateStr}</div>
+                <div class="pdf-top-title">VALORACIÓN RÁPIDA (SCOUTING)</div>
+                <div class="pdf-top-subtitle">${f.fecha}</div>
             </div>
             <img src="ESCUDO ATM.png" style="height:50px;">
         </div>
 
-        <div class="pdf-player-card" style="margin-bottom: 25px; padding: 15px; background: #f9f9f9; border-color: #ddd;">
-            <img src="${foto}" class="pdf-player-photo" style="width: 80px; height: 100px;">
+        <div class="pdf-player-card" style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-color: #ddd;">
+            <img src="${foto}" class="pdf-player-photo" style="width: 60px; height: 80px;">
             <div class="pdf-player-info">
-                <div class="pdf-player-name" style="font-size: 18px; margin-bottom: 8px;">${p.nombre}</div>
-                <div class="pdf-info-row" style="font-size: 11px;"><span>EQUIPO: ${p.equipo}</span><span>AÑO: ${p.anio || '-'}</span></div>
-                <div class="pdf-info-row" style="font-size: 11px;"><span>CATEGORÍA: ${p.categoria}</span><span>PIE: ${p.pie || '-'}</span></div>
+                <div class="pdf-player-name" style="font-size: 16px; margin-bottom: 4px;">${p.nombre}</div>
+                <div class="pdf-info-row" style="font-size: 10px;"><span>EQUIPO: ${p.equipo}</span><span>AÑO: ${p.anio || '-'}</span></div>
+                <div class="pdf-info-row" style="font-size: 10px;"><span>CATEGORÍA: ${p.categoria}</span><span>PIE: ${p.pie || '-'}</span></div>
             </div>
         </div>
 
-        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">VALORACIÓN OFENSIVA</div>
-        <div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 15px; font-size: 12px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; margin-bottom: 15px;">${obsOf || '-'}</div>
-
-        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">VALORACIÓN DEFENSIVA</div>
-        <div style="background: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 15px; font-size: 12px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; margin-bottom: 30px;">${obsDef || '-'}</div>
-
-        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 12px; padding: 8px;">ESTADO DE SEGUIMIENTO (SEMÁFORO)</div>
-        
-        <div class="pdf-semaforo-circle ${colorClase}">
-            ${estado}
+        <div class="pdf-row" style="margin-bottom:15px;">
+            <div class="pdf-half-col pdf-rating-box" style="margin:0 5px 0 0;">
+                <div class="pdf-box-title" style="background:#1C2C5B; color:white; border:none;">⚽ PERFIL GENERAL</div>
+                ${rowRat("Tipo Portero", f.perfil?.tipo)}
+                ${rowRat("Altura/Envergadura", f.perfil?.altura)}
+                ${rowRat("Nivel Actual", f.perfil?.nivel)}
+                ${rowRat("Potencial", f.perfil?.potencial)}
+            </div>
+            <div class="pdf-half-col pdf-rating-box" style="margin:0 0 0 5px;">
+                <div class="pdf-box-title" style="background:#1C2C5B; color:white; border:none;">🧠 ASPECTOS PSICOLÓGICOS</div>
+                ${rowRat("Personalidad", f.psico?.personalidad)}
+                ${rowRat("Comunicación", f.psico?.comunicacion)}
+                ${rowRat("Concentración", f.psico?.concentracion)}
+                ${rowRat("Resiliencia (Error)", f.psico?.resiliencia)}
+            </div>
         </div>
 
-        <div style="margin-top:auto; position:absolute; bottom:25px; width:100%; left:0; text-align:center; font-size:9px; color:#999; border-top: 1px solid #eee; padding-top:10px;">
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 10px; padding: 5px;">VALORACIÓN TÉCNICO-TÁCTICA</div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <div class="pdf-rating-box" style="flex:1; margin:0;">
+                <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">OFENSIVA</div>
+                <div class="pdf-text-obs" style="min-height:50px;">${f.observacionOfensiva || '-'}</div>
+            </div>
+            <div class="pdf-rating-box" style="flex:1; margin:0;">
+                <div class="pdf-box-title" style="background:#ddd; color:#333; border:none;">DEFENSIVA</div>
+                <div class="pdf-text-obs" style="min-height:50px;">${f.observacionDefensiva || '-'}</div>
+            </div>
+        </div>
+
+        <div class="pdf-section-header" style="background: #1C2C5B; font-size: 10px; padding: 5px;">ESTADO DE SEGUIMIENTO Y JUSTIFICACIÓN</div>
+        
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
+            <div class="pdf-semaforo-circle ${colorClase}" style="margin:10px 0; width:100px; height:100px; font-size:12px; flex-shrink:0; text-align:center;">
+                ${f.estado}
+            </div>
+            <div style="flex:1; background:#fff; border:1px solid #ccc; padding:10px; font-size:10px; min-height:80px; border-radius:5px;">
+                <strong>JUSTIFICACIÓN:</strong><br>
+                ${f.justificacion || '-'}
+            </div>
+        </div>
+        ${propuestaHtml}
+
+        <div style="margin-top:auto; text-align:center; font-size:9px; color:#999; border-top: 1px solid #eee; padding-top:10px;">
             Documento de uso interno • GuardianLab ATM • Departamento de Porteros
         </div>
     </div>`;
@@ -1822,8 +1895,8 @@ function cargarHistorialFlash() {
                 if(pDoc.exists) {
                     const p = pDoc.data();
                     let icon = '🟢';
-                    if(data.estado === 'BAJA') icon = '🔴';
-                    if(data.estado === 'DUDA') icon = '🟠';
+                    if(data.estado === 'NO CONTINÚA') icon = '🔴';
+                    if(data.estado === 'SEGUIMIENTO') icon = '🟠';
                     
                     cont.innerHTML += `
                     <div class="eval-card">
@@ -1849,7 +1922,7 @@ window.verPDFFlashGuardado = function(id) {
             const data = doc.data();
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => {
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
-                const html = construirHTMLFlash(pData, data.observacionOfensiva, data.observacionDefensiva, data.estado, doc.id);
+                const html = construirHTMLFlash(pData, data, doc.id);
                 
                 document.body.classList.remove('print-landscape');
                 document.body.classList.add('print-portrait');

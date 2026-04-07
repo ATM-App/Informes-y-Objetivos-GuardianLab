@@ -295,7 +295,4 @@ body.light-mode .btn-theme-header { color: #000; background: rgba(0,0,0,0.05); }
 .s-verde { background-color: #27AE60; color: white; }
 
 /* Estilos del PDF Flash */
-.pdf-semaforo-circle { width: 140px; height: 140px; border-radius: 50%; margin: 30px auto; display: flex; justify-content: center; align-items: center; color: white; font-weight: 900; font-size: 22px; border: 5px solid rgba(0,0,0,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 1px;}
-.pdf-semaforo-BAJA { background-color: #E74C3C; }
-.pdf-semaforo-DUDA { background-color: #E67E22; }
-.pdf-semaforo-SEGUIMIENTO { background-color: #27AE60; }
+.pdf-semaforo-circle { width: 140px; height: 140px; border-radius: 50%; margin: 30px auto; display: flex; justify-content: center; align-items: center; color: white; font-weight: 900; font-size: 22px; border: 5px solid rgba(0,0,0,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 1px; text-align: center;}

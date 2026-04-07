@@ -120,21 +120,93 @@
                 <h3 class="section-divider" style="color:var(--atm-red); margin-top:0;">1. Selección de Portero</h3>
                 <select id="flash-portero" class="full-width" style="border: 1px solid var(--atm-red); font-weight:bold;"><option value="">Seleccionar Portero...</option></select>
                 
-                <h3 class="section-divider" style="color:var(--atm-red)">2. Valoraciones Técnico-Tácticas</h3>
-                
+                <h3 class="section-divider" style="color:var(--atm-red)">2. ⚽ Perfil General</h3>
+                <div class="row">
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec); font-weight:bold; margin-bottom:4px; display:block;">Tipo de Portero:</label>
+                        <select id="flash-tipo-portero">
+                            <option value="">-</option>
+                            <option value="Línea">Línea</option>
+                            <option value="Dominador de área">Dominador de área</option>
+                            <option value="Moderno">Moderno</option>
+                            <option value="Reactivo">Reactivo</option>
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec); font-weight:bold; margin-bottom:4px; display:block;">Altura/Envergadura:</label>
+                        <select id="flash-altura">
+                            <option value="">-</option>
+                            <option value="Alto">Alto</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Bajo">Bajo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec); font-weight:bold; margin-bottom:4px; display:block;">Nivel Actual:</label>
+                        <select id="flash-nivel">
+                            <option value="">-</option>
+                            <option value="Alto">Alto</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Bajo">Bajo</option>
+                        </select>
+                    </div>
+                    <div style="flex:1">
+                        <label style="font-size:0.7rem; color:var(--text-sec); font-weight:bold; margin-bottom:4px; display:block;">Potencial:</label>
+                        <select id="flash-potencial">
+                            <option value="">-</option>
+                            <option value="Alto">Alto</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Bajo">Bajo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">3. 🧠 Aspectos Psicológicos</h3>
+                <div class="grid-ratings">
+                    <div class="rating-item">
+                        <label>Personalidad</label>
+                        <select id="flash-personalidad" class="rating-select" style="font-size:0.9rem;">
+                            <option value="">-</option>
+                            <option value="Valiente">Valiente</option>
+                            <option value="Tímido">Tímido</option>
+                            <option value="Líder">Líder</option>
+                        </select>
+                    </div>
+                    <div class="rating-item"><label>Comunicación</label><select id="flash-comunicacion" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+                    <div class="rating-item"><label>Concentración</label><select id="flash-concentracion" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+                    <div class="rating-item"><label>Resiliencia (Error)</label><select id="flash-resiliencia" class="rating-select" onchange="window.aplicarColorSelect(this, 5)"><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+                </div>
+
+                <h3 class="section-divider" style="color:var(--atm-red)">4. Valoraciones Técnico-Tácticas</h3>
                 <label style="font-size:0.8rem; color:var(--text-sec); margin-bottom:5px; display:block; font-weight:bold;">Valoración Ofensiva:</label>
-                <textarea id="flash-obs-of" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento ofensivo (3-4 líneas)..." style="height:90px; margin-bottom:15px;"></textarea>
+                <textarea id="flash-obs-of" class="pdf-input-read" placeholder="Rendimiento ofensivo (3-4 líneas)..." style="height:90px; margin-bottom:15px;"></textarea>
 
                 <label style="font-size:0.8rem; color:var(--text-sec); margin-bottom:5px; display:block; font-weight:bold;">Valoración Defensiva:</label>
-                <textarea id="flash-obs-def" class="pdf-input-read" placeholder="Escribe aquí un resumen del rendimiento defensivo (3-4 líneas)..." style="height:90px;"></textarea>
+                <textarea id="flash-obs-def" class="pdf-input-read" placeholder="Rendimiento defensivo (3-4 líneas)..." style="height:90px;"></textarea>
                 
-                <h3 class="section-divider" style="color:var(--atm-red)">3. Estado / Semáforo de Seguimiento</h3>
+                <h3 class="section-divider" style="color:var(--atm-red)">5. Estado de Seguimiento</h3>
                 <div class="semaforo-container">
-                    <button class="btn-semaforo s-rojo" onclick="window.selectEstadoFlash('BAJA')"><span style="font-size:1.5rem; margin-bottom:5px;">🔴</span> BAJA</button>
-                    <button class="btn-semaforo s-naranja" onclick="window.selectEstadoFlash('DUDA')"><span style="font-size:1.5rem; margin-bottom:5px;">🟠</span> DUDA</button>
-                    <button class="btn-semaforo s-verde" onclick="window.selectEstadoFlash('SEGUIMIENTO')"><span style="font-size:1.5rem; margin-bottom:5px;">🟢</span> SEGUIMIENTO</button>
+                    <button class="btn-semaforo s-rojo" onclick="window.selectEstadoFlash('NO CONTINÚA')"><span style="font-size:1.5rem; margin-bottom:5px;">❌</span> NO CONTINÚA</button>
+                    <button class="btn-semaforo s-naranja" onclick="window.selectEstadoFlash('SEGUIMIENTO')"><span style="font-size:1.5rem; margin-bottom:5px;">⚖️</span> SEGUIMIENTO</button>
+                    <button class="btn-semaforo s-verde" onclick="window.selectEstadoFlash('CONTINÚA')"><span style="font-size:1.5rem; margin-bottom:5px;">✅</span> CONTINÚA</button>
                 </div>
                 <input type="hidden" id="flash-estado" value="">
+
+                <div class="row" id="flash-propuesta-container" style="display:none; margin-bottom:15px; background:rgba(0, 230, 118, 0.05); padding:10px; border-radius:10px; border:1px dashed var(--neon-green);">
+                    <div style="flex:1">
+                        <label style="font-size:0.8rem; color:var(--neon-green); font-weight:bold; margin-bottom:5px; display:block;">Propuesta (Selección Obligatoria):</label>
+                        <select id="flash-propuesta" style="border: 1px solid var(--neon-green); background:rgba(0,0,0,0.5);">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="ACADEMIA">ACADEMIA</option>
+                            <option value="ALTO RENDIMIENTO">ALTO RENDIMIENTO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="font-size:0.8rem; color:var(--text-sec); margin-bottom:5px; display:block; font-weight:bold;">Observación para justificar continuidad o no:</label>
+                <textarea id="flash-justificacion" class="pdf-input-read" placeholder="Justifica la decisión del semáforo..." style="height:90px;"></textarea>
 
                 <button id="btn-save-flash" onclick="window.generarPDFFlash()" class="btn-main" style="margin-top:20px; background: #00E676; color:#0A0F1D; font-weight:800; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);">💾 GENERAR INFORME FLASH</button>
             </div>
@@ -147,7 +219,6 @@
 
         <section id="section-informes" class="fade-in" style="display:none;">
             <div class="section-header"><h2>Informe Semestral</h2></div>
-            
             <div class="modern-card" id="form-informe-semestral">
                 <h3 class="section-divider" style="color:var(--atm-red); margin-top:0;">1. Datos e Información de Portero</h3>
                 <div class="row">
