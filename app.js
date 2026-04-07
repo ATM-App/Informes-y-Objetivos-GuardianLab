@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES DINÁMICOS
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -181,8 +180,8 @@ window.renderWebView = function(tipo, id) {
                         <h1 style="margin:0; font-size:1.8rem; font-weight:800; color:white; text-transform:uppercase;">${p.nombre}</h1>
                         <p style="margin:5px 0 15px; color:#00E676; font-weight:700; font-size:1rem;">${tipo === 'torneo' ? d.torneo : d.titulo}</p>
                         <div style="display:flex; justify-content:center; gap:10px; font-size:0.8rem; color:#aaa;">
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.categoria}</span>
-                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;">${p.equipo}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.categoria}</span>
+                            <span style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px; color:white;">${p.equipo}</span>
                         </div>
                     </div>
                 </div>
@@ -262,7 +261,6 @@ window.compartirFichaWeb = function(tipo, id) {
     }
 }
 
-// CROMO EA FC
 window.generarCromo = function(porteroId) {
     window.haptic('success');
     if(!porteroId) return alert("Selecciona un portero primero.");
@@ -551,7 +549,6 @@ function generarPDFObjetivos(reporte, docId) {
 
         const html = coverHtml + `<div class="pdf-slide"><div class="pdf-top-header"><div class="pdf-top-title">SEGUIMIENTO DE OBJETIVOS</div><img src="ESCUDO ATM.png" style="height:40px;"></div><div class="pdf-player-card" style="margin-bottom:20px;"><img src="${foto}" class="pdf-player-photo"><div class="pdf-player-info"><div class="pdf-player-name">${p.nombre}</div><div class="pdf-info-row"><span>EQUIPO: ${p.equipo}</span><span>FECHA: ${reporte.fecha}</span></div><div class="pdf-info-row" style="font-weight:bold;">NOTA MEDIA: ${media}</div></div></div><table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#f0f0f0;"><th style="padding:10px; text-align:left">Acción</th><th style="padding:10px; text-align:center;">Nivel</th><th style="padding:10px; text-align:center;">Nota</th></tr></thead><tbody>${filas}</tbody></table>${obsHtml}</div>`;
         
-        document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait');
         const pEl = document.getElementById('preview-content');
         if(pEl) pEl.innerHTML = html;
         document.getElementById('modal-pdf-preview').style.display = 'flex';
@@ -764,7 +761,6 @@ window.generarPDFInforme = function() {
         db.collection("porteros").doc(pid).get().then(doc => { 
             const pData = doc.exists ? doc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
             const html = construirHTMLInformeVertical(pData, datos, docId); 
-            document.body.classList.remove('print-landscape'); document.body.classList.add('print-portrait'); 
             
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
@@ -893,8 +889,6 @@ window.verPDFInformeGuardado = function(id) {
             db.collection("porteros").doc(data.porteroId).get().then(pDoc => { 
                 const pData = pDoc.exists ? pDoc.data() : { nombre: 'Desconocido', equipo: '-', categoria: '-' };
                 const html = construirHTMLInformeVertical(pData, data.datos, doc.id); 
-                document.body.classList.remove('print-landscape'); 
-                document.body.classList.add('print-portrait'); 
                 
                 const pEl = document.getElementById('preview-content');
                 if(pEl) pEl.innerHTML = html; 
@@ -1380,14 +1374,10 @@ window.generarPDFTorneo = function() {
             const rndId = Date.now();
             const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
-            document.body.classList.remove('print-landscape'); 
-            document.body.classList.add('print-portrait');
-            
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
-            // Generar el radar (crea imagen base64 de forma segura)
             setTimeout(() => {
                 window.generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
@@ -1489,8 +1479,8 @@ function construirHTMLTorneo(p, d, docId, rndId) {
             <div class="cover-info-bar">
                 <span>${p.categoria}</span> | <span>${p.equipo}</span> | <span style="color:#F1C40F;">🏆 ${d.torneo || '-'} 🏆</span>
             </div>
+            ${logoHtml}
         </div>
-        ${logoHtml}
         <div class="cover-footer">GUARDIANLAB ATM • DEPARTAMENTO DE PORTEROS</div>
     </div>`;
 
@@ -1637,9 +1627,6 @@ window.verPDFTorneoGuardado = function(id) {
                 const rndId = Date.now();
                 const html = construirHTMLTorneo(pData, data.datos, doc.id, rndId);
                 
-                document.body.classList.remove('print-landscape');
-                document.body.classList.add('print-portrait');
-                
                 const pEl = document.getElementById('preview-content');
                 if(pEl) pEl.innerHTML = html; 
                 document.getElementById('modal-pdf-preview').style.display = 'flex'; 
@@ -1653,22 +1640,15 @@ window.verPDFTorneoGuardado = function(id) {
     }).catch(err => console.error("Error al obtener informe:", err));
 }
 
-// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA
+// LA FUNCIÓN IMPRESIÓN MÓVIL BLINDADA (NATIVA POR CSS)
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
-    const pEl = document.getElementById('preview-content');
-    const prEl = document.getElementById('printable-area');
-    
-    // Clonamos el HTML de la vista previa al área de impresión oculta
-    prEl.innerHTML = pEl.innerHTML; 
-    
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
-    }, 200);
+    }, 100);
 }
 
-// NUEVO: COMPARTIR PDF DIRECTO POR WHATSAPP DESDE LA VISTA PREVIA
+// COMPARTIR WHATSAPP A MÁXIMA CALIDAD Y SIN BORDES
 window.compartirPDFWhatsAppActual = function(e) {
     window.haptic('medium');
     const btn = e ? e.currentTarget : null;
@@ -1681,16 +1661,20 @@ window.compartirPDFWhatsAppActual = function(e) {
 
     const element = document.getElementById('preview-content');
     
-    // Configuramos html2pdf para capturar exactamente la hoja A4 (210x297mm)
+    // Eliminamos márgenes en pantalla para que el PDF se corte perfecto en A4
+    element.classList.add('pdf-exporting');
+    
     const opt = {
         margin: 0,
         filename: 'Informe_Tecnico_ATM.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        image: { type: 'jpeg', quality: 1.0 },
+        html2canvas: { scale: 4, useCORS: true, letterRendering: true }, // Máxima resolución
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(element).outputPdf('blob').then(function(blob) {
+        element.classList.remove('pdf-exporting'); // Restaurar márgenes en pantalla
+        
         const file = new File([blob], 'Informe_Tecnico_ATM.pdf', { type: 'application/pdf' });
         
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1709,6 +1693,7 @@ window.compartirPDFWhatsAppActual = function(e) {
         }
     }).catch(err => {
         console.error(err);
+        element.classList.remove('pdf-exporting');
         alert("Error al generar el PDF para WhatsApp.");
         if(btn) {
             btn.innerHTML = originalHtml;
