@@ -183,20 +183,39 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 /* ========================================================
    ESTILOS PDF: FORMATO A4 PARA LA VISTA PREVIA Y PARA IMPRESIÓN
    ======================================================== */
-@media print {
-    body * { visibility: hidden; height: 0; overflow: hidden; }
-    #printable-area, #printable-area * { visibility: visible; height: auto; overflow: visible; }
-    #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-    html, body { margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-    @page { size: A4 portrait; margin: 0; }
+
+/* --- SOLUCIÓN VISTA PREVIA ANCHO TOTAL --- */
+#preview-content {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .pdf-cover { display: block; position: relative; width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%); color: white; page-break-after: always; box-sizing: border-box; overflow: hidden; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-/* AL IMPRIMIR, FORZAMOS QUE OCUPE EL 100% PARA NO DEJAR BORDES BLANCOS */
+/* AL IMPRIMIR, FORZAMOS EL FONDO AZUL EXPLÍCITO Y TAMAÑO EXACTO */
 @media print {
-    .pdf-cover, .pdf-slide { width: 100% !important; height: 100vh !important; min-height: 100vh !important; max-height: 100vh !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
+    body * { visibility: hidden; height: 0; overflow: hidden; }
+    #printable-area, #printable-area * { visibility: visible; height: auto; overflow: visible; }
+    #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+    html, body { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    @page { size: A4 portrait; margin: 0; }
+    
+    .pdf-cover, .pdf-slide { 
+        width: 210mm !important; 
+        height: 297mm !important; 
+        min-height: 297mm !important; 
+        max-height: 297mm !important; 
+        margin: 0 !important; 
+        box-shadow: none !important; 
+        border: none !important; 
+    }
+    
+    /* ESTO ASEGURA QUE EL FONDO AZUL SALGA EN LA IMPRESIÓN */
+    .pdf-cover {
+        background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important;
+    }
 }
 
 /* CONTENIDO DE LA PORTADA ORIGINAL RESTAURADA */
@@ -291,11 +310,3 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 
 /* Banderas limpias sin fondo azul y sin corchetes */
 .badge-pais { font-weight: bold; color: #1C2C5B; margin-left: 4px; display: inline-block; background: transparent !important; border:none !important; padding: 0 !important; }
-
-/* --- SOLUCIÓN VISTA PREVIA ANCHO TOTAL --- */
-/* Permite hacer scroll lateral en dispositivos pequeños sin encoger la página ni dañar la impresión */
-#preview-content {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
