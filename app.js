@@ -1659,11 +1659,37 @@ window.imprimirPDFNativo = function() {
     const pEl = document.getElementById('preview-content');
     const prEl = document.getElementById('printable-area');
     
-    // Clonamos el HTML de la vista previa al área de impresión oculta
+    // 1. Clonar el contenido al contenedor de impresión
     prEl.innerHTML = pEl.innerHTML; 
     
+    // 2. Ocultar todo lo demás en la página temporalmente para evitar conflictos en tablets
+    const children = Array.from(document.body.children);
+    const hiddenStates = [];
+    
+    children.forEach(child => {
+        if (child.id !== 'printable-area' && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE') {
+            hiddenStates.push({ el: child, display: child.style.display });
+            child.style.display = 'none';
+        }
+    });
+
+    // 3. Forzar la visualización estricta del documento
+    prEl.style.display = 'block';
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#ffffff';
+
+    // 4. Dar tiempo al dispositivo para renderizar antes de llamar a la impresora
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 15000); 
-    }, 200);
+        
+        // 5. Restaurar la interfaz después de generar el PDF
+        setTimeout(() => { 
+            prEl.style.display = 'none';
+            prEl.innerHTML = ''; 
+            document.body.style.backgroundColor = originalBg;
+            hiddenStates.forEach(state => {
+                state.el.style.display = state.display;
+            });
+        }, 3000); // Tiempo prudencial para que el diálogo nativo ya haya capturado la pantalla
+    }, 500);
 }
