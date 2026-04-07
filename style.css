@@ -126,7 +126,6 @@ input[type="file"] { display: none; }
 
 .section-divider { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 1px solid var(--border-glass); color: var(--text-sec); font-weight: 700; }
 
-/* NAVEGACIÓN iOS */
 .floating-nav-container { position: fixed; bottom: 25px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
 .floating-nav { pointer-events: auto; background: rgba(16, 24, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 50px; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; width: 95%; max-width: 480px; height: 65px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
 
@@ -181,48 +180,22 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 }
 
 /* ========================================================
-   ESTILOS PDF: FORMATO A4 PARA LA VISTA PREVIA Y PARA IMPRESIÓN
+   ESTILOS PDF: FORMATO ORIGINAL (PANTALLA AZUL EN PREVIEW)
    ======================================================== */
-
-/* --- SOLUCIÓN VISTA PREVIA ANCHO TOTAL --- */
-#preview-content {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-.pdf-cover { display: block; position: relative; width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%); color: white; page-break-after: always; box-sizing: border-box; overflow: hidden; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.pdf-slide { width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid; margin: 0 auto 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-/* AL IMPRIMIR, FORZAMOS EL FONDO AZUL EXPLÍCITO Y TAMAÑO EXACTO */
 @media print {
     body * { visibility: hidden; height: 0; overflow: hidden; }
     #printable-area, #printable-area * { visibility: visible; height: auto; overflow: visible; }
     #printable-area { display: block; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
-    html, body { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    html, body { width: 100%; height: 100%; margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     @page { size: A4 portrait; margin: 0; }
-    
-    .pdf-cover, .pdf-slide { 
-        width: 210mm !important; 
-        height: 297mm !important; 
-        min-height: 297mm !important; 
-        max-height: 297mm !important; 
-        margin: 0 !important; 
-        box-shadow: none !important; 
-        border: none !important; 
-    }
-    
-    /* ESTO ASEGURA QUE EL FONDO AZUL SALGA EN LA IMPRESIÓN */
-    .pdf-cover {
-        background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important;
-    }
 }
 
-/* CONTENIDO DE LA PORTADA ORIGINAL RESTAURADA */
+/* PORTADA ORIGINAL RECUPERADA (VISTA PREVIA Y PDF) */
+.pdf-cover { display: block !important; position: relative; width: 100% !important; height: 100vh !important; background: linear-gradient(135deg, #1C2C5B 0%, #0A0F1D 100%) !important; color: white !important; page-break-after: always !important; box-sizing: border-box; overflow: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 0; margin: 0; }
 .cover-bg-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 80%; object-fit: contain; opacity: 0.06; z-index: 1; pointer-events: none; }
 .cover-content { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 0 40px; text-align: center; z-index: 2; display: block; }
 
-/* CROMO EA FC PARA LA PORTADA (DISEÑO ORIGINAL PERFECTO) */
+/* CROMO EA FC EXACTAMENTE COMO EN LA IMAGEN */
 .pdf-cromo-cover { width: 220px; margin: 0 auto 30px auto; background: white; border: 4px solid #fff; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; font-family: 'Times New Roman', serif; }
 .pdf-cromo-top { position: relative; background: #1C2C5B; height: 230px; }
 .pdf-cromo-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
@@ -243,12 +216,14 @@ body.light-mode .ficha-close { background: rgba(0,0,0,0.1); color:#000; }
 .cover-info-bar { display: inline-block; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.4); padding: 12px 25px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #E5E7EB !important; letter-spacing: 2px; margin-bottom: 20px; }
 .cover-info-bar span { margin: 0 10px; }
 
-/* QR y LOGO TORNEO - POSICIONADO CORRECTAMENTE DEBAJO DEL TEXTO */
+/* QR y LOGO TORNEO */
 .cover-qr { position: absolute; top: 30px; right: 30px; width: 80px; height: 80px; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; }
 .cover-logo-torneo { display: block; margin: 15px auto 0 auto; width: 80px; height: 80px; object-fit: contain; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 3; position: relative;}
 .cover-footer { position: absolute; bottom: 40px; left: 0; font-size: 11px; color: rgba(255,255,255,0.5) !important; letter-spacing: 3px; text-transform: uppercase; width: 100%; text-align: center; font-weight: 600; z-index: 2; }
 
-/* PÁGINAS DEL PDF INTERNAS */
+/* PÁGINAS DEL PDF INTERNAS (100% PARA NO DEJAR BORDES BLANCOS) */
+.pdf-slide { width: 100%; height: 100vh; max-height: 100vh; background: #ffffff; color: #000; font-family: 'Arial', sans-serif; position: relative; padding: 25px 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; justify-content: space-between; page-break-after: always; page-break-inside: avoid; margin: 0;}
+
 .pdf-top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #CB3524; padding-bottom: 5px; margin-bottom: 8px; }
 .pdf-top-title { font-size: 18px; font-weight: 800; color: #1C2C5B; }
 .pdf-top-subtitle { font-size: 13px; color: #1C2C5B; font-weight: bold; margin-top: 4px; }

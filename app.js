@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// AÑADIDAS ESTADÍSTICAS Y RESULTADOS EN LA VISTA WEB DEL QR CON COLORES DINÁMICOS
 window.renderWebView = function(tipo, id) {
     document.getElementById('web-view-container').style.display = 'block';
     document.getElementById('web-view-container').innerHTML = '<div style="text-align:center; padding:50px; color:white; font-family:Montserrat, sans-serif;">Cargando Informe Digital...</div>';
@@ -924,8 +925,8 @@ window.procesarLogoTorneo = function(input) {
     }
 }
 
-// RADAR ANTI-CUELGUE TABLET
-window.generarGraficoRadar = function(rndId, val) {
+// RADAR ANTI-CUELGUE TABLET (EN PNG TRANSPARENTE)
+window.generarGraficoRadarInvisible = function(rndId, val) {
     const parseVal = (v) => { const n = parseInt(v); return isNaN(n) ? 3 : n; };
     
     const avgLiderazgo = ((parseVal(val.personalidad) + parseVal(val.mando) + parseVal(val.comunicacion)) / 3).toFixed(1);
@@ -936,7 +937,8 @@ window.generarGraficoRadar = function(rndId, val) {
     const avgAdaptacion = ((parseVal(val.ritmo) + parseVal(val.entorno)) / 2).toFixed(1);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 600; canvas.height = 600;
+    canvas.width = 800;
+    canvas.height = 800;
     canvas.style.position = 'absolute';
     canvas.style.top = '-9999px';
     document.body.appendChild(canvas);
@@ -951,7 +953,7 @@ window.generarGraficoRadar = function(rndId, val) {
                 borderColor: 'rgba(203, 53, 36, 1)',
                 pointBackgroundColor: '#1C2C5B',
                 pointBorderColor: '#fff',
-                borderWidth: 3,
+                borderWidth: 4,
             }]
         },
         options: {
@@ -960,7 +962,7 @@ window.generarGraficoRadar = function(rndId, val) {
             scales: {
                 r: {
                     min: 0, max: 5, ticks: { display: false },
-                    pointLabels: { font: { size: 16, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
+                    pointLabels: { font: { size: 24, family: 'Montserrat', weight: 'bold' }, color: '#1C2C5B' },
                     grid: { color: 'rgba(0,0,0,0.1)' },
                     angleLines: { color: 'rgba(0,0,0,0.1)' }
                 }
@@ -969,11 +971,17 @@ window.generarGraficoRadar = function(rndId, val) {
         }
     });
 
+    // Se guarda como PNG para mantener fondo transparente en el PDF
     setTimeout(() => {
         try {
             const imgB64 = chart.toBase64Image('image/png', 1.0);
-            const imgPreview = document.getElementById(`radar-img-${rndId}`);
-            if(imgPreview) { imgPreview.src = imgB64; imgPreview.style.display = 'block'; }
+            
+            const imgs = document.querySelectorAll('.radar-img-' + rndId);
+            imgs.forEach(img => {
+                img.src = imgB64;
+                img.style.display = 'block';
+            });
+            
             chart.destroy();
             canvas.remove();
         } catch(e) { console.error("Error al generar radar:", e); }
@@ -1372,11 +1380,14 @@ window.generarPDFTorneo = function() {
             const rndId = Date.now();
             const html = construirHTMLTorneo(pData, datos, docId, rndId);
             
+            document.body.classList.remove('print-landscape'); 
+            document.body.classList.add('print-portrait');
+            
             const pEl = document.getElementById('preview-content');
             if(pEl) pEl.innerHTML = html; 
             document.getElementById('modal-pdf-preview').style.display = 'flex'; 
             
-            // Generar el radar (crea imagen base64 de forma segura)
+            // Generar el radar (crea imagen base64 y la inyecta)
             setTimeout(() => {
                 window.generarGraficoRadarInvisible(rndId, datos.val);
             }, 100);
@@ -1553,7 +1564,7 @@ function construirHTMLTorneo(p, d, docId, rndId) {
         <div class="pdf-row" style="margin-bottom: 5px;">
             <div style="width:40%; display:flex; justify-content:center; align-items:center; border:1px solid #ccc; border-radius:4px; padding:5px;">
                 <div style="width:100%; height:150px; position:relative; display:flex; justify-content:center;">
-                    <img id="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                    <img class="radar-img-${rndId}" style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
                 </div>
             </div>
             <div style="width:60%; display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -1646,13 +1657,13 @@ window.verPDFTorneoGuardado = function(id) {
 window.imprimirPDFNativo = function() { 
     window.haptic('light');
     const pEl = document.getElementById('preview-content');
-    
-    // Asignar el contenido de la vista previa al DOM de impresion (que ocupa el 100% gracias a @media print)
     const prEl = document.getElementById('printable-area');
+    
+    // Clonamos el HTML de la vista previa al área de impresión oculta
     prEl.innerHTML = pEl.innerHTML; 
     
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiar para ahorrar RAM
+        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
     }, 200);
 }
