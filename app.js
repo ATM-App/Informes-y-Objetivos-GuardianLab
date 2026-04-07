@@ -1664,6 +1664,6 @@ window.imprimirPDFNativo = function() {
     
     setTimeout(() => {
         window.print();
-        setTimeout(() => { prEl.innerHTML = ''; }, 1000); // Limpiamos tras imprimir
+        setTimeout(() => { prEl.innerHTML = ''; }, 15000); 
     }, 200);
 }
